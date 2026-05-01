@@ -20,6 +20,8 @@
 skills:
   - name: scan-reviewer
     platforms: [opencode, claudecode]
+  - name: tech-tutorial-writer
+    platforms: [opencode, claudecode]
 
 sub_agents:
   - name: component-scanner
