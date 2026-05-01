@@ -99,6 +99,16 @@ version: 1.0.0
 - **Regex-based YAML parsing** — the bash script parses `manifest.yaml` with regex only. Nested structures, string quoting beyond basic `"` / `'` stripping, or unusual YAML formatting may break parsing.
 - **No tests, no lint, no CI** — validate changes manually by running build and inspecting `dist/` output.
 
+## Post-generation documentation review
+
+After every conversation where files have been generated or modified, invoke the `docs-maintainer` sub-agent using the Task tool. This sub-agent will:
+
+1. Inspect the changes via `git diff` and `git status`
+2. Check whether `manifest.yaml` needs updating to register any new skills, sub-agents, or commands
+3. Check whether `AGENTS.md` needs updating for new workflows, commands, or structural changes
+4. Check whether `README.md` needs updating for directory structure or quick-start changes
+5. Report findings and apply necessary edits
+
 ## Repository context
 
 This directory lives inside a larger local git monorepo at `/Users/chenmeili/Documents/GitHub/`. The git root is **not** `second-brain/` — it is the parent directory. Sibling projects (e.g., `scan-reviewer/`, `hermes-agent/`, `cua/`) are independent projects under the same repo. Do not assume `second-brain/` is a standalone git repository.
