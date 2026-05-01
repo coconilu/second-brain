@@ -7,10 +7,11 @@ This is a **content repository** for authoring and packaging AI agent skills/ski
 ```
 skills/<name>/skill.md   — skill source (YAML frontmatter + Markdown body)
 sub-agent/<name>.md      — sub-agent source (pure Markdown)
+commands/<name>.md       — command source (YAML frontmatter + Markdown body)
 templates/skill-template.md  — reference template for new skills
 scripts/sync-plugins.sh  — the only build/install tool
 dist/                    — generated output (git-ignored: .gitignore)
-manifest.yaml            — registry: declares which skills/agents target which platforms
+manifest.yaml            — registry: declares which skills/agents/commands target which platforms
 docs/                    — general knowledge docs (Markdown)
 ```
 
@@ -44,6 +45,21 @@ docs/                    — general knowledge docs (Markdown)
        platforms: [claudecode]  # opencode sub-agents NOT YET SUPPORTED
    ```
 
+## Workflow for adding a command
+
+1. Create `commands/<name>.md` — copy from `templates/command-template.md`
+2. Register it in `manifest.yaml`:
+   ```yaml
+   commands:
+     - name: <name>
+       platforms: [opencode, claudecode]  # either, or both
+   ```
+3. Run `./scripts/sync-plugins.sh all`
+
+**Platform output differences for commands**:
+- **OpenCode**: copied as-is (YAML frontmatter is meaningful to OpenCode)
+- **Claude Code**: frontmatter stripped; output is pure Markdown (Claude Code commands have no frontmatter)
+
 ## Skill file format
 
 Every skill source must have YAML frontmatter with `name`, `description`, and `version`:
@@ -65,6 +81,13 @@ version: 1.0.0
 | Install path | `~/.config/opencode/skills/<name>/` | `~/.claude/skills/<name>/` |
 
 **OpenCode transform**: the build script adds `compatibility: opencode` to frontmatter and moves `version` into a `metadata.version` block. Original `compatibility:` and `version:` lines are stripped from the frontmatter.
+
+**Command output differences**:
+| Aspect | OpenCode | Claude Code |
+|--------|----------|-------------|
+| Output file | `<name>.md` | `<name>.md` |
+| Transform | No (copied as-is) | Yes (strips frontmatter) |
+| Install path | `~/.config/opencode/commands/` | `~/.claude/commands/` |
 
 ## Known limitations
 

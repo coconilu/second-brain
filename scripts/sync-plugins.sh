@@ -6,15 +6,20 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 MANIFEST="$PROJECT_DIR/manifest.yaml"
 SRC_SKILLS="$PROJECT_DIR/skills"
 SRC_AGENTS="$PROJECT_DIR/sub-agent"
+SRC_COMMANDS="$PROJECT_DIR/commands"
 DIST_DIR="$PROJECT_DIR/dist"
 
 OPENCODE_SKILLS="$DIST_DIR/opencode-plugin/skills"
 CLAUDE_SKILLS="$DIST_DIR/claudecode-plugin/skills"
 CLAUDE_AGENTS="$DIST_DIR/claudecode-plugin/agents"
+OPENCODE_COMMANDS="$DIST_DIR/opencode-plugin/commands"
+CLAUDE_COMMANDS="$DIST_DIR/claudecode-plugin/commands"
 
 OPENCODE_CFG="$HOME/.config/opencode/skills"
 CLAUDE_CFG_SKILLS="$HOME/.claude/skills"
 CLAUDE_CFG_AGENTS="$HOME/.claude/agents"
+OPENCODE_CFG_COMMANDS="$HOME/.config/opencode/commands"
+CLAUDE_CFG_COMMANDS="$HOME/.claude/commands"
 
 # ================================================================
 # Parse manifest.yaml, emit "type:name:platform" one per line
@@ -32,6 +37,9 @@ parse_manifest() {
             continue
         elif [[ "$line" =~ ^sub_agents: ]]; then
             section="agent"
+            continue
+        elif [[ "$line" =~ ^commands: ]]; then
+            section="command"
             continue
         fi
 
@@ -104,16 +112,45 @@ convert_for_claude() {
 }
 
 # ================================================================
+# Convert command.md for Claude Code
+#   Strip YAML frontmatter — Claude Code commands are plain Markdown
+# ================================================================
+convert_command_for_claude() {
+    local input="$1"
+    local output="$2"
+
+    awk '
+    BEGIN { in_front = 0; front_done = 0 }
+    /^---$/ {
+        if (in_front == 0) {
+            in_front = 1
+            next
+        } else {
+            in_front = 0
+            front_done = 1
+            next
+        }
+    }
+    {
+        if (in_front == 1) next
+        if (front_done == 0) next
+        print
+    }
+    ' "$input" > "$output"
+}
+
+# ================================================================
 # Build: read manifest + source files → generate dist/
 # ================================================================
 build() {
     echo "==> Building plugins..."
 
-    rm -rf "$OPENCODE_SKILLS" "$CLAUDE_SKILLS" "$CLAUDE_AGENTS"
-    mkdir -p "$OPENCODE_SKILLS" "$CLAUDE_SKILLS" "$CLAUDE_AGENTS"
+    rm -rf "$OPENCODE_SKILLS" "$CLAUDE_SKILLS" "$CLAUDE_AGENTS" "$OPENCODE_COMMANDS" "$CLAUDE_COMMANDS"
+    mkdir -p "$OPENCODE_SKILLS" "$CLAUDE_SKILLS" "$CLAUDE_AGENTS" "$OPENCODE_COMMANDS" "$CLAUDE_COMMANDS"
 
     local count_skill=0
     local count_agent=0
+    local count_command=0
     local entries
     entries=$(parse_manifest)
 
@@ -163,15 +200,59 @@ build() {
             if [[ "$platform" == "opencode" ]]; then
                 echo "  [NOTE] agent $name: OpenCode sub-agent support not yet implemented" >&2
             fi
+        elif [[ "$type" == "command" ]]; then
+            local src="$SRC_COMMANDS/$name.md"
+            if [[ ! -f "$src" ]]; then
+                echo "  [WARN] command source not found: $src" >&2
+                continue
+            fi
+
+            if [[ "$platform" == "opencode" ]]; then
+                cp "$src" "$OPENCODE_COMMANDS/$name.md"
+                echo "  [command] $name → opencode"
+                count_command=$((count_command + 1))
+            fi
+
+            if [[ "$platform" == "claudecode" ]]; then
+                convert_command_for_claude "$src" "$CLAUDE_COMMANDS/$name.md"
+                echo "  [command] $name → claudecode"
+                count_command=$((count_command + 1))
+            fi
         fi
     done <<< "$entries"
 
-    echo "==> Build done: $count_skill skill(s), $count_agent agent(s)"
+    echo "==> Build done: $count_skill skill(s), $count_agent agent(s), $count_command command(s)"
 }
 
 # ================================================================
 # _symlink_skill_dirs: helper to symlink individual skill dirs
 # ================================================================
+_symlink_files() {
+    local src_parent="$1"
+    local dst_parent="$2"
+    local label="$3"
+
+    if [[ ! -d "$src_parent" ]] || [[ -z "$(ls -A "$src_parent" 2>/dev/null)" ]]; then
+        return
+    fi
+
+    mkdir -p "$dst_parent"
+
+    for item in "$src_parent"/*; do
+        local name
+        name="$(basename "$item")"
+        local target="$dst_parent/$name"
+        if [[ -f "$target" ]] || [[ -L "$target" ]]; then
+            rm "$target"
+        elif [[ -e "$target" ]]; then
+            echo "  [SKIP] $target exists (not a file or symlink)" >&2
+            continue
+        fi
+        ln -sfn "$(cd "$(dirname "$item")" && pwd)/$name" "$target"
+        echo "  [install] $label: $name"
+    done
+}
+
 _symlink_dirs() {
     local src_parent="$1"
     local dst_parent="$2"
@@ -206,9 +287,11 @@ _symlink_dirs() {
 install() {
     echo "==> Installing plugins..."
 
-    _symlink_dirs "$OPENCODE_SKILLS"  "$OPENCODE_CFG"        "opencode skill"
-    _symlink_dirs "$CLAUDE_SKILLS"   "$CLAUDE_CFG_SKILLS"   "claudecode skill"
-    _symlink_dirs "$CLAUDE_AGENTS"   "$CLAUDE_CFG_AGENTS"   "claudecode agent"
+    _symlink_dirs  "$OPENCODE_SKILLS"    "$OPENCODE_CFG"          "opencode skill"
+    _symlink_dirs  "$CLAUDE_SKILLS"     "$CLAUDE_CFG_SKILLS"     "claudecode skill"
+    _symlink_dirs  "$CLAUDE_AGENTS"     "$CLAUDE_CFG_AGENTS"     "claudecode agent"
+    _symlink_files "$OPENCODE_COMMANDS" "$OPENCODE_CFG_COMMANDS" "opencode command"
+    _symlink_files "$CLAUDE_COMMANDS"   "$CLAUDE_CFG_COMMANDS"   "claudecode command"
 
     echo "==> Install done"
 }
