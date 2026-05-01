@@ -288,19 +288,96 @@ _symlink_dirs() {
 }
 
 # ================================================================
+# Uninstall helper: remove symlinks from config dirs
+# ================================================================
+_uninstall_by_source() {
+    local src_parent="$1"
+    local dst_parent="$2"
+    local label="$3"
+
+    if [[ ! -d "$src_parent" ]] || [[ -z "$(ls -A "$src_parent" 2>/dev/null)" ]]; then
+        return
+    fi
+
+    for item in "$src_parent"/*; do
+        local name="$(basename "$item")"
+        local target="$dst_parent/$name"
+        if [[ -L "$target" ]]; then
+            rm "$target"
+            echo "  [uninstall] $label: $name"
+        elif [[ -e "$target" ]]; then
+            echo "  [SKIP] $label: $name (not a symlink)" >&2
+        fi
+    done
+}
+
+# ================================================================
 # Install: symlink dist/ to platform config directories
 # ================================================================
-install() {
-    echo "==> Installing plugins..."
-
+_install_opencode() {
+    echo "==> Installing OpenCode plugins..."
     _symlink_dirs  "$OPENCODE_SKILLS"    "$OPENCODE_CFG"          "opencode skill"
     _symlink_dirs  "$OPENCODE_AGENTS"   "$OPENCODE_CFG_AGENTS"   "opencode agent"
+    _symlink_files "$OPENCODE_COMMANDS" "$OPENCODE_CFG_COMMANDS" "opencode command"
+    echo "==> OpenCode install done"
+}
+
+_install_claudecode() {
+    echo "==> Installing Claude Code plugins..."
     _symlink_dirs  "$CLAUDE_SKILLS"     "$CLAUDE_CFG_SKILLS"     "claudecode skill"
     _symlink_dirs  "$CLAUDE_AGENTS"     "$CLAUDE_CFG_AGENTS"     "claudecode agent"
-    _symlink_files "$OPENCODE_COMMANDS" "$OPENCODE_CFG_COMMANDS" "opencode command"
     _symlink_files "$CLAUDE_COMMANDS"   "$CLAUDE_CFG_COMMANDS"   "claudecode command"
+    echo "==> Claude Code install done"
+}
 
-    echo "==> Install done"
+install() {
+    if [[ "${1:-}" == "opencode" ]]; then
+        _install_opencode
+    elif [[ "${1:-}" == "claudecode" ]]; then
+        _install_claudecode
+    else
+        _install_opencode
+        _install_claudecode
+    fi
+}
+
+_uninstall_opencode() {
+    echo "==> Uninstalling OpenCode plugins..."
+    _uninstall_by_source "$OPENCODE_SKILLS"    "$OPENCODE_CFG"          "opencode skill"
+    _uninstall_by_source "$OPENCODE_AGENTS"   "$OPENCODE_CFG_AGENTS"   "opencode agent"
+    _uninstall_by_source "$OPENCODE_COMMANDS" "$OPENCODE_CFG_COMMANDS" "opencode command"
+    echo "==> OpenCode uninstall done"
+}
+
+_uninstall_claudecode() {
+    echo "==> Uninstalling Claude Code plugins..."
+    _uninstall_by_source "$CLAUDE_SKILLS"     "$CLAUDE_CFG_SKILLS"     "claudecode skill"
+    _uninstall_by_source "$CLAUDE_AGENTS"     "$CLAUDE_CFG_AGENTS"     "claudecode agent"
+    _uninstall_by_source "$CLAUDE_COMMANDS"   "$CLAUDE_CFG_COMMANDS"   "claudecode command"
+    echo "==> Claude Code uninstall done"
+}
+
+uninstall() {
+    if [[ "${1:-}" == "opencode" ]]; then
+        _uninstall_opencode
+    elif [[ "${1:-}" == "claudecode" ]]; then
+        _uninstall_claudecode
+    else
+        _uninstall_opencode
+        _uninstall_claudecode
+    fi
+}
+
+update() {
+    build
+    if [[ "${1:-}" == "opencode" ]]; then
+        _install_opencode
+    elif [[ "${1:-}" == "claudecode" ]]; then
+        _install_claudecode
+    else
+        _install_opencode
+        _install_claudecode
+    fi
 }
 
 # ================================================================
@@ -320,21 +397,29 @@ case "${1:-}" in
         build
         ;;
     install)
-        install
+        install "${2:-}"
+        ;;
+    uninstall)
+        uninstall "${2:-}"
+        ;;
+    update)
+        update "${2:-}"
         ;;
     all)
-        build && install
+        build && install ""
         ;;
     clean)
         clean
         ;;
     *)
-        echo "Usage: $0 {build|install|all|clean}"
+        echo "Usage: $0 {build|install|uninstall|update|all|clean} [opencode|claudecode]"
         echo ""
-        echo "  build    - Generate dist/ from source files per manifest.yaml"
-        echo "  install  - Symlink dist/ to platform config directories"
-        echo "  all      - build + install"
-        echo "  clean    - Remove dist/ contents"
+        echo "  build                          - Generate dist/ from source files per manifest.yaml"
+        echo "  install [opencode|claudecode]  - Symlink dist/ to platform config directories"
+        echo "  uninstall [opencode|claudecode] - Remove symlinks from platform config directories"
+        echo "  update [opencode|claudecode]   - build + install for specified platform(s)"
+        echo "  all                            - build + install (both platforms)"
+        echo "  clean                          - Remove dist/ contents"
         exit 1
         ;;
 esac

@@ -18,11 +18,15 @@ docs/                    — general knowledge docs (Markdown)
 ## Key commands
 
 ```bash
-./scripts/sync-plugins.sh build     # generate dist/ from manifest + sources
-./scripts/sync-plugins.sh install   # symlink dist/ → ~/.config/opencode/skills/ and ~/.claude/
-./scripts/sync-plugins.sh all       # build && install
-./scripts/sync-plugins.sh clean     # rm -rf dist/*
+./scripts/sync-plugins.sh build                        # generate dist/ from manifest + sources
+./scripts/sync-plugins.sh install [opencode|claudecode] # symlink dist/ to platform config dirs
+./scripts/sync-plugins.sh uninstall [opencode|claudecode] # remove symlinks from config dirs
+./scripts/sync-plugins.sh update [opencode|claudecode]  # build && install
+./scripts/sync-plugins.sh all                          # build && install (both platforms)
+./scripts/sync-plugins.sh clean                        # rm -rf dist/*
 ```
+
+Without a platform argument, install/uninstall/update defaults to both platforms.
 
 ## Workflow for adding a skill
 
