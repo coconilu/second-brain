@@ -1,0 +1,19 @@
+# =============================================================================
+# manifest.yaml  —— 控制哪些内容被打包到各个平台
+#
+# 用法：
+#   skills 下注册技能，sub_agents 下注册 sub-agent
+#   platforms 可选值: opencode, claudecode（可单选或多选）
+#
+# 示例：
+#   skills:
+#     - name: refactor-code
+#       platforms: [opencode, claudecode]
+#   sub_agents:
+#     - name: code-reviewer
+#       platforms: [claudecode]
+# =============================================================================
+
+skills: []
+
+sub_agents: []
