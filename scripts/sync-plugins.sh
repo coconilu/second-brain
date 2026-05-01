@@ -7,6 +7,8 @@ MANIFEST="$PROJECT_DIR/manifest.yaml"
 SRC_SKILLS="$PROJECT_DIR/skills"
 SRC_AGENTS="$PROJECT_DIR/sub-agent"
 SRC_COMMANDS="$PROJECT_DIR/commands"
+SRC_CONFIG="$PROJECT_DIR/config"
+SRC_PLUGINS="$PROJECT_DIR/plugins"
 DIST_DIR="$PROJECT_DIR/dist"
 
 OPENCODE_SKILLS="$DIST_DIR/opencode-plugin/skills"
@@ -15,9 +17,11 @@ OPENCODE_AGENTS="$DIST_DIR/opencode-plugin/agents"
 CLAUDE_AGENTS="$DIST_DIR/claudecode-plugin/agents"
 OPENCODE_COMMANDS="$DIST_DIR/opencode-plugin/commands"
 CLAUDE_COMMANDS="$DIST_DIR/claudecode-plugin/commands"
+OPENCODE_PLUGINS="$DIST_DIR/opencode-plugin/plugins"
 
 OPENCODE_CFG="$HOME/.config/opencode/skills"
 OPENCODE_CFG_AGENTS="$HOME/.config/opencode/agents"
+OPENCODE_CFG_PLUGINS="$HOME/.config/opencode/plugins"
 CLAUDE_CFG_SKILLS="$HOME/.claude/skills"
 CLAUDE_CFG_AGENTS="$HOME/.claude/agents"
 OPENCODE_CFG_COMMANDS="$HOME/.config/opencode/commands"
@@ -147,8 +151,20 @@ convert_command_for_claude() {
 build() {
     echo "==> Building plugins..."
 
-    rm -rf "$OPENCODE_SKILLS" "$CLAUDE_SKILLS" "$OPENCODE_AGENTS" "$CLAUDE_AGENTS" "$OPENCODE_COMMANDS" "$CLAUDE_COMMANDS"
-    mkdir -p "$OPENCODE_SKILLS" "$CLAUDE_SKILLS" "$OPENCODE_AGENTS" "$CLAUDE_AGENTS" "$OPENCODE_COMMANDS" "$CLAUDE_COMMANDS"
+    rm -rf "$OPENCODE_SKILLS" "$CLAUDE_SKILLS" "$OPENCODE_AGENTS" "$CLAUDE_AGENTS" "$OPENCODE_COMMANDS" "$CLAUDE_COMMANDS" "$OPENCODE_PLUGINS"
+    mkdir -p "$OPENCODE_SKILLS" "$CLAUDE_SKILLS" "$OPENCODE_AGENTS" "$CLAUDE_AGENTS" "$OPENCODE_COMMANDS" "$CLAUDE_COMMANDS" "$OPENCODE_PLUGINS"
+
+    # Copy OpenCode config (opencode.json)
+    if [[ -f "$SRC_CONFIG/opencode.json" ]]; then
+        cp "$SRC_CONFIG/opencode.json" "$DIST_DIR/opencode-plugin/opencode.json"
+        echo "  [config] opencode.json → opencode-plugin"
+    fi
+
+    # Copy OpenCode plugins (.ts files)
+    if [[ -d "$SRC_PLUGINS" ]] && [[ -n "$(ls -A "$SRC_PLUGINS" 2>/dev/null)" ]]; then
+        cp "$SRC_PLUGINS"/*.ts "$OPENCODE_PLUGINS/" 2>/dev/null || true
+        echo "  [plugin] scan-reviewer.ts → opencode-plugin/plugins"
+    fi
 
     local count_skill=0
     local count_agent=0
@@ -295,10 +311,22 @@ install() {
 
     _symlink_dirs  "$OPENCODE_SKILLS"    "$OPENCODE_CFG"          "opencode skill"
     _symlink_dirs  "$OPENCODE_AGENTS"   "$OPENCODE_CFG_AGENTS"   "opencode agent"
+    _symlink_files "$OPENCODE_PLUGINS"  "$OPENCODE_CFG_PLUGINS"  "opencode plugin"
     _symlink_dirs  "$CLAUDE_SKILLS"     "$CLAUDE_CFG_SKILLS"     "claudecode skill"
     _symlink_dirs  "$CLAUDE_AGENTS"     "$CLAUDE_CFG_AGENTS"     "claudecode agent"
     _symlink_files "$OPENCODE_COMMANDS" "$OPENCODE_CFG_COMMANDS" "opencode command"
     _symlink_files "$CLAUDE_COMMANDS"   "$CLAUDE_CFG_COMMANDS"   "claudecode command"
+
+    # Symlink opencode.json to OpenCode global config
+    local opencode_json="$DIST_DIR/opencode-plugin/opencode.json"
+    local opencode_json_target="$HOME/.config/opencode/opencode.json"
+    if [[ -f "$opencode_json" ]]; then
+        if [[ -f "$opencode_json_target" ]] || [[ -L "$opencode_json_target" ]]; then
+            rm "$opencode_json_target"
+        fi
+        ln -sfn "$(cd "$(dirname "$opencode_json")" && pwd)/opencode.json" "$opencode_json_target"
+        echo "  [install] opencode config: opencode.json"
+    fi
 
     echo "==> Install done"
 }
