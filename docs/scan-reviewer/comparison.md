@@ -1,68 +1,110 @@
-# Comparison with Similar Projects
+# 与开源社区同类方案的对比
 
-## OpenAgentsControl (OAC) — 3.8k stars
+## 核心问题收敛
 
-**Approach**: User manually defines coding patterns via `/add-context` wizard. Agents load these patterns before generating code. Has a `CodeReviewer` sub-agent and structured workflow.
-
-**Overlap**: Both aim to make AI-generated code match project patterns. Both use sub-agents for review.
-
-**Difference**: OAC relies on **user-provided context** (manual entry). scan-reviewer **automatically discovers** reusable components by scanning the codebase. OAC is a full development workflow framework; scan-reviewer is a focused post-generate review tool.
-
-**Complementary**: Could work together — OAC provides the coding style context, scan-reviewer provides the reusable component catalog.
+AI 编码代理的上下文窗口有限，如何让代理"知道"项目中已有哪些可复用代码，是以下所有方案要解决的核心问题。scan-reviewer 在其中选择了**持久化目录 + 子代理审查**的路径，以下分析各方案的取舍。
 
 ---
 
-## Agentic — 501 stars
+## 方案对比总表
 
-**Approach**: Structured six-phase workflow (Research → Plan → Execute → Commit → Review). Uses "thoughts" directory for knowledge persistence. Task decomposition and context compression.
-
-**Overlap**: Both have a review phase. Both use sub-agents for specialized tasks.
-
-**Difference**: Agentic is a full workflow replacement — it wants to manage the entire development process. scan-reviewer is a single-purpose tool that plugs into any workflow. Agentic's review is manual/general; scan-reviewer's review is specifically about reusability against a pre-built catalog.
-
----
-
-## KDCO Workspace — 392 stars
-
-**Approach**: Bundled multi-agent orchestration (researcher, coder, scribe, reviewer). Has `/review` command and code-review skill. Permission boundaries between agents.
-
-**Overlap**: Both use a reviewer sub-agent. Both define review criteria in skills.
-
-**Difference**: KDCO reviewer does general code review (quality, style, security). scan-reviewer reviewer specifically checks for **reusability duplication** against a scanned index. KDCO has no automatic component catalog generation.
+| 项目 | 索引方法 | 排序策略 | 持久化方式 | 核心创新 |
+|------|----------|----------|------------|----------|
+| **Aider Repo Map** | tree-sitter AST 解析 | PageRank 图排序 | 动态（每轮生成） | 完整签名的标注级上下文 |
+| **Cursor** | 自定义嵌入向量 + Grep | 代理自主多策略选择 | 本地向量库（5分钟同步） | 代理行为训练的嵌入模型 |
+| **Sourcegraph Cody** | 服务端代码图谱 | Search API + @ 引用 | 持久（服务端） | 跨仓库远程上下文 |
+| **Continue.dev** | 可插拔上下文提供者 + LanceDB | 语义搜索（嵌入） | 混合（本地索引） | Provider 插件架构 |
+| **Cline / Roo Code** | AST + 正则 + grep | 代理自主探索 | 静态（.clinerules） | 工具调用循环 |
+| **Tabby** | RAG + LSP | Rank Fusion 多信号融合 | 持久（服务端） | LSP 实时感知 |
+| **SWE-agent** | Filemap + shell 工具 | 代理通过工具探索 | 动态（每任务） | ACI：工具优于索引 |
+| **Qodo/Codium** | 覆盖率报告解析 | 覆盖缺口优先级 | 动态（每次运行） | 覆盖驱动的上下文选择 |
+| **scan-reviewer** | grep + 正则 | PageRank 加权 + 多信号评分 | 持久（catalog.md, git 提交） | 子代理分离 + 持久可共享目录 |
 
 ---
 
-## Anthropic SWE Agent (Claude Code)
+## 逐项深度分析
 
-**Approach**: Multi-phase pipeline: Explore (search codebase) → Plan → Implement → Verify. The agent searches the codebase extensively before generating code.
+### Aider Repo Map
 
-**Overlap**: Both emphasize "search/understand the codebase before/after writing code." Both use sub-agents for focused tasks.
+**索引方式**：对所有源文件运行 tree-sitter AST 解析，通过语言特定的 `tags.scm` 提取所有符号定义（类、函数、方法、类型签名、变量），支持 ~15 种语言。输出一份"仓库地图"随每次请求一起发送给 LLM。
 
-**Difference**: Anthropic's approach is **reactive** — the agent searches on-demand each time. scan-reviewer is **proactive** — it pre-builds a catalog that persists across sessions. The catalog is a form of "compiled knowledge" about the codebase that reduces repetitive search work.
+**排序方式**：构建**依赖图**（文件为节点，导入/引用为边），用 PageRank 算法计算每个标识符的重要性。高 PageRank（被广泛引用）的标识符保留，低排名的裁剪掉。
 
-**Key insight**: Anthropic's agents "re-learn" the codebase on every session. scan-reviewer's catalog is like a cache — it trades a one-time scan cost for faster, more reliable future reviews.
+**差异化设计**：
+- `--map-tokens` 参数（默认 1K tokens）控制地图大小。地图在不需要理解整个仓库时自动缩小，在需要时动态扩展。
+- **签名级精度**：地图中包含完整的参数列表和类型签名，LLM 可以"使用" API 而无需读取完整源文件
+
+**与 scan-reviewer 的差异**：
+- Aider 的地图是**临时、每轮刷新**的；scan-reviewer 的目录是**持久、可提交 git、团队共享**的
+- Aider 依赖 tree-sitter 原生依赖；scan-reviewer 依赖 grep，零依赖
+- scan-reviewer 借鉴了 Aider 的 PageRank 思想增强自身的层级分类（加权评分取代纯计数）
+
+### Cursor
+
+**索引方式**：将代码拆分为有意义的块（函数、类、逻辑块），通过自训练嵌入模型转化为向量，存入本地向量数据库。同时有 Instant Grep（自定义正则引擎，在大代码库上性能优于 ripgrep）。索引在打开工作区时开始构建，80% 完成度时可用，每 5 分钟同步变更文件。
+
+**排序方式**：**多策略代理选择**——代理根据提示类型自主选工具：
+- 具体符号名 → grep
+- 概念/行为 → 语义搜索，再用 grep 补全细节
+- 复杂探索 → 串联多次搜索 + 文件读取 + 引用追踪
+
+**差异化设计**：
+- **代理行为训练的嵌入模型**：用历史会话轨迹训练嵌入模型——LLM 评判在每个步骤中什么内容最有用，然后把嵌入模型训练成对齐这种"有用性"分数，而非通用的代码相似度
+
+**与 scan-reviewer 的差异**：
+- Cursor 的多策略检索可以直接借鉴到 review 阶段：审查时不应只用 grep 查目录，还应做"目标功能"的语义联想
+- scan-reviewer 的增强启发式中的"语义近似度"正是受此启发
+
+### Sourcegraph Cody
+
+**索引方式**：利用 Sourcegraph 已有的 Code Search 基础设施——一个预构建的服务端代码图谱，索引所有符号、引用和跨仓库依赖。
+
+**差异化设计**：
+- **远程上下文**：Cody 可以从你没有克隆到本地的仓库中拉取上下文。这使它在多微服务组织里特别有优势
+- 用户或代理可以 `@` 引用特定文件、符号或远程仓库
+
+**与 scan-reviewer 的差异**：
+- scan-reviewer 目前仅限单仓库。跨仓库/跨服务端复用检测是未来的增强方向
+
+### Continue.dev
+
+**索引方式**：可插拔的上下文提供者系统：
+- `@codebase`：将整个代码库嵌入为向量做语义检索
+- `@file` / `@folder` / `@terminal` / `@diff` / `@docs`
+
+**排序方式**：嵌入向量的语义搜索（本地 LanceDB）
+
+**差异化设计**：
+- **Provider 插件架构**是最干净的抽象：每个上下文源是一个自包含的 Provider，有标准接口 `getContext()`。这让 scan-reviewer 的 catalog.md 天然成为一个 "ScanReviewer Provider"
+
+**与 scan-reviewer 的差异**：
+- scan-reviewer 如果暴露为 "ReusableComponentProvider"，就可以被 Continue.dev 等平台作为上下文源消费
+
+### Tabby
+
+RAG 管道 + LSP 实时感知。最值得借鉴的是 **Rank Fusion** 多信号融合——同时考虑词法匹配、语义相似度、文件最近修改时间、LSP 声明信息，融合为一个综合相关度分数。scan-reviewer 的多信号评分（引用加权 + 修改热度 + 测试覆盖）直接受此理念启发。
+
+### SWE-agent / OpenHands
+
+"工具优于索引"的设计哲学。给代理 `grep` + `find` + `python` 等工具，让代理自己决定需要什么上下文。scan-reviewer 的关键差异在于：**预建索引避免了 agent 在搜索上浪费 token**。但 SWE-agent 的"更好的工具设计"理念反过来提醒 scan-reviewer：目录应该作为工具可查询的产物，而非必须全量加载。
+
+### Qodo/Codium
+
+覆盖驱动的上下文选择——只把未覆盖的代码路径展现给 LLM。这对 scan-reviewer 的启发是**测试覆盖可以作为重要性评分的一个维度**（有测试 = 更可靠的复用目标）。
 
 ---
 
-## Summary Table
+## scan-reviewer 的定位
 
-| Feature | OAC | Agentic | KDCO WS | SWE Agent | scan-reviewer |
-|---------|-----|---------|---------|-----------|---------------|
-| Auto-discovers reusable components | No | No | No | On-demand only | **Yes, proactive** |
-| Persistent catalog | No (context files) | No | No | No | **Yes (catalog.md)** |
-| Post-generate review | Yes (general) | Yes (general) | Yes (general) | Yes (verify) | **Yes (reusability-focused)** |
-| Sub-agent based | Yes | Yes | Yes | Yes | **Yes** |
-| Skill-defined criteria | Yes | No | Yes | No | **Yes** |
-| Dual-platform (OC + CC) | Yes (partial) | No | No | No | **Yes** |
-| Auto-trigger on session.idle | No | No | No | No | **Yes** |
-| Full workflow framework | Yes | Yes | Yes | No | **No (single-purpose)** |
+经过社区调研，scan-reviewer 的差异化价值有了更清晰的定义：
 
-## Unique Value Proposition
+| 维度 | 社区主流做法 | scan-reviewer |
+|------|-------------|---------------|
+| 索引持久化 | 多为临时/内存索引 | 持久 catalog.md，git 可提交 |
+| 审查时机 | 生成前注入上下文 | **生成后**审查 + 修复，与上下文注入互补 |
+| 审查主体 | 主代理自行判断 | 专属子代理，独立上下文窗口 |
+| 索引方法 | AST / 嵌入 / LSP | grep（零依赖），适合快速迁移 |
+| 排序粒度 | 按文件/符号 | 按**导出符号 + 完整签名 + 多维度加权评分** |
+| 团队共享 | 大多不共享 | catalog.md 随 git 协作 |
 
-scan-reviewer occupies a distinct niche: **automated, proactive reusable component discovery with persistent cataloging**. No existing project does exactly this:
-
-1. OAC/Agentic/KDCO are workflow frameworks with manual or general review.
-2. SWE agent does search-as-context but doesn't persist findings.
-3. No project automatically scans the codebase to build a reusable component index.
-
-The catalog (`catalog.md`) is the key innovation — it converts the codebase's "reusable surface area" into a compact, agent-friendly format that survives across sessions.
+**核心洞察**：scan-reviewer 不是要替代 Aider/Cursor/Tabby 的上下文注入——它填补的是**生成后审查**这个缺失环节。上下文注入帮你"少写重复"，生成后审查帮你"写了也能及时发现和修复"。
