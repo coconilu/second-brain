@@ -17,8 +17,18 @@
 #       platforms: [opencode, claudecode]
 # =============================================================================
 
-skills: []
+skills:
+  - name: scan-reviewer
+    platforms: [opencode, claudecode]
 
-sub_agents: []
+sub_agents:
+  - name: component-scanner
+    platforms: [opencode, claudecode]
+  - name: post-generate-reviewer
+    platforms: [opencode, claudecode]
 
-commands: []
+commands:
+  - name: scan-index
+    platforms: [opencode, claudecode]
+  - name: review-gen
+    platforms: [opencode, claudecode]

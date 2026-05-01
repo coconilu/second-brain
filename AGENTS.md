@@ -42,7 +42,7 @@ docs/                    — general knowledge docs (Markdown)
    ```yaml
    sub_agents:
      - name: <name>
-       platforms: [claudecode]  # opencode sub-agents NOT YET SUPPORTED
+       platforms: [opencode, claudecode]
    ```
 
 ## Workflow for adding a command
@@ -91,7 +91,6 @@ version: 1.0.0
 
 ## Known limitations
 
-- **No OpenCode sub-agent support** — the script prints a note and skips them. Only `claudecode` works for sub-agents.
 - **No auto-discovery** — every skill/agent must be explicitly listed in `manifest.yaml`.
 - **Regex-based YAML parsing** — the bash script parses `manifest.yaml` with regex only. Nested structures, string quoting beyond basic `"` / `'` stripping, or unusual YAML formatting may break parsing.
 - **No tests, no lint, no CI** — validate changes manually by running build and inspecting `dist/` output.

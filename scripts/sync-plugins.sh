@@ -11,11 +11,13 @@ DIST_DIR="$PROJECT_DIR/dist"
 
 OPENCODE_SKILLS="$DIST_DIR/opencode-plugin/skills"
 CLAUDE_SKILLS="$DIST_DIR/claudecode-plugin/skills"
+OPENCODE_AGENTS="$DIST_DIR/opencode-plugin/agents"
 CLAUDE_AGENTS="$DIST_DIR/claudecode-plugin/agents"
 OPENCODE_COMMANDS="$DIST_DIR/opencode-plugin/commands"
 CLAUDE_COMMANDS="$DIST_DIR/claudecode-plugin/commands"
 
 OPENCODE_CFG="$HOME/.config/opencode/skills"
+OPENCODE_CFG_AGENTS="$HOME/.config/opencode/agents"
 CLAUDE_CFG_SKILLS="$HOME/.claude/skills"
 CLAUDE_CFG_AGENTS="$HOME/.claude/agents"
 OPENCODE_CFG_COMMANDS="$HOME/.config/opencode/commands"
@@ -145,8 +147,8 @@ convert_command_for_claude() {
 build() {
     echo "==> Building plugins..."
 
-    rm -rf "$OPENCODE_SKILLS" "$CLAUDE_SKILLS" "$CLAUDE_AGENTS" "$OPENCODE_COMMANDS" "$CLAUDE_COMMANDS"
-    mkdir -p "$OPENCODE_SKILLS" "$CLAUDE_SKILLS" "$CLAUDE_AGENTS" "$OPENCODE_COMMANDS" "$CLAUDE_COMMANDS"
+    rm -rf "$OPENCODE_SKILLS" "$CLAUDE_SKILLS" "$OPENCODE_AGENTS" "$CLAUDE_AGENTS" "$OPENCODE_COMMANDS" "$CLAUDE_COMMANDS"
+    mkdir -p "$OPENCODE_SKILLS" "$CLAUDE_SKILLS" "$OPENCODE_AGENTS" "$CLAUDE_AGENTS" "$OPENCODE_COMMANDS" "$CLAUDE_COMMANDS"
 
     local count_skill=0
     local count_agent=0
@@ -198,7 +200,11 @@ build() {
             fi
 
             if [[ "$platform" == "opencode" ]]; then
-                echo "  [NOTE] agent $name: OpenCode sub-agent support not yet implemented" >&2
+                local dest_dir="$OPENCODE_AGENTS/$name"
+                mkdir -p "$dest_dir"
+                cp "$src" "$dest_dir/AGENT.md"
+                echo "  [agent] $name → opencode"
+                count_agent=$((count_agent + 1))
             fi
         elif [[ "$type" == "command" ]]; then
             local src="$SRC_COMMANDS/$name.md"
@@ -288,6 +294,7 @@ install() {
     echo "==> Installing plugins..."
 
     _symlink_dirs  "$OPENCODE_SKILLS"    "$OPENCODE_CFG"          "opencode skill"
+    _symlink_dirs  "$OPENCODE_AGENTS"   "$OPENCODE_CFG_AGENTS"   "opencode agent"
     _symlink_dirs  "$CLAUDE_SKILLS"     "$CLAUDE_CFG_SKILLS"     "claudecode skill"
     _symlink_dirs  "$CLAUDE_AGENTS"     "$CLAUDE_CFG_AGENTS"     "claudecode agent"
     _symlink_files "$OPENCODE_COMMANDS" "$OPENCODE_CFG_COMMANDS" "opencode command"
