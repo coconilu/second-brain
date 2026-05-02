@@ -427,7 +427,80 @@ claude config summarize   # 总结
 - OpenCode 的 `/undo` 基于 git 快照，能精确恢复文件状态；Claude Code 的 `rewind` 功能类似
 - OpenCode 的 `/share` 功能是独有的，可以一键生成会话链接给团队
 - OpenCode 提供完整的 SDK API，可以**编程式管理 session**（适合 CI/CD 集成）
-- Claude Code 的 worktree 功能是其亮点，OpenCode 的 Plugin API 可以操作 worktree 但不如 Claude Code 那么直接
+### Fork 与 Worktree
+
+一个典型的场景：你正在主分支上做着 A 功能，突然想开一个独立分支试验 B 方案。最理想的方式是，把当前对话 fork 一份到新的 git worktree 中，两个分支并行推进，互不干扰。
+
+**Claude Code** 把 fork 和 worktree 做成了组合拳：
+
+```bash
+# fork 会话 + 创建新 worktree，一步到位
+claude --continue --fork-session --worktree experiment-b
+```
+
+一个命令下去，对话历史被复制到新 worktree，你就可以在新分支上基于已有上下文继续推进。
+
+**OpenCode 的 `--fork` 只复制对话，不创建 worktree。**
+
+```bash
+# 这句话只 fork 对话历史，不碰 git worktree
+opencode --continue --fork
+```
+
+OpenCode 目前 **没有 `--worktree` CLI 标志**，配置 schema 中也没有对应的配置项。两者是正交的——fork 归 fork，worktree 归 worktree。
+
+不过，有三个变通方案可以达到类似效果：
+
+**方案一：手动两步走（最直接）**
+
+```bash
+# 先创建 worktree
+git worktree add -b experiment-b ../experiment-b
+
+# 再在里面起一个新 session
+opencode ../experiment-b
+```
+
+**方案二：Fork 后转向**
+
+```bash
+# fork 当前对话
+opencode --continue --fork
+
+# 在对话中告诉 agent 切换到 worktree 工作
+> 你现在的工作目录是 ../experiment-b，这是一个 git worktree，在新分支上继续。
+```
+
+**方案三：Plugin 封装**
+
+用 Plugin 注册一个 `create_worktree` 自定义工具，在对话中直接调用：
+
+```typescript
+// .opencode/plugins/worktree.ts
+import type { Plugin } from "@opencode-ai/plugin"
+
+export const WorktreePlugin: Plugin = async ({ $ }) => {
+  return {
+    tool: {
+      create_worktree: tool({
+        description: "创建一个 git worktree 并从当前分支 fork",
+        args: {
+          branch: tool.schema.string(),
+          path: tool.schema.string(),
+        },
+        async execute(args, ctx) {
+          await $`git worktree add -b ${args.branch} ${args.path}`
+          return `已创建 worktree：${args.path}，分支：${args.branch}`
+        },
+      }),
+    },
+  }
+}
+```
+
+这样在 OpenCode session 里就能直接让 agent 执行 fork + worktree 组合操作。
+
+> **补充**：OpenCode 内部其实已经在用 git worktree——Web UI / Desktop 的「Workspaces」功能依赖 worktree 管理多项目沙箱（存放在 `~/.local/share/opencode/worktree/`），但这是给 GUI workspace picker 用的，和 TUI 的 fork 流程还没有打通。社区也有 PR（#25379）在做 `.worktreeinclude` 支持，说明这块在活跃迭代中，对标 Claude Code 的一键体验值得期待。
 
 ---
 
