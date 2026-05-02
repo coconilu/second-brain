@@ -311,6 +311,23 @@ _uninstall_by_source() {
     done
 }
 
+_clean_orphans() {
+    local dst_parent="$1"
+    local label="$2"
+
+    if [[ ! -d "$dst_parent" ]] || [[ -z "$(ls -A "$dst_parent" 2>/dev/null)" ]]; then
+        return
+    fi
+
+    for item in "$dst_parent"/*; do
+        if [[ -L "$item" ]] && [[ ! -e "$item" ]]; then
+            local name="$(basename "$item")"
+            rm "$item"
+            echo "  [clean-orphan] $label: $name"
+        fi
+    done
+}
+
 # ================================================================
 # Install: symlink dist/ to platform config directories
 # ================================================================
@@ -346,6 +363,9 @@ _uninstall_opencode() {
     _uninstall_by_source "$OPENCODE_SKILLS"    "$OPENCODE_CFG"          "opencode skill"
     _uninstall_by_source "$OPENCODE_AGENTS"   "$OPENCODE_CFG_AGENTS"   "opencode agent"
     _uninstall_by_source "$OPENCODE_COMMANDS" "$OPENCODE_CFG_COMMANDS" "opencode command"
+    _clean_orphans "$OPENCODE_CFG"          "opencode skill"
+    _clean_orphans "$OPENCODE_CFG_AGENTS"   "opencode agent"
+    _clean_orphans "$OPENCODE_CFG_COMMANDS" "opencode command"
     echo "==> OpenCode uninstall done"
 }
 
@@ -354,6 +374,9 @@ _uninstall_claudecode() {
     _uninstall_by_source "$CLAUDE_SKILLS"     "$CLAUDE_CFG_SKILLS"     "claudecode skill"
     _uninstall_by_source "$CLAUDE_AGENTS"     "$CLAUDE_CFG_AGENTS"     "claudecode agent"
     _uninstall_by_source "$CLAUDE_COMMANDS"   "$CLAUDE_CFG_COMMANDS"   "claudecode command"
+    _clean_orphans "$CLAUDE_CFG_SKILLS"     "claudecode skill"
+    _clean_orphans "$CLAUDE_CFG_AGENTS"     "claudecode agent"
+    _clean_orphans "$CLAUDE_COMMANDS"       "claudecode command"
     echo "==> Claude Code uninstall done"
 }
 
