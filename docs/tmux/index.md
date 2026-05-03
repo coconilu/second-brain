@@ -194,96 +194,75 @@ Agent-team 模式下，你同时跑着 3-5 个 teammate——lead 派任务、te
 
 ### 搭一面 Agent-team 墙壁
 
-先确保 agent-team 实验模式已开启：
+配好 setting，进 tmux，对 claude 说人话——只此三步。
+
+**1. 配 setting**（一次性的）。在 `~/.claude/settings.json` 里写：
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "teammateMode": "tmux"
+}
+```
+
+**2. 进 tmux，起 claude。**
 
 ```bash
-export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+tmux new -s cockpit
+claude
 ```
 
-建一个脚本 `~/agent-cockpit.sh`：
-
-```bash
-#!/bin/bash
-PROJECT_DIR="$HOME/my-project"
-SESSION="agent-team"
-
-# 创建 session，第一个窗口给 lead
-tmux new -s "$SESSION" -c "$PROJECT_DIR" -d
-tmux rename-window -t "$SESSION":0 "lead"
-tmux send-keys -t "$SESSION":0 'claude' Enter
-
-# 新建窗口，切分为 3 个 pane，每个跑一个 teammate
-tmux new-window -t "$SESSION" -n "teammates"
-
-# 先上下分屏：下半给 teammate-C
-tmux split-window -v -t "$SESSION":1
-tmux send-keys -t "$SESSION":1.1 'cd '"$PROJECT_DIR"' && claude' Enter
-
-# 上半再左右分屏：左 teammate-A，右 teammate-B
-tmux split-window -h -t "$SESSION":1.0
-tmux send-keys -t "$SESSION":1.0 'cd '"$PROJECT_DIR"' && claude' Enter
-tmux send-keys -t "$SESSION":1.1 'cd '"$PROJECT_DIR"' && claude' Enter
-
-tmux select-layout -t "$SESSION":1 tiled
-tmux attach -t "$SESSION"
-```
-
-跑完 `bash ~/agent-cockpit.sh`，你看到的是：
+**3. 对 claude 说人话。**
 
 ```
-Window 0: "lead" — 主指挥官，负责派任务、收结论
-┌──────────────────────────────────────────────────┐
-│ lead                                             │
-│ $ claude                                         │
-│ > 派 3 个 teammate 并行调查偶发 500 错误…         │
-└──────────────────────────────────────────────────┘
-
-Window 1: "teammates" — 三个 worker 的实时动态
-┌───────────────────────┬──────────────────────────┐
-│ teammate-A (DB 连接池)  │ teammate-B (上游超时)      │
-│ $ claude               │ $ claude                  │
-│ > 检查连接池配置…        │ > 抓取上游响应时间…        │
-├───────────────────────┴──────────────────────────┤
-│ teammate-C (缓存踩踏)                              │
-│ $ claude                                          │
-│ > 分析 Redis 命中率…                               │
-└──────────────────────────────────────────────────┘
+我想体验 Agent Teams 的 Split panes 效果，请 spawn 3 个队友同时工作：
+队友A 负责搜索 Go 1.24 的新特性，
+队友B 负责在当前目录创建 hello.go 写一个简单的 HTTP server，
+队友C 负责列出当前系统已安装的 homebrew 包数量。
+给他们各自的任务后，让他们并行执行。
 ```
+
+claude 收到指令，为每个 teammate 自动创建 tmux pane——你什么都不用管，看着就行。
+
+### 主从关系是怎么建立的
+
+你问 "lead 是怎么把活派给 teammate 的"——答案是 Claude Code 内部全做了：
+
+| 环节 | 怎么做的 |
+|------|---------|
+| 派生 teammate | 你说 "spawn 3 个队友"，Claude Code fork 新 `claude` 进程 |
+| 展示 | `teammateMode: "tmux"` 让每个 teammate 自动出现在一个独立 tmux pane |
+| 派活 | lead 拆任务写入共享任务列表，teammate 自己去领 |
+| agent 间通信 | 内置 mailbox：teammate 调 `SendMessage` 直接发给 lead 或其他 teammate，自动投递 |
+| 空闲通知 | teammate 完成工作或卡住，自动给 lead 发 idle 通知 |
+| 你 | `Ctrl-b 方向键` 或鼠标点进各 pane 看进度，也可以直接跟任何 teammate 对话 |
 
 ### 驾驶舱的操作节奏
 
-1. **在 lead 窗口**（`Ctrl-b 0`）下指令，用自然语言派任务，指定每个 teammate 做什么、输出什么格式。
-2. **切换到 teammates 窗口**（`Ctrl-b 1`），用 `Ctrl-b 方向键` 在三个 pane 之间扫视：
-   - 哪个 pane 几分钟没输出新内容 → 可能卡住了，切进去追问
-   - 哪个 pane 滚动速度明显偏快 → 大概率在读代码贴代码，警告一下"只要摘要"
-   - 哪个 pane 已经出了结论 → 切进去让 teammate 通过 `SendMessage` 发给 lead
-3. **回到 lead 窗口**收汇总。teammate 发来的消息会出现在 lead 的对话里，格式统一，lead 综合输出最终结论。
-
-这个工作流的价值不在"看着 AI 干活的快感"，而在 **纠偏按分钟计、不按小时计**。
+1. 在 lead pane 里说人话——"spawn N 个队友，分别做 A、B、C"
+2. 扫屏。`Ctrl-b 方向键` 在各 pane 间走动，谁卡了、谁偏了，点进去直接纠正
+3. 回到 lead pane，所有 teammate 的结论已经到了 lead 的对话里，lead 综合输出最终报告
 
 ### 进阶：给驾驶舱配上"监控自动化"
 
-纯靠人眼扫屏还是累。可以用 `tmux capture-pane` 做基础监控——写一个脚本定时抓每个 pane 的最后几行，用 grep 检测关键信号：
+纯靠人眼扫屏还是累。用 `tmux capture-pane` 做基础监控——定时扫描当前 session 所有 pane 的输出，grep 检测关键信号。因为 teammate 是 Claude Code 动态创建的，pane 不再需要硬编码，直接遍历 `tmux list-panes`：
 
 ```bash
 #!/bin/bash
-# ~/agent-monitor.sh —— 每 30 秒扫一遍所有 teammate pane
+# ~/agent-monitor.sh —— 每 30 秒扫一遍所有 pane
 
-check_pane() {
-  local pane="$1"
-  local name="$2"
-  local last_line=$(tmux capture-pane -t "$pane" -p | tail -5)
+SESSION="cockpit"
 
-  if echo "$last_line" | grep -q "Error\|Failed\|blocked"; then
-    echo "$(date): [$name] 检测到异常信号"
-    echo "$last_line"
+for pane in $(tmux list-panes -t "$SESSION" -F "#{pane_id}"); do
+  content=$(tmux capture-pane -t "$pane" -p | tail -5)
+  if echo "$content" | grep -q "Error\|Failed\|blocked\|stuck"; then
+    echo "$(date): pane $pane 检测到异常信号"
+    echo "$content"
+    echo "---"
   fi
-}
-
-# lead session 命名为 "agent-team"
-check_pane "agent-team:1.0" "teammate-DB"
-check_pane "agent-team:1.1" "teammate-HTTP"
-check_pane "agent-team:1.2" "teammate-Cache"
+done
 ```
 
 把这个脚本挂到定时任务或另一个 tmux pane 里跑，异常出现时你能第一时间看到，不需要瞪着眼睛盯每一个 pane。
@@ -438,7 +417,7 @@ tmux list-panes -t dev -F "#{pane_id} #{pane_current_path}"
 tmux list-panes -t dev -F "#{pane_id}" | xargs -I {} tmux send-keys -t {} 'echo hello' Enter
 ```
 
-这在 agent-team 驾驶舱里尤其有用——比如你想让 3 个 teammate 同时切换到同一分支，一个命令搞定。
+这在驾驶舱里配合上面的监控脚本一起用——异常 pane 不用手动切进去，直接 `send-keys` 发指令纠偏。
 
 ## 调试
 
@@ -475,8 +454,9 @@ Ctrl-b [  → 方向键 → Space  → 方向键选中 → Enter 复制
 Ctrl-b ]                    # 粘贴
 
 # Agent-team 驾驶舱
-tmux send-keys -t <pane> 'command' Enter   # 远程向 pane 发命令
-tmux capture-pane -t <pane> -p             # 抓取 pane 文本内容
+"teammateMode": "tmux"          # ~/.claude/settings.json 配置展示模式
+"请 spawn 3 个队友同时工作…"      # 在 tmux 里对 claude 说人话，pane 自动出现
+tmux capture-pane -t <pane> -p  # 抓取 pane 文本内容做监控
 
 # .tmux.conf 必加
 set -g mouse on             # 鼠标支持
