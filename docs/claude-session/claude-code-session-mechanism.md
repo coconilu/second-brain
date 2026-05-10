@@ -183,3 +183,8 @@ Claude Code 的会话机制,本质上是把「版本控制思维」带进了人�
 - [Claude Code - Checkpointing](https://code.claude.com/docs/en/checkpointing)
 - [Claude Code - How Claude Code works](https://code.claude.com/docs/en/how-claude-code-works)
 - [Claude Code - Common workflows](https://code.claude.com/docs/en/common-workflows)
+
+## 相关阅读
+
+- [Claude Code 实战指南：给不爱看文档的你](../claude-best-practices/claude-code-best-practices.md)
+- [从 sub-agent 到 agent-team：三个台阶，三套心智模型](../claude-sub-agent/sub-agent-and-agent-team.md)

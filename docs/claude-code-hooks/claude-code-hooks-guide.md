@@ -1,3 +1,6 @@
+# Claude Code Hooks 完整指南
+
+> 如果你第一次接触 hooks，建议先读 [Claude Code Hooks：从一个例子开始](claude-code-hooks-use.md)。本文定位为完整参考手册，侧重事件模型、配置细节、边界行为和调试方法。
 
 ## 前言
 
@@ -570,3 +573,8 @@ Hook 自身可能出故障（脚本不存在、缺少执行权限、依赖工具
 
 - [Hooks reference - Claude Code Docs](https://code.claude.com/docs/en/hooks)
 - [Automate workflows with hooks](https://code.claude.com/docs/en/hooks-guide)
+
+## 相关阅读
+
+- [Claude Code Hooks：从一个例子开始](claude-code-hooks-use.md)
+- [从 sub-agent 到 agent-team：三个台阶，三套心智模型](../claude-sub-agent/sub-agent-and-agent-team.md)

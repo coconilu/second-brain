@@ -371,3 +371,8 @@ export const MyPlugin: Plugin = async (ctx) => {
 
 阻断只对 *.before 类事件有效；事后事件（session.idle、tool.execute.after）不能阻断
 ```
+
+## 相关阅读
+
+- [OpenCode vs Claude Code：开源 AI 编程助手的全面对比](../opencode-vs-claudecode/index.md)
+- [Claude Code Plugin：从打包到分发](../claude-plugin/claude-plugin.md)

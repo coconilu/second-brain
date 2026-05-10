@@ -1,6 +1,8 @@
-# 从 sub-agent 到 agent-team:三个台阶,三套心智模型
+# 从 sub-agent 到 agent-team：三个台阶，三套心智模型
 
-## 引子:工具在升级,但用法没跟上
+> 本文偏概念和心智模型。如果你想先照着做一遍，读 [Sub-agent 和 Agent-team：从一个例子开始](sub-agent-and-agent-team-guide.md)。
+
+## 引子：工具在升级，但用法没跟上
 
 Claude Code 这一两年从单 agent 进化到 sub-agent 再到 agent-team,能力边界扩了几个量级。但回头看自己的使用习惯,很多时候还是"一问一答"——输入 prompt,等输出,看结果,继续。
 
@@ -290,3 +292,9 @@ flowchart LR
 > **新工具的学习曲线很陡,但已经有的工程管理直觉,在新世界里依然值钱。**
 
 差别只是,这次管理的对象,不会下班。
+
+## 相关阅读
+
+- [Sub-agent 和 Agent-team：从一个例子开始](sub-agent-and-agent-team-guide.md)
+- [Claude Code Hooks 完整指南](../claude-code-hooks/claude-code-hooks-guide.md)
+- [tmux：从一个例子开始](../tmux/index.md)

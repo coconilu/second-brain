@@ -1,5 +1,7 @@
 # Scanning Strategy
 
+> Related reading: [Comparison with community approaches](comparison.md) explains how this strategy differs from repo maps, RAG, code graphs, and tool-driven exploration.
+
 ## What Counts as "Reusable"?
 
 The scanner looks for **exported code artifacts that are imported by other files** — this is the strongest signal of reusability. The scanner also flags items in dedicated directories (`components/`, `utils/`, `hooks/`) as "designed for reuse" even if they haven't been imported yet.

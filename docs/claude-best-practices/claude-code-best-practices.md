@@ -1,16 +1,24 @@
 # Claude Code 实战指南：给不爱看文档的你
+
 > 基于 Claude Code 官方 [Best Practices](https://code.claude.com/docs/en/best-practices) 与 [Common Workflows](https://code.claude.com/docs/en/common-workflows) 提炼。
 > 面向已经在用 Claude Code，但还没完全发挥它能力的开发者。**5分钟抓心法，随时当手册查。**
+
 ---
+
 ## 🎯 核心心法（理解它们，剩下都是变奏）
+
 1. **上下文窗口是最宝贵的资源**。每条消息、读的每个文件、每次命令输出都在吃上下文。空间越满，Claude 越笨。**只让有用的信息进入，任务切换时痛快地 `/clear`**。
 2. **给 Claude 自我验证的方式**——测试、Lint、截图对比、`tsc --noEmit`……有了客观反馈，它能自己迭代到对，你才有时间摸鱼。
 3. **顺序是 Explore → Plan → Code**。先让它读懂上下文，再确认方案，最后再写。改一行的小活（改 typo、加 log）可以直接动手，改多个文件或不熟悉的代码，**一定要先规划**。
+
 ---
+
 ## 🔄 推荐工作流：标准四步法
+
 ```text
 Plan Mode 探索 → Plan Mode 出方案 → Normal Mode 实现 → 跑测试 + 提PR
 ```
+
 | 阶段 | 模式 | 你说的话（示例） |
 |---|---|---|
 | **Explore** | Plan Mode（`Shift+Tab` 切换） | "读一下 `/src/auth`，搞清楚 session 和登录怎么处理的，顺便看看环境变量里密钥是怎么管的" |
@@ -202,3 +210,9 @@ claude --worktree feature-x         # 隔离 worktree 启动
 }
 ```
 *(Linux 换 `notify-send`，Windows 用 PowerShell 弹窗)*
+
+## 相关阅读
+
+- [Claude Code Hooks：从一个例子开始](../claude-code-hooks/claude-code-hooks-use.md)
+- [Claude Code 会话机制](../claude-session/claude-code-session-mechanism.md)
+- [Sub-agent 和 Agent-team：从一个例子开始](../claude-sub-agent/sub-agent-and-agent-team-guide.md)

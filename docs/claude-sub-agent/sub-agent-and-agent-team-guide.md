@@ -1,4 +1,6 @@
-# Sub-agent 和 Agent-team:从一个例子开始
+# Sub-agent 和 Agent-team：从一个例子开始
+
+> 本文偏操作和落地模板。如果你想理解背后的组织方式，读 [从 sub-agent 到 agent-team：三个台阶，三套心智模型](sub-agent-and-agent-team.md)。
 
 ## 一个真实的烦恼
 
@@ -258,3 +260,9 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1       # 启用 agent-team
 多线调研 + 互不依赖        → 并行 sub-agent
 多线 + 需要互相挑战/对齐   → agent-team
 ```
+
+## 相关阅读
+
+- [从 sub-agent 到 agent-team：三个台阶，三套心智模型](sub-agent-and-agent-team.md)
+- [Claude Code Hooks 完整指南](../claude-code-hooks/claude-code-hooks-guide.md)
+- [tmux：从一个例子开始](../tmux/index.md)

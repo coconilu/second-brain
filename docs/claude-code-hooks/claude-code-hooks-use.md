@@ -341,3 +341,8 @@ PostToolUse 不能阻断——工具已经跑完了
 
 $CLAUDE_PROJECT_DIR 指向项目根目录，用它引用脚本路径
 ```
+
+## 相关阅读
+
+- [Claude Code Hooks 完整指南](claude-code-hooks-guide.md)
+- [Claude Code Plugin：从打包到分发](../claude-plugin/claude-plugin.md)

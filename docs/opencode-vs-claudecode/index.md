@@ -756,3 +756,10 @@ opencode
 ```
 
 OpenCode 会自动读取你的 `.claude/` 下的 skills 和 instructions，无缝过渡。
+
+## 相关阅读
+
+- [OpenCode 插件：从一个通知开始](../opencode-plugins-tutorial/index.md)
+- [Claude Code Hooks：从一个例子开始](../claude-code-hooks/claude-code-hooks-use.md)
+- [Claude Code Plugin：从打包到分发](../claude-plugin/claude-plugin.md)
+- [Claude Code 会话机制](../claude-session/claude-code-session-mechanism.md)
