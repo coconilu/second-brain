@@ -1,0 +1,7 @@
+extends: existence
+message: "'%s' appears to be repeated."
+level: error
+scope: raw
+ignorecase: true
+raw:
+  - '\b([A-Za-z]+)\s+\1\b'

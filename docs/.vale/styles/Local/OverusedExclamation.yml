@@ -1,0 +1,6 @@
+extends: existence
+message: "Avoid repeated exclamation/question marks."
+level: suggestion
+scope: raw
+raw:
+  - '[!！?？]{2,}'

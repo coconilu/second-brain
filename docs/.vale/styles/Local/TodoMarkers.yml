@@ -1,0 +1,8 @@
+extends: existence
+message: "Remove or resolve '%s' marker."
+level: warning
+scope: raw
+tokens:
+  - TODO
+  - FIXME
+  - XXX

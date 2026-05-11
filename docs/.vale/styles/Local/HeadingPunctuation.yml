@@ -1,0 +1,6 @@
+extends: existence
+message: "Headings usually shouldn't end with punctuation."
+level: suggestion
+scope: heading
+raw:
+  - '[。.!！?？:：；;]$'

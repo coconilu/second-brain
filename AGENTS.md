@@ -1,6 +1,6 @@
 # Second Brain — Agent Guide
 
-This is a **content repository** for authoring and packaging AI agent skills/skills and sub-agents. There is no code, no package manager, no test suite, no CI. The "build" is a bash script that transforms Markdown files into platform-specific output.
+This is a **content repository** for authoring and packaging AI agent skills/skills and sub-agents. There is no code, no package manager, no test suite, no CI. The "build" is a bash script that transforms Markdown files into platform-specific output. Markdown docs can be checked with Vale using the local config under `docs/`.
 
 ## Directory layout
 
@@ -24,6 +24,7 @@ docs/                    — general knowledge docs (Markdown)
 ./scripts/sync-plugins.sh update [opencode|claudecode]  # build && install
 ./scripts/sync-plugins.sh all                          # build && install (both platforms)
 ./scripts/sync-plugins.sh clean                        # rm -rf dist/*
+vale --config="docs/.vale.ini" --output=JSON "docs/**/*.md" # lint docs Markdown
 ```
 
 Without a platform argument, install/uninstall/update defaults to both platforms.
@@ -97,7 +98,7 @@ version: 1.0.0
 
 - **No auto-discovery** — every skill/agent must be explicitly listed in `manifest.yaml`.
 - **Regex-based YAML parsing** — the bash script parses `manifest.yaml` with regex only. Nested structures, string quoting beyond basic `"` / `'` stripping, or unusual YAML formatting may break parsing.
-- **No tests, no lint, no CI** — validate changes manually by running build and inspecting `dist/` output.
+- **No tests or CI** — validate skill/agent/command packaging manually by running build and inspecting `dist/` output. Docs Markdown has a local Vale check only.
 
 ## Post-generation documentation review
 

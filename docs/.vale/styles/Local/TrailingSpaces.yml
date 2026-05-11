@@ -1,0 +1,6 @@
+extends: existence
+message: "Remove trailing whitespace."
+level: warning
+scope: raw
+raw:
+  - '[ \t]+$'
