@@ -10,6 +10,7 @@
 - [OpenCode 插件：从一个通知开始](opencode-plugins-tutorial/index.md) — 用最小插件理解 OpenCode 扩展机制。
 - [Claude Code Plugin：从打包到分发](claude-plugin/claude-plugin.md) — 把 hooks、agents、skills 打包成可复用插件。
 - [Claude Code 会话机制](claude-session/claude-code-session-mechanism.md) — 理解 session、上下文与工作流边界。
+- [Claude Code 实战指南：给不爱看文档的你](claude-best-practices/claude-code-best-practices.md) — 面向日常使用的 Claude Code 最佳实践速查。
 
 ## Agent 架构与协作
 
@@ -26,6 +27,7 @@
 ## 思考与趋势
 
 - [AI 时代，什么才是稀缺能力](ai-era-scarce-abilities/index.md) — 关于判断力、提问能力和结构化能力的长文。
+- [从 Human Interface 到 Agent Interface](from_human_interface_to_agent_interface/index.md) — 讨论 AI 时代软件行业从人机界面到代理界面的范式转移。
 - [DeepSeek 演进](deepseek-evolution/index.md) — DeepSeek 相关演进观察。
 
 ## 月度追踪
