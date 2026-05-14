@@ -19,7 +19,7 @@
 ./scripts/sync-plugins.sh build                        # 构建（生成 dist/）
 ./scripts/sync-plugins.sh install [opencode|claudecode] # 安装到本地
 ./scripts/sync-plugins.sh uninstall [opencode|claudecode] # 卸载
-./scripts/sync-plugins.sh update [opencode|claudecode]  # 构建 + 安装
+./scripts/sync-plugins.sh update [opencode|claudecode]  # 卸载 + 清理 + 构建 + 安装
 ./scripts/sync-plugins.sh all                          # 构建 + 安装（双平台）
 ./scripts/sync-plugins.sh clean                        # 清空 dist/
 vale --config="docs/.vale.ini" --output=JSON "docs/**/*.md" # 校验 docs Markdown

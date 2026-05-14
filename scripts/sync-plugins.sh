@@ -392,6 +392,8 @@ uninstall() {
 }
 
 update() {
+    uninstall "${1:-}"
+    clean
     build
     if [[ "${1:-}" == "opencode" ]]; then
         _install_opencode
@@ -440,7 +442,7 @@ case "${1:-}" in
         echo "  build                          - Generate dist/ from source files per manifest.yaml"
         echo "  install [opencode|claudecode]  - Symlink dist/ to platform config directories"
         echo "  uninstall [opencode|claudecode] - Remove symlinks from platform config directories"
-        echo "  update [opencode|claudecode]   - build + install for specified platform(s)"
+        echo "  update [opencode|claudecode]   - uninstall + clean + build + install for specified platform(s)"
         echo "  all                            - build + install (both platforms)"
         echo "  clean                          - Remove dist/ contents"
         exit 1

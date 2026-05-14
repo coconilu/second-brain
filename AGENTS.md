@@ -21,7 +21,7 @@ docs/                    — general knowledge docs (Markdown)
 ./scripts/sync-plugins.sh build                        # generate dist/ from manifest + sources
 ./scripts/sync-plugins.sh install [opencode|claudecode] # symlink dist/ to platform config dirs
 ./scripts/sync-plugins.sh uninstall [opencode|claudecode] # remove symlinks from config dirs
-./scripts/sync-plugins.sh update [opencode|claudecode]  # build && install
+./scripts/sync-plugins.sh update [opencode|claudecode]  # uninstall && clean && build && install
 ./scripts/sync-plugins.sh all                          # build && install (both platforms)
 ./scripts/sync-plugins.sh clean                        # rm -rf dist/*
 vale --config="docs/.vale.ini" --output=JSON "docs/**/*.md" # lint docs Markdown
