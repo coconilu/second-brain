@@ -22,6 +22,8 @@ skills:
     platforms: [opencode, claudecode]
   - name: tech-tutorial-writer
     platforms: [opencode, claudecode]
+  - name: oss-rebuild-coach
+    platforms: [opencode, claudecode]
 
 sub_agents:
   - name: component-scanner
