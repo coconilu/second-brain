@@ -6,7 +6,7 @@
 
 ## 目录结构
 
-- `docs/` — 知识库，Markdown 格式的知识文档
+- `docs/` — 知识库，Markdown 文档和 standalone HTML 教学页
 - `skills/` — 通用 Skill 定义源文件（Markdown + YAML Frontmatter）
 - `sub-agent/` — Sub-agent 配置定义（纯 Markdown）
 - `templates/` — 文档和 Skill 模板

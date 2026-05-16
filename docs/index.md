@@ -11,9 +11,11 @@
 - [Claude Code Plugin：从打包到分发](claude-plugin/claude-plugin.md) — 把 hooks、agents、skills 打包成可复用插件。
 - [Claude Code 会话机制](claude-session/claude-code-session-mechanism.md) — 理解 session、上下文与工作流边界。
 - [Claude Code 实战指南：给不爱看文档的你](claude-best-practices/claude-code-best-practices.md) — 面向日常使用的 Claude Code 最佳实践速查。
+- [Claude Code 实战：Harness 工程之道教学扩展稿](claude-code-harness-engineering/index.html) — 用交互式单页串联记忆、技能、子智能体、Hooks、MCP、CI/CD、SDK 和插件化落地。
 
 ## Agent 架构与协作
 
+- [Agent 设计模式互动教学稿](agent-design-patterns/index.html) — 用交互式单页讲解感知、记忆、推理、行动、反思、协作六类 Agent 模式。
 - [从 sub-agent 到 agent-team：三个台阶，三套心智模型](claude-sub-agent/sub-agent-and-agent-team.md) — 偏概念和心智模型。
 - [Sub-agent 和 Agent-team：从一个例子开始](claude-sub-agent/sub-agent-and-agent-team-guide.md) — 偏操作和落地模板。
 - [Hermes Agent 课程](hermes-agent-course/index.md) — 面向课程/培训场景的系统化讲义。

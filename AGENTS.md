@@ -1,6 +1,6 @@
 # Second Brain — Agent Guide
 
-This is a **content repository** for authoring and packaging AI agent skills/skills and sub-agents. There is no code, no package manager, no test suite, no CI. The "build" is a bash script that transforms Markdown files into platform-specific output. Markdown docs can be checked with Vale using the local config under `docs/`.
+This is a **content repository** for authoring and packaging AI agent skills/skills and sub-agents. There is no code, no package manager, no test suite, no CI. The "build" is a bash script that transforms Markdown files into platform-specific output. Markdown docs can be checked with Vale using the local config under `docs/`; standalone HTML teaching pages may also live under `docs/`.
 
 ## Directory layout
 
@@ -12,7 +12,7 @@ templates/skill-template.md  — reference template for new skills
 scripts/sync-plugins.sh  — the only build/install tool
 dist/                    — generated output (git-ignored: .gitignore)
 manifest.yaml            — registry: declares which skills/agents/commands target which platforms
-docs/                    — general knowledge docs (Markdown)
+docs/                    — general knowledge docs (Markdown and standalone HTML)
 ```
 
 ## Key commands

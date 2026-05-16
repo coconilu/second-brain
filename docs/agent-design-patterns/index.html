@@ -1,0 +1,1158 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent 设计模式教学文案</title>
+  <style>
+    :root {
+      --ink: #18212f;
+      --muted: #667085;
+      --line: #d8dee8;
+      --paper: #fbfcff;
+      --panel: #ffffff;
+      --blue: #2364aa;
+      --green: #1f7a5c;
+      --red: #b13b44;
+      --gold: #a76813;
+      --violet: #6b4bb8;
+      --teal: #167c80;
+      --shadow: 0 18px 48px rgba(24, 33, 47, 0.10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, #eef5ff 0, rgba(238, 245, 255, 0) 440px),
+        var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+    }
+
+    a { color: inherit; }
+
+    .hero {
+      min-height: 88vh;
+      display: grid;
+      align-items: center;
+      padding: 72px 22px 44px;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(115deg, rgba(35, 100, 170, 0.18), rgba(31, 122, 92, 0.10)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='760' viewBox='0 0 1200 760'%3E%3Crect width='1200' height='760' fill='%23eef5ff'/%3E%3Cg fill='none' stroke='%2398a8c3' stroke-width='2' opacity='.56'%3E%3Cpath d='M150 160h210v110H150zM500 130h240v130H500zM865 190h190v96H865zM210 430h245v138H210zM620 390h245v160H620z'/%3E%3Cpath d='M360 214c55 0 82-19 140-19M740 202c58 0 74 36 125 36M455 492c77 0 86-28 165-28M575 260c-24 62-72 98-120 170M865 470c76-22 122-76 158-184'/%3E%3C/g%3E%3Cg fill='%23ffffff' stroke='%232364aa' stroke-width='2'%3E%3Ccircle cx='150' cy='160' r='14'/%3E%3Ccircle cx='360' cy='214' r='14'/%3E%3Ccircle cx='500' cy='195' r='14'/%3E%3Ccircle cx='740' cy='202' r='14'/%3E%3Ccircle cx='865' cy='238' r='14'/%3E%3Ccircle cx='455' cy='492' r='14'/%3E%3Ccircle cx='620' cy='464' r='14'/%3E%3Ccircle cx='865' cy='470' r='14'/%3E%3C/g%3E%3Cg font-family='Arial' font-size='22' fill='%2318212f'%3E%3Ctext x='184' y='226'%3EPerception%3C/text%3E%3Ctext x='550' y='203'%3EMemory%3C/text%3E%3Ctext x='903' y='247'%3EAction%3C/text%3E%3Ctext x='268' y='506'%3EReasoning%3C/text%3E%3Ctext x='684' y='474'%3ECollaboration%3C/text%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      background-position: center;
+    }
+
+    .hero-inner {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid rgba(35, 100, 170, 0.28);
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--blue);
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 999px;
+    }
+
+    h1 {
+      max-width: 900px;
+      margin: 22px 0 16px;
+      font-size: clamp(42px, 8vw, 92px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin: 0 0 28px;
+      color: #344054;
+      font-size: clamp(18px, 2.4vw, 24px);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .button {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      padding: 11px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button.primary {
+      color: #fff;
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .layout {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 252px minmax(0, 1fr);
+      gap: 30px;
+      padding: 30px 0 80px;
+    }
+
+    .toc {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 8px 22px rgba(24, 33, 47, 0.06);
+    }
+
+    .toc strong {
+      display: block;
+      margin: 2px 4px 8px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .toc a {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 6px;
+      color: #344054;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    .toc a:hover,
+    .toc a.active {
+      background: #eef5ff;
+      color: var(--blue);
+    }
+
+    section {
+      scroll-margin-top: 20px;
+      margin-bottom: 26px;
+      padding: 28px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(24, 33, 47, 0.05);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: clamp(26px, 4vw, 42px);
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 26px 0 10px;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+
+    p { margin: 10px 0; }
+
+    .muted { color: var(--muted); }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .note,
+    .mini-card,
+    .pattern-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .note {
+      padding: 16px;
+      border-left: 5px solid var(--blue);
+      background: #f7fbff;
+    }
+
+    .mini-card {
+      padding: 16px;
+    }
+
+    .mini-card b {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .pattern-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .pattern-card {
+      padding: 16px;
+      min-height: 220px;
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .pattern-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+      border-color: rgba(35, 100, 170, 0.46);
+    }
+
+    .tag {
+      display: inline-flex;
+      margin-bottom: 10px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      background: var(--blue);
+    }
+
+    .tag.green { background: var(--green); }
+    .tag.red { background: var(--red); }
+    .tag.gold { background: var(--gold); }
+    .tag.violet { background: var(--violet); }
+    .tag.teal { background: var(--teal); }
+
+    .pattern-card h3 {
+      margin: 0 0 8px;
+      font-size: 19px;
+    }
+
+    .pattern-card p {
+      margin: 0 0 10px;
+      color: #475467;
+      font-size: 15px;
+    }
+
+    .pattern-card ul,
+    .checklist ul {
+      margin: 10px 0 0;
+      padding-left: 20px;
+    }
+
+    .pattern-card li,
+    .checklist li {
+      margin: 5px 0;
+    }
+
+    .loop-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      gap: 20px;
+      align-items: center;
+    }
+
+    .loop {
+      width: 100%;
+      min-height: 420px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f7fafc;
+    }
+
+    .loop-detail {
+      min-height: 260px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .loop-node {
+      cursor: pointer;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .loop-node:hover { opacity: 0.82; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .flow span {
+      position: relative;
+      min-height: 72px;
+      display: grid;
+      place-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 700;
+      background: #fff;
+    }
+
+    .flow span:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -14px;
+      color: var(--muted);
+      z-index: 2;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .tab.active {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .tab-panel {
+      display: none;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .tab-panel.active { display: block; }
+
+    .matrix {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f2f5f9;
+      font-size: 14px;
+    }
+
+    .builder {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 18px;
+    }
+
+    .option-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    label.option {
+      display: flex;
+      gap: 10px;
+      align-items: start;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .output {
+      min-height: 360px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #101828;
+      color: #e4e7ec;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+      overflow: auto;
+    }
+
+    .quiz {
+      display: grid;
+      gap: 14px;
+    }
+
+    .question {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .question button {
+      margin: 6px 6px 0 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+
+    .feedback {
+      margin-top: 10px;
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .checklist label {
+      display: block;
+      padding: 10px 12px;
+      margin: 8px 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .progress {
+      height: 12px;
+      margin: 12px 0;
+      border-radius: 999px;
+      background: #e4e7ec;
+      overflow: hidden;
+    }
+
+    .progress div {
+      width: 0;
+      height: 100%;
+      background: var(--green);
+      transition: width 160ms ease;
+    }
+
+    .callout {
+      padding: 18px;
+      border-radius: 8px;
+      color: #fff;
+      background: #1b3b5f;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background: rgba(16, 24, 40, 0.62);
+      z-index: 50;
+    }
+
+    .modal.open { display: grid; }
+
+    .modal-card {
+      width: min(760px, 100%);
+      max-height: 86vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .close {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      background: #eef2f6;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 16px;
+      border-radius: 8px;
+      background: #101828;
+      color: #e4e7ec;
+      line-height: 1.55;
+    }
+
+    footer {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto 50px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+      .toc { position: static; }
+      .grid.two,
+      .grid.three,
+      .pattern-grid,
+      .loop-wrap,
+      .builder {
+        grid-template-columns: 1fr;
+      }
+      .flow { grid-template-columns: 1fr; }
+      .flow span:not(:last-child)::after {
+        content: "↓";
+        right: auto;
+        bottom: -20px;
+      }
+      section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">原创扩展教学稿 · Agent 设计模式</div>
+      <h1>把不确定的智能，设计成可靠的工作流</h1>
+      <p class="lead">这是一份围绕《Agent 设计模式》公开大纲扩展的互动教学文案。它不复述原书，而是把 Agent 的感知、记忆、推理、行动、反思、协作拆成可学习、可组合、可落地的架构方法。</p>
+      <div class="hero-actions">
+        <a class="button primary" href="#map">进入课程地图</a>
+        <a class="button" href="#patterns">浏览 21 个模式</a>
+        <a class="button" href="#builder">生成你的 Agent 架构</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="章节导航">
+      <strong>课程导航</strong>
+      <a href="#map">课程地图</a>
+      <a href="#why">为什么需要模式</a>
+      <a href="#loop">Agent 认知循环</a>
+      <a href="#patterns">21 个设计模式</a>
+      <a href="#recipes">组合方案</a>
+      <a href="#builder">架构搭配器</a>
+      <a href="#quiz">小测验</a>
+      <a href="#checklist">落地清单</a>
+    </nav>
+
+    <main>
+      <section id="map">
+        <h2>课程地图</h2>
+        <p>Agent 不是一段更长的 prompt，而是一套会观察、会调用知识、会拆解任务、会使用工具、会复盘、会协作的认知系统。学习设计模式的目的，是把“模型的聪明”放进“系统的秩序”里。</p>
+        <div class="grid three">
+          <div class="mini-card">
+            <b>第一层：能力视角</b>
+            从感知、记忆、推理、行动、反思、协作六个方向理解 Agent 能做什么。
+          </div>
+          <div class="mini-card">
+            <b>第二层：模式视角</b>
+            把常见能力沉淀为可复用模式，例如 RAG、ReAct、规划-执行、辩论、路由。
+          </div>
+          <div class="mini-card">
+            <b>第三层：系统视角</b>
+            根据任务风险、工具权限、成本预算和验证方式，组合出可交付架构。
+          </div>
+        </div>
+        <div class="note">
+          <b>读法建议：</b>不要急着背名称。每个模式都问四个问题：它解决什么失败场景？它需要什么输入？它如何验证？它会引入什么新风险？
+        </div>
+      </section>
+
+      <section id="why">
+        <h2>为什么 Agent 需要设计模式</h2>
+        <p>传统软件大多处理确定性逻辑：输入明确、分支可控、函数返回稳定。Agent 面对的是开放环境：用户意图含混、资料会过期、工具会失败、模型输出有概率性。Prompt 可以提供指令，但不能单独承担架构责任。</p>
+        <div class="matrix">
+          <table>
+            <thead>
+              <tr>
+                <th>工程问题</th>
+                <th>没有模式时的典型失败</th>
+                <th>设计模式提供的结构</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>信息太多</td>
+                <td>上下文一股脑塞给模型，答案抓不住重点。</td>
+                <td>注意力聚焦、分层记忆、检索重排。</td>
+              </tr>
+              <tr>
+                <td>知识不可靠</td>
+                <td>模型凭印象回答，引用不存在或过时。</td>
+                <td>RAG、来源溯源、事实校验。</td>
+              </tr>
+              <tr>
+                <td>任务太长</td>
+                <td>一开始计划漂亮，执行中偏离目标。</td>
+                <td>规划-执行、状态跟踪、动态重规划。</td>
+              </tr>
+              <tr>
+                <td>行动有风险</td>
+                <td>Agent 误发邮件、误删数据、误操作系统。</td>
+                <td>工具分级、权限控制、人工确认。</td>
+              </tr>
+              <tr>
+                <td>结果难验证</td>
+                <td>输出看起来流畅，但事实、代码或计算不对。</td>
+                <td>自我修正、测试、审查 Agent、辩论。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="loop">
+        <h2>Agent 认知循环</h2>
+        <p>点击图中的节点，查看每个环节的职责、输入和常见设计问题。</p>
+        <div class="loop-wrap">
+          <svg class="loop" viewBox="0 0 720 480" role="img" aria-label="Agent 认知循环图">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L8,3 z" fill="#98a2b3"></path>
+              </marker>
+            </defs>
+            <path d="M360 82 C500 82 615 170 615 240 C615 330 500 398 360 398 C220 398 105 330 105 240 C105 170 220 82 360 82" fill="none" stroke="#98a2b3" stroke-width="3" marker-end="url(#arrow)"></path>
+            <g class="loop-node" data-loop="perception">
+              <circle cx="360" cy="82" r="54" fill="#2364aa"></circle>
+              <text x="360" y="88" text-anchor="middle" fill="#fff" font-size="20" font-weight="700">感知</text>
+            </g>
+            <g class="loop-node" data-loop="memory">
+              <circle cx="555" cy="170" r="54" fill="#1f7a5c"></circle>
+              <text x="555" y="176" text-anchor="middle" fill="#fff" font-size="20" font-weight="700">记忆</text>
+            </g>
+            <g class="loop-node" data-loop="reasoning">
+              <circle cx="555" cy="318" r="54" fill="#a76813"></circle>
+              <text x="555" y="324" text-anchor="middle" fill="#fff" font-size="20" font-weight="700">推理</text>
+            </g>
+            <g class="loop-node" data-loop="action">
+              <circle cx="360" cy="398" r="54" fill="#b13b44"></circle>
+              <text x="360" y="404" text-anchor="middle" fill="#fff" font-size="20" font-weight="700">行动</text>
+            </g>
+            <g class="loop-node" data-loop="reflection">
+              <circle cx="165" cy="318" r="54" fill="#6b4bb8"></circle>
+              <text x="165" y="324" text-anchor="middle" fill="#fff" font-size="20" font-weight="700">反思</text>
+            </g>
+            <g class="loop-node" data-loop="collaboration">
+              <circle cx="165" cy="170" r="54" fill="#167c80"></circle>
+              <text x="165" y="176" text-anchor="middle" fill="#fff" font-size="20" font-weight="700">协作</text>
+            </g>
+            <rect x="262" y="204" width="196" height="72" rx="8" fill="#fff" stroke="#d0d5dd"></rect>
+            <text x="360" y="236" text-anchor="middle" fill="#18212f" font-size="18" font-weight="700">目标与状态</text>
+            <text x="360" y="260" text-anchor="middle" fill="#667085" font-size="14">任务、约束、预算、风险</text>
+          </svg>
+          <div class="loop-detail" id="loop-detail">
+            <h3>感知</h3>
+            <p>Agent 首先要看见问题：用户真正想要什么、上下文里哪些信息关键、哪些信息缺失、是否需要主动搜索或提问。</p>
+            <p><b>设计问题：</b>要不要先问用户？要不要调用外部工具？哪些信息会改变下一步决策？</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="patterns">
+        <h2>21 个设计模式</h2>
+        <p>下面的卡片按六大能力层组织。点击任意卡片，可以打开详细讲解和组合建议。</p>
+        <div class="pattern-grid" id="pattern-grid"></div>
+      </section>
+
+      <section id="recipes">
+        <h2>组合方案</h2>
+        <p>单个模式像零件，真正的 Agent 系统来自组合。下面是四种常见应用的推荐架构。</p>
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="research">研究助理</button>
+          <button class="tab" data-tab="coding">编程 Agent</button>
+          <button class="tab" data-tab="support">客服 Agent</button>
+          <button class="tab" data-tab="ops">运维 Agent</button>
+        </div>
+        <div class="tab-panel active" id="tab-research">
+          <h3>研究助理：从问题到可信报告</h3>
+          <div class="flow">
+            <span>主动感知<br>澄清研究问题</span>
+            <span>RAG<br>检索资料</span>
+            <span>思维树<br>展开角度</span>
+            <span>自我修正<br>核对引用</span>
+            <span>反思记忆<br>沉淀偏好</span>
+          </div>
+          <p>适合论文综述、竞品分析、行业报告。关键不是“搜得多”，而是让每个结论都能回到来源，并区分事实、推断和建议。</p>
+        </div>
+        <div class="tab-panel" id="tab-coding">
+          <h3>编程 Agent：从需求到验证</h3>
+          <div class="flow">
+            <span>注意力聚焦<br>锁定行为</span>
+            <span>分层记忆<br>读取约定</span>
+            <span>规划-执行<br>拆分步骤</span>
+            <span>ReAct<br>读写运行</span>
+            <span>自我修正<br>根据测试调整</span>
+          </div>
+          <p>适合修 bug、加功能、迁移框架。强约束是：先理解现有系统，再最小修改，最后用命令或截图验证。</p>
+        </div>
+        <div class="tab-panel" id="tab-support">
+          <h3>客服 Agent：从用户问题到可控处理</h3>
+          <div class="flow">
+            <span>路由<br>识别类型</span>
+            <span>情节记忆<br>查历史工单</span>
+            <span>RAG<br>查政策</span>
+            <span>工具编排<br>查订单/建单</span>
+            <span>人工确认<br>处理高风险</span>
+          </div>
+          <p>适合售后、退款、投诉处理。核心是权限和升级机制：低风险自动化，高风险交给人。</p>
+        </div>
+        <div class="tab-panel" id="tab-ops">
+          <h3>运维 Agent：从告警到定位</h3>
+          <div class="flow">
+            <span>主动感知<br>拉日志指标</span>
+            <span>思维图<br>构建依赖</span>
+            <span>ReAct<br>查询系统</span>
+            <span>辩论<br>排除误判</span>
+            <span>反思记忆<br>记录故障模式</span>
+          </div>
+          <p>适合线上故障定位。重点是可观测性和行动边界：诊断可以自动，修复动作要按风险审批。</p>
+        </div>
+      </section>
+
+      <section id="builder">
+        <h2>架构搭配器</h2>
+        <p>选择你的目标场景，下面会生成一份简化 Agent 架构草案。它不是最终答案，而是启动设计讨论的脚手架。</p>
+        <div class="builder">
+          <div class="option-list">
+            <label class="option"><input type="radio" name="scenario" value="knowledge" checked> 企业知识库问答</label>
+            <label class="option"><input type="radio" name="scenario" value="personal"> 长期个人助理</label>
+            <label class="option"><input type="radio" name="scenario" value="workflow"> 自动化办公流程</label>
+            <label class="option"><input type="radio" name="scenario" value="multi"> 多 Agent 专家团队</label>
+          </div>
+          <div class="output" id="architecture-output"></div>
+        </div>
+      </section>
+
+      <section id="quiz">
+        <h2>小测验</h2>
+        <p>用几个短问题检查你是否抓住了模式背后的工程含义。</p>
+        <div class="quiz">
+          <div class="question" data-answer="rag">
+            <b>1. 用户问公司制度，模型不应该凭印象回答，最应该先采用哪个模式？</b><br>
+            <button data-choice="chain">思维链</button>
+            <button data-choice="rag">RAG</button>
+            <button data-choice="debate">辩论</button>
+            <div class="feedback"></div>
+          </div>
+          <div class="question" data-answer="react">
+            <b>2. Agent 需要一边查日志、一边根据结果决定下一步，最贴近哪个模式？</b><br>
+            <button data-choice="react">ReAct</button>
+            <button data-choice="analogy">类比推理</button>
+            <button data-choice="memory">情节记忆</button>
+            <div class="feedback"></div>
+          </div>
+          <div class="question" data-answer="router">
+            <b>3. 企业助手需要把 HR、财务、工程问题分给不同专家，核心模式是什么？</b><br>
+            <button data-choice="tree">思维树</button>
+            <button data-choice="router">路由</button>
+            <button data-choice="self">自我修正</button>
+            <div class="feedback"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="checklist" class="checklist">
+        <h2>落地清单</h2>
+        <p>设计 Agent 前先过一遍这份清单。勾选后会显示完成进度。</p>
+        <div class="progress"><div id="progress-bar"></div></div>
+        <p class="muted" id="progress-text">完成 0 / 10</p>
+        <label><input type="checkbox"> 已定义 Agent 的明确目标和非目标。</label>
+        <label><input type="checkbox"> 已区分低风险读取、中风险写入、高风险外部动作。</label>
+        <label><input type="checkbox"> 已设计短期记忆、长期记忆和知识库的边界。</label>
+        <label><input type="checkbox"> 已规定什么时候检索、什么时候提问、什么时候拒绝回答。</label>
+        <label><input type="checkbox"> 已为工具调用设置超时、重试、最大次数和错误处理。</label>
+        <label><input type="checkbox"> 已设计结果验证方式，例如测试、引用、规则校验或人工确认。</label>
+        <label><input type="checkbox"> 已考虑成本预算，包括模型、上下文、检索和工具调用。</label>
+        <label><input type="checkbox"> 已设计失败后的重规划或降级路径。</label>
+        <label><input type="checkbox"> 已记录可复用经验，但避免未经验证的记忆污染。</label>
+        <label><input type="checkbox"> 已为多 Agent 协作定义角色边界、通信协议和最终责任人。</label>
+      </section>
+
+      <section id="closing">
+        <h2>最后的心法</h2>
+        <div class="callout">
+          <p>Agent 设计模式的价值，不在于给每个能力起一个漂亮名字，而在于让你形成架构直觉：不确定性不可消除，但可以被约束、被观察、被验证、被复盘。</p>
+          <p>真正可靠的 Agent，不是“更会说话的模型”，而是“会在结构中工作的模型”。</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer>
+    <p>说明：本页面是基于《Agent 设计模式》公开大纲进行的原创扩展教学文案，用于学习和讲解 Agent 架构方法，不复刻原书内容。</p>
+  </footer>
+
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <span class="tag" id="modal-tag">模式</span>
+          <h2 id="modal-title">标题</h2>
+        </div>
+        <button class="close" id="modal-close" aria-label="关闭">×</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script>
+    const patterns = [
+      {
+        group: "感知", tagClass: "", name: "注意力聚焦",
+        summary: "信息很多时，先识别目标、关键实体、约束和噪声。",
+        detail: "适合长文档、代码库、工单、会议纪要。它让 Agent 先回答“我现在应该看什么”，再进入推理。风险是过早聚焦导致遗漏，所以需要保留回退机制。",
+        combine: "常与主动感知、规划-执行、RAG 组合。"
+      },
+      {
+        group: "感知", tagClass: "", name: "多模态融合",
+        summary: "把文本、图片、表格、网页、音频等输入转成统一任务语义。",
+        detail: "适合 UI 截图分析、商品理解、理赔审核、教育批改。关键是处理模态冲突：文字说“采光好”，图片却显示昏暗时，Agent 应标注不一致。",
+        combine: "常与思维图、工具编排、人工确认组合。"
+      },
+      {
+        group: "感知", tagClass: "", name: "主动感知",
+        summary: "信息不足时，主动提问或调用工具补齐关键缺口。",
+        detail: "优秀 Agent 不会在缺信息时硬答。它会判断哪些信息会改变决策，只补最关键的缺口。过度提问会打断用户，所以应优先问影响下一步的问题。",
+        combine: "常与 ReAct、RAG、路由组合。"
+      },
+      {
+        group: "记忆", tagClass: "green", name: "分层记忆",
+        summary: "把当前上下文、用户偏好、项目知识和历史经验分层管理。",
+        detail: "不是所有记忆都进入上下文。只有与当前任务相关的记忆才被激活。这样能降低成本，也能减少无关信息干扰。",
+        combine: "常与情节记忆、反思记忆、RAG 组合。"
+      },
+      {
+        group: "记忆", tagClass: "green", name: "RAG 检索增强",
+        summary: "用外部知识库补充模型不知道或不能凭印象回答的信息。",
+        detail: "RAG 不只是向量库。完整链路包括文档切分、查询改写、混合检索、重排、来源引用和答案校验。它特别适合制度、文档、论文、代码知识库。",
+        combine: "常与自我修正、事实校验、工具编排组合。"
+      },
+      {
+        group: "记忆", tagClass: "green", name: "情节记忆",
+        summary: "记录过去发生过的具体事件、结果和用户反馈。",
+        detail: "它让 Agent 理解“上次那个方案”“之前失败的原因”这类上下文。记录应包含时间、参与者、目标、行动、结果和后续影响。",
+        combine: "常与个人助理、客服 Agent、项目协作 Agent 组合。"
+      },
+      {
+        group: "推理", tagClass: "gold", name: "思维链",
+        summary: "把复杂问题拆成连续步骤，提高解释性和稳定性。",
+        detail: "适合诊断、分析、数学、法律论证、商业判断。产品中不一定展示完整推理过程，但内部要有中间检查点。",
+        combine: "常与自我修正、验证清单、规划-执行组合。"
+      },
+      {
+        group: "推理", tagClass: "gold", name: "思维树",
+        summary: "展开多条候选路径，评估后剪枝，避免一条路走到黑。",
+        detail: "适合产品路线、战略选择、修复方案、创意生成。工程上要限制分支数量和深度，否则成本会膨胀。",
+        combine: "常与辩论、规划-执行、评分器组合。"
+      },
+      {
+        group: "推理", tagClass: "gold", name: "思维图",
+        summary: "用节点和关系表达复杂系统的因果、依赖和冲突。",
+        detail: "适合架构设计、故障定位、组织诊断和风险分析。它帮助 Agent 看见隐藏关联，而不是只处理线性步骤。",
+        combine: "常与多模态融合、运维诊断、群体模式组合。"
+      },
+      {
+        group: "推理", tagClass: "gold", name: "类比推理",
+        summary: "从熟悉领域迁移结构到新问题，用于解释和创新。",
+        detail: "类比是桥，不是证据。好的 Agent 会说明相似点和边界，避免把比喻当成事实。",
+        combine: "常与教学、产品创新、概念设计组合。"
+      },
+      {
+        group: "行动", tagClass: "red", name: "ReAct",
+        summary: "在推理和行动之间循环：思考、调用工具、观察结果、再决策。",
+        detail: "适合搜索、代码执行、日程安排、运维排查。关键是每次行动后都读取观察结果，不编造工具返回。",
+        combine: "常与主动感知、工具编排、自我调整组合。"
+      },
+      {
+        group: "行动", tagClass: "red", name: "规划-执行",
+        summary: "先把长任务拆成步骤，再逐步执行并根据反馈重规划。",
+        detail: "适合代码迁移、研究报告、自动化办公。计划不是合同，而是动态地图；执行中发现前提变化时要更新计划。",
+        combine: "常与 ReAct、自我修正、委托模式组合。"
+      },
+      {
+        group: "行动", tagClass: "red", name: "工具编排",
+        summary: "选择、组合、约束多个工具，并管理它们的数据传递和风险。",
+        detail: "工具越多，越需要权限分级。读取、写入、发送、删除、支付这类动作应有不同确认策略。",
+        combine: "常与路由、人工确认、审计日志组合。"
+      },
+      {
+        group: "行动", tagClass: "red", name: "自我调整策略",
+        summary: "失败后分析原因，改变搜索词、计划、工具或执行策略。",
+        detail: "适合检索、代码修复、数据清洗和自动调参。要设置尝试次数和停止条件，避免无限循环。",
+        combine: "常与 ReAct、反思记忆、测试反馈组合。"
+      },
+      {
+        group: "反思", tagClass: "violet", name: "自我修正",
+        summary: "生成后按标准检查，再修改，直到满足质量门槛。",
+        detail: "适合写作、翻译、代码、报告和合规审查。关键是检查标准要具体，例如事实、格式、约束、遗漏和风险。",
+        combine: "常与 RAG、测试、引用校验组合。"
+      },
+      {
+        group: "反思", tagClass: "violet", name: "反思记忆",
+        summary: "把成功策略、失败模式和项目约定沉淀为可复用经验。",
+        detail: "不是记录情绪化总结，而是记录经过验证的、可复用的具体经验。否则会污染长期记忆。",
+        combine: "常与分层记忆、编程 Agent、项目助理组合。"
+      },
+      {
+        group: "反思", tagClass: "violet", name: "元学习",
+        summary: "不只记住经验，还改进学习和执行任务的方法。",
+        detail: "元学习让 Agent 从“这次怎么做”上升到“以后遇到这类任务怎么做”。高风险系统中应有人类审核，避免错误经验固化。",
+        combine: "常与长期 Agent、组织流程、绩效评估组合。"
+      },
+      {
+        group: "协作", tagClass: "teal", name: "辩论",
+        summary: "让多个角色从不同立场质疑和论证，降低单一视角盲区。",
+        detail: "适合安全审查、投资决策、架构评审和重要文案。辩论必须要求证据、回应质疑、区分事实与判断。",
+        combine: "常与思维树、裁判 Agent、风险评估组合。"
+      },
+      {
+        group: "协作", tagClass: "teal", name: "委托",
+        summary: "主 Agent 拆解任务，把边界清楚的子任务交给专业 Agent。",
+        detail: "委托的质量取决于任务定义。要说明范围、输出格式、禁止事项和验收标准。",
+        combine: "常与规划-执行、多 Agent 团队、审查 Agent 组合。"
+      },
+      {
+        group: "协作", tagClass: "teal", name: "路由",
+        summary: "按任务类型、权限、风险和工具需求，把请求分发到合适处理者。",
+        detail: "企业场景尤其重要。建议模型判断和规则兜底结合，避免把高风险任务误分配给低权限 Agent。",
+        combine: "常与工具编排、权限控制、客服 Agent 组合。"
+      },
+      {
+        group: "协作", tagClass: "teal", name: "群体",
+        summary: "多个 Agent 形成持续协作系统，分工、通信、汇总和治理。",
+        detail: "适合市场研究、复杂监控、内容生产和组织仿真。必须设计角色边界、通信协议、预算限制和最终责任人。",
+        combine: "常与路由、委托、共享记忆、审计机制组合。"
+      }
+    ];
+
+    const loopText = {
+      perception: ["感知", "Agent 首先要看见问题：用户真正想要什么、上下文里哪些信息关键、哪些信息缺失、是否需要主动搜索或提问。", "要不要先问用户？要不要调用外部工具？哪些信息会改变下一步决策？"],
+      memory: ["记忆", "记忆让 Agent 不必每次从零开始。它包括当前上下文、长期偏好、知识库、历史事件和可复用经验。", "什么该短期保留？什么该长期保存？如何防止错误记忆污染后续行为？"],
+      reasoning: ["推理", "推理决定 Agent 如何拆问题、比较方案、建立因果关系，并把模糊目标转成可执行判断。", "问题是线性的、多分支的，还是网络状的？需要展示依据还是只输出结论？"],
+      action: ["行动", "行动让 Agent 走出聊天框，调用搜索、数据库、邮件、代码、浏览器、业务系统等工具完成任务。", "哪些动作能自动执行？哪些动作必须确认？工具失败后如何重试或降级？"],
+      reflection: ["反思", "反思让 Agent 检查输出、修复错误、沉淀经验，并在多次任务中逐渐形成更好的工作方法。", "检查标准是什么？经验是否经过验证？什么时候应该忘记旧经验？"],
+      collaboration: ["协作", "协作把复杂任务拆给多个角色，通过路由、委托、辩论或群体机制降低单点盲区。", "为什么一个 Agent 不够？谁拥有最终责任？协作成本是否超过收益？"]
+    };
+
+    const architecture = {
+      knowledge: `场景：企业知识库问答
+
+推荐架构：
+1. Router：识别问题所属业务域和权限等级
+2. Query Rewriter：把用户问题改写成可检索查询
+3. RAG Retriever：混合检索制度、文档、FAQ 和历史案例
+4. Reranker：按相关性、时效性、权限过滤结果
+5. Answer Generator：只基于证据回答，附来源
+6. Critic：检查是否断章取义、是否缺少依据
+
+关键风险：
+- 文档过期
+- 权限越界
+- 引用和结论不一致
+- 检索不到时硬答
+
+建议模式：RAG + 分层记忆 + 自我修正 + 路由`,
+      personal: `场景：长期个人助理
+
+推荐架构：
+1. Intent Detector：识别安排、提醒、写作、检索、复盘等意图
+2. Memory Manager：管理用户偏好、长期目标、联系人和历史事件
+3. Planner：拆分跨天或跨工具任务
+4. Tool Orchestrator：调用日历、邮件、文档、搜索等工具
+5. Confirmation Gate：发送、删除、公开发布前请求确认
+6. Reflection Log：记录用户反馈和可复用偏好
+
+关键风险：
+- 记忆污染
+- 过度主动
+- 隐私泄露
+- 高风险动作误执行
+
+建议模式：情节记忆 + 分层记忆 + 工具编排 + 反思记忆`,
+      workflow: `场景：自动化办公流程
+
+推荐架构：
+1. Intake：收集任务目标、输入文件、截止时间和输出格式
+2. Planner：生成步骤和依赖关系
+3. Executor：按步骤读取、生成、修改或提交材料
+4. Validator：检查格式、完整性、事实和审批要求
+5. Human-in-the-loop：关键节点让人确认
+6. Audit Trail：记录每次工具调用和生成结果
+
+关键风险：
+- 任务中途偏离
+- 文件版本混乱
+- 未经确认发出外部消息
+- 输出格式不符合业务要求
+
+建议模式：规划-执行 + ReAct + 工具编排 + 自我修正`,
+      multi: `场景：多 Agent 专家团队
+
+推荐架构：
+1. Lead Agent：理解目标、拆任务、整合结果
+2. Specialist Agents：研究、代码、数据、法务、写作等专业角色
+3. Router：根据任务类型分发给合适角色
+4. Debate/Critic：对高风险结论进行质疑和复核
+5. Shared Memory：保存共享事实、约束和决策
+6. Final Owner：对最终输出负责
+
+关键风险：
+- 重复劳动
+- 信息污染
+- 讨论很多但行动很少
+- 责任边界不清
+
+建议模式：委托 + 路由 + 辩论 + 群体`
+    };
+
+    const patternGrid = document.getElementById("pattern-grid");
+    patterns.forEach((pattern, index) => {
+      const card = document.createElement("article");
+      card.className = "pattern-card";
+      card.tabIndex = 0;
+      card.innerHTML = `
+        <span class="tag ${pattern.tagClass}">${pattern.group}</span>
+        <h3>${index + 1}. ${pattern.name}</h3>
+        <p>${pattern.summary}</p>
+        <ul>
+          <li>适用：${pattern.detail.split("。")[0]}。</li>
+          <li>${pattern.combine}</li>
+        </ul>
+      `;
+      card.addEventListener("click", () => openPattern(pattern));
+      card.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") openPattern(pattern);
+      });
+      patternGrid.appendChild(card);
+    });
+
+    function openPattern(pattern) {
+      document.getElementById("modal-tag").textContent = pattern.group;
+      document.getElementById("modal-tag").className = `tag ${pattern.tagClass}`;
+      document.getElementById("modal-title").textContent = pattern.name;
+      document.getElementById("modal-body").innerHTML = `
+        <h3>核心解释</h3>
+        <p>${pattern.summary}</p>
+        <h3>工程展开</h3>
+        <p>${pattern.detail}</p>
+        <h3>组合建议</h3>
+        <p>${pattern.combine}</p>
+        <pre>设计提示：
+- 先写出它要避免的失败场景
+- 再定义输入、状态、工具、输出
+- 最后补上验证方式和停止条件</pre>
+      `;
+      document.getElementById("modal").classList.add("open");
+    }
+
+    document.getElementById("modal-close").addEventListener("click", () => {
+      document.getElementById("modal").classList.remove("open");
+    });
+    document.getElementById("modal").addEventListener("click", (event) => {
+      if (event.target.id === "modal") event.currentTarget.classList.remove("open");
+    });
+
+    document.querySelectorAll(".loop-node").forEach((node) => {
+      node.addEventListener("click", () => {
+        const [title, body, question] = loopText[node.dataset.loop];
+        document.getElementById("loop-detail").innerHTML = `
+          <h3>${title}</h3>
+          <p>${body}</p>
+          <p><b>设计问题：</b>${question}</p>
+        `;
+      });
+    });
+
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((item) => item.classList.remove("active"));
+        document.querySelectorAll(".tab-panel").forEach((panel) => panel.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(`tab-${tab.dataset.tab}`).classList.add("active");
+      });
+    });
+
+    function updateArchitecture() {
+      const value = document.querySelector("input[name='scenario']:checked").value;
+      document.getElementById("architecture-output").textContent = architecture[value];
+    }
+    document.querySelectorAll("input[name='scenario']").forEach((input) => {
+      input.addEventListener("change", updateArchitecture);
+    });
+    updateArchitecture();
+
+    document.querySelectorAll(".question button").forEach((button) => {
+      button.addEventListener("click", () => {
+        const question = button.closest(".question");
+        const ok = button.dataset.choice === question.dataset.answer;
+        question.querySelector(".feedback").textContent = ok
+          ? "答对了。你抓住了这个场景的核心模式。"
+          : "再想想：先看这个场景最需要解决的是知识、行动、路由，还是验证。";
+      });
+    });
+
+    function updateProgress() {
+      const checks = Array.from(document.querySelectorAll(".checklist input[type='checkbox']"));
+      const done = checks.filter((item) => item.checked).length;
+      const total = checks.length;
+      document.getElementById("progress-bar").style.width = `${Math.round(done / total * 100)}%`;
+      document.getElementById("progress-text").textContent = `完成 ${done} / ${total}`;
+    }
+    document.querySelectorAll(".checklist input[type='checkbox']").forEach((input) => {
+      input.addEventListener("change", updateProgress);
+    });
+
+    const tocLinks = Array.from(document.querySelectorAll(".toc a"));
+    const sections = tocLinks.map((link) => document.querySelector(link.getAttribute("href")));
+    window.addEventListener("scroll", () => {
+      const index = sections.findLastIndex((section) => section.getBoundingClientRect().top < 120);
+      tocLinks.forEach((link) => link.classList.remove("active"));
+      if (index >= 0) tocLinks[index].classList.add("active");
+    });
+  </script>
+</body>
+</html>

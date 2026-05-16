@@ -1,0 +1,1269 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Code 实战：Harness 工程之道｜教学扩展稿</title>
+  <style>
+    :root {
+      --ink: #1f2430;
+      --muted: #667085;
+      --line: #d9dee8;
+      --paper: #f8fafc;
+      --panel: #ffffff;
+      --accent: #0f766e;
+      --accent-2: #b45309;
+      --accent-3: #345995;
+      --danger: #b42318;
+      --ok: #15803d;
+      --soft: #eef6f4;
+      --soft-2: #fff7ed;
+      --soft-3: #eef2ff;
+      --shadow: 0 18px 50px rgba(31, 36, 48, .09);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; line-height: 1.72; }
+    a { color: var(--accent-3); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    code { background: #eef1f6; border: 1px solid #dde3ee; border-radius: 5px; padding: .08rem .3rem; font-size: .92em; }
+    pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; background: #121826; color: #ecf2ff; padding: 1rem; border-radius: var(--radius); overflow: auto; line-height: 1.55; }
+    pre code { background: transparent; border: 0; color: inherit; padding: 0; }
+    button { font: inherit; }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.1rem;
+      border-right: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      padding-bottom: 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .mark {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--soft);
+      border: 1px solid #c7e7df;
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .brand strong { display: block; line-height: 1.2; }
+    .brand span { display: block; color: var(--muted); font-size: .85rem; }
+
+    .nav { display: grid; gap: .2rem; }
+    .nav a {
+      display: block;
+      padding: .44rem .55rem;
+      border-radius: 6px;
+      color: #344054;
+      font-size: .94rem;
+    }
+    .nav a:hover { background: #f1f5f9; text-decoration: none; color: var(--ink); }
+
+    main { min-width: 0; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 4rem min(5vw, 4rem) 2.4rem;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(15, 118, 110, .13), transparent 34%),
+        radial-gradient(circle at 85% 6%, rgba(180, 83, 9, .12), transparent 34%),
+        linear-gradient(135deg, #fbfcff 0%, #eef6f4 52%, #fff7ed 100%);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
+      gap: 2rem;
+      max-width: 1180px;
+      margin: 0 auto;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .2rem .55rem;
+      border: 1px solid #bdded8;
+      border-radius: 999px;
+      color: var(--accent);
+      background: rgba(255, 255, 255, .75);
+      font-size: .88rem;
+      font-weight: 700;
+    }
+
+    h1, h2, h3, h4 { line-height: 1.2; letter-spacing: 0; }
+    h1 {
+      margin: 1rem 0;
+      font-size: clamp(2.15rem, 4vw, 4.8rem);
+      max-width: 11ch;
+    }
+    .subtitle { max-width: 66ch; color: #344054; font-size: 1.12rem; }
+
+    .hero-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      padding: .68rem .9rem;
+      cursor: pointer;
+      display: inline-flex;
+      gap: .45rem;
+      align-items: center;
+      font-weight: 700;
+      box-shadow: 0 1px 0 rgba(31, 36, 48, .04);
+    }
+    .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn:hover { transform: translateY(-1px); text-decoration: none; }
+
+    .terminal-card {
+      background: #0f172a;
+      color: #e6edf7;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    .terminal-bar {
+      display: flex;
+      gap: .4rem;
+      align-items: center;
+      padding: .7rem .85rem;
+      background: rgba(255,255,255,.06);
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+    .dot { width: .68rem; height: .68rem; border-radius: 99px; background: #ef4444; }
+    .dot:nth-child(2) { background: #f59e0b; }
+    .dot:nth-child(3) { background: #22c55e; }
+    .terminal-body { padding: 1.15rem; font-size: .94rem; }
+    .terminal-body p { margin: .35rem 0; }
+    .prompt { color: #93c5fd; }
+    .green { color: #86efac; }
+    .amber { color: #fcd34d; }
+    .dim { color: #aab4c6; }
+
+    .content {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 2rem min(5vw, 4rem) 4rem;
+    }
+
+    section { scroll-margin-top: 1rem; margin: 3rem 0; }
+    .section-head {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: .8rem;
+    }
+    h2 { margin: 0; font-size: clamp(1.65rem, 3vw, 2.4rem); }
+    h3 { font-size: 1.2rem; margin: 0 0 .55rem; }
+    .section-head p { margin: 0; color: var(--muted); max-width: 54ch; }
+
+    .grid { display: grid; gap: 1rem; }
+    .cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1rem;
+      box-shadow: 0 1px 0 rgba(31, 36, 48, .03);
+    }
+    .card strong { color: #101828; }
+    .card p, .card li { color: #475467; }
+    .card p:last-child { margin-bottom: 0; }
+
+    .stat {
+      display: grid;
+      gap: .25rem;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .stat b { font-size: 1.6rem; color: var(--accent); }
+    .stat span { color: var(--muted); font-size: .92rem; }
+
+    .map {
+      position: relative;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1.2rem;
+      overflow: hidden;
+    }
+    .map svg { width: 100%; height: auto; display: block; }
+    .node { cursor: pointer; }
+    .node rect { fill: #ffffff; stroke: #c8d3e2; stroke-width: 1.4; }
+    .node:hover rect, .node.active rect { fill: #eef6f4; stroke: var(--accent); stroke-width: 2; }
+    .node text { fill: var(--ink); font-size: 14px; font-weight: 700; pointer-events: none; }
+    .line { stroke: #a9b7ca; stroke-width: 1.4; marker-end: url(#arrow); }
+    .caption { color: var(--muted); font-size: .93rem; margin-top: .75rem; }
+
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: var(--soft);
+      padding: .9rem 1rem;
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+    .callout.warn { border-left-color: var(--accent-2); background: var(--soft-2); }
+    .callout.danger { border-left-color: var(--danger); background: #fff1f2; }
+
+    .tabs {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .tab-list {
+      display: flex;
+      gap: .2rem;
+      overflow: auto;
+      padding: .45rem;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--line);
+    }
+    .tab-btn {
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      padding: .55rem .75rem;
+      white-space: nowrap;
+      color: #475467;
+      font-weight: 700;
+    }
+    .tab-btn.active { background: #fff; color: var(--accent); border-color: #c7e7df; }
+    .tab-panel { display: none; padding: 1rem; }
+    .tab-panel.active { display: block; }
+
+    details {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: .75rem 1rem;
+    }
+    details + details { margin-top: .65rem; }
+    summary { cursor: pointer; font-weight: 800; }
+
+    .timeline {
+      display: grid;
+      gap: .8rem;
+      counter-reset: step;
+    }
+    .step {
+      position: relative;
+      display: grid;
+      grid-template-columns: 3rem minmax(0, 1fr);
+      gap: .9rem;
+      align-items: start;
+    }
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      width: 2.2rem;
+      height: 2.2rem;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: 160px repeat(4, minmax(0, 1fr));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+    }
+    .matrix > div { padding: .72rem; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); min-height: 64px; }
+    .matrix > div:nth-child(5n) { border-right: 0; }
+    .matrix .head { background: #f8fafc; font-weight: 800; color: #344054; }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: .1rem .45rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      background: #fff;
+      font-size: .84rem;
+      font-weight: 700;
+      color: #475467;
+    }
+    .tag.ok { border-color: #bbf7d0; background: #f0fdf4; color: var(--ok); }
+    .tag.warn { border-color: #fed7aa; background: #fff7ed; color: var(--accent-2); }
+    .tag.danger { border-color: #fecdd3; background: #fff1f2; color: var(--danger); }
+
+    .code-block { position: relative; }
+    .copy {
+      position: absolute;
+      top: .5rem;
+      right: .5rem;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.1);
+      color: #fff;
+      border-radius: 6px;
+      padding: .25rem .5rem;
+      cursor: pointer;
+      font-size: .84rem;
+    }
+
+    .quiz-option {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 7px;
+      padding: .7rem .8rem;
+      cursor: pointer;
+      margin-top: .5rem;
+    }
+    .quiz-option.correct { border-color: #86efac; background: #f0fdf4; }
+    .quiz-option.wrong { border-color: #fecdd3; background: #fff1f2; }
+
+    .builder {
+      display: grid;
+      grid-template-columns: minmax(240px, .8fr) minmax(0, 1.2fr);
+      gap: 1rem;
+    }
+    .checklist label {
+      display: flex;
+      gap: .55rem;
+      align-items: flex-start;
+      padding: .45rem 0;
+      color: #475467;
+    }
+    .output {
+      min-height: 280px;
+      background: #101828;
+      color: #e6edf7;
+      border-radius: var(--radius);
+      padding: 1rem;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .source-list li { margin-bottom: .5rem; }
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem min(5vw, 4rem);
+      color: var(--muted);
+      background: #fff;
+    }
+
+    @media (max-width: 980px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      .nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .hero-grid, .cols-2, .cols-3, .cols-4, .builder { grid-template-columns: 1fr; }
+      .matrix { grid-template-columns: 1fr; }
+      .matrix > div { border-right: 0; }
+    }
+
+    @media print {
+      .sidebar, .hero-actions, .copy { display: none; }
+      .shell { display: block; }
+      .hero { padding: 1rem 0; background: #fff; }
+      .content { padding: 0; }
+      .card, .tabs, details, .map { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="mark">H</div>
+        <div>
+          <strong>Harness 工程课</strong>
+          <span>Claude Code 教学扩展稿</span>
+        </div>
+      </div>
+      <nav class="nav" aria-label="页面目录">
+        <a href="#intro">导读</a>
+        <a href="#mental-model">核心心智模型</a>
+        <a href="#architecture">四层架构</a>
+        <a href="#memory">记忆系统</a>
+        <a href="#skills">Skills</a>
+        <a href="#subagents">SubAgents</a>
+        <a href="#hooks">Hooks</a>
+        <a href="#mcp">MCP</a>
+        <a href="#automation">Headless 与 CI/CD</a>
+        <a href="#sdk">Agent SDK</a>
+        <a href="#plugins">Plugins</a>
+        <a href="#practice">综合实战</a>
+        <a href="#roadmap">学习路线</a>
+        <a href="#sources">资料来源</a>
+      </nav>
+    </aside>
+
+    <main>
+      <header class="hero" id="intro">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">基于公开目录重新扩展，不照抄原书</span>
+            <h1>把 Claude Code 训练成工程系统</h1>
+            <p class="subtitle">这是一篇面向开发者、技术负责人和 AI 工程实践者的长篇教学文案。它用《Claude Code 实战：Harness 工程之道》的公开目录作为路线，把 Claude Code 的记忆、技能、子智能体、事件钩子、MCP、CI/CD、SDK 和插件化落地串成一套可操作的工程方法。</p>
+            <div class="hero-actions">
+              <a class="btn primary" href="#mental-model">开始学习</a>
+              <a class="btn" href="#practice">直接看实战</a>
+              <button class="btn" type="button" data-expand-all>展开全部问答</button>
+            </div>
+          </div>
+          <div class="terminal-card" aria-label="Claude Code 工作流示意">
+            <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <div class="terminal-body">
+              <p><span class="prompt">$</span> claude "实现订单退款接口，并补测试"</p>
+              <p class="dim">读取 CLAUDE.md：项目约定、分层规则、安全边界</p>
+              <p class="amber">Skill activated: backend-feature</p>
+              <p>SubAgent: codebase-explorer -> 定位支付模块</p>
+              <p>Tool: Read / Grep / Edit / Bash(test)</p>
+              <p class="green">PostToolUse Hook: format + lint passed</p>
+              <p class="green">Stop Hook: regression tests passed</p>
+              <p><span class="prompt">$</span> git diff --stat</p>
+              <p class="dim">5 files changed, 142 insertions, 21 deletions</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content">
+        <section>
+          <div class="grid cols-4">
+            <div class="stat"><b>10</b><span>教学模块，对应公开目录的主干章节</span></div>
+            <div class="stat"><b>8</b><span>核心机制：记忆、技能、代理、钩子、MCP、自动化、SDK、插件</span></div>
+            <div class="stat"><b>3</b><span>落地层级：个人效率、团队规范、企业治理</span></div>
+            <div class="stat"><b>1</b><span>中心思想：模型之外的工程壳决定上限</span></div>
+          </div>
+          <div class="callout warn" style="margin-top:1rem">
+            <strong>阅读声明：</strong>本文不是原书内容摘录，而是按公开目录和官方 Claude Code 文档做的教学扩展。具体命令、配置字段和能力边界会随 Claude Code 版本变化，正式落地前应再核对官方文档。
+          </div>
+        </section>
+
+        <section id="mental-model">
+          <div class="section-head">
+            <div>
+              <h2>一、核心心智模型</h2>
+              <p>Claude Code 的本质不是“更会聊天的 IDE 插件”，而是一个由模型驱动、由 Harness 约束和增强的工程执行循环。</p>
+            </div>
+          </div>
+
+          <div class="grid cols-2">
+            <div class="card">
+              <h3>1. Model 不是系统，Harness 才是系统</h3>
+              <p>模型负责推理、规划、生成文本和调用工具。但真正决定可靠性的，往往是模型外面的那层工程结构：它给模型什么上下文、允许它用什么工具、什么时候拦截、如何验证、失败后如何反馈。</p>
+              <p>这层结构就是 Harness。它像一套安全带、仪表盘、方向盘和刹车系统，把“会思考的模型”变成“能在工程现场工作的代理”。</p>
+            </div>
+            <div class="card">
+              <h3>2. Agentic Loop 是基本运行节奏</h3>
+              <p>Claude Code 接到任务后，通常会经历：理解目标、读取上下文、选择工具、执行操作、观察结果、修正计划、继续执行、最后交付。这不是一次性问答，而是循环。</p>
+              <p>Harness 工程的目标，就是让这个循环在复杂项目里仍然安全、便宜、可控、可复用。</p>
+            </div>
+          </div>
+
+          <div class="map" style="margin-top:1rem">
+            <svg viewBox="0 0 1040 360" role="img" aria-label="Agentic Loop 与 Harness 关系图">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M0 0 L10 5 L0 10 z" fill="#a9b7ca"></path>
+                </marker>
+              </defs>
+              <rect x="30" y="30" width="980" height="300" rx="16" fill="#f8fafc" stroke="#d9dee8"></rect>
+              <text x="55" y="66" fill="#667085" font-size="16" font-weight="700">Harness：上下文、权限、工具、验证、分发、团队规范</text>
+              <g class="node" data-node="memory"><rect x="70" y="115" width="145" height="70" rx="10"></rect><text x="104" y="156">记忆</text></g>
+              <g class="node" data-node="plan"><rect x="260" y="115" width="145" height="70" rx="10"></rect><text x="294" y="156">计划</text></g>
+              <g class="node" data-node="tools"><rect x="450" y="115" width="145" height="70" rx="10"></rect><text x="484" y="156">工具</text></g>
+              <g class="node" data-node="observe"><rect x="640" y="115" width="145" height="70" rx="10"></rect><text x="674" y="156">观察</text></g>
+              <g class="node" data-node="verify"><rect x="830" y="115" width="145" height="70" rx="10"></rect><text x="864" y="156">验证</text></g>
+              <path class="line" d="M215 150 H258"></path>
+              <path class="line" d="M405 150 H448"></path>
+              <path class="line" d="M595 150 H638"></path>
+              <path class="line" d="M785 150 H828"></path>
+              <path class="line" d="M900 190 C850 290 250 290 150 190"></path>
+              <rect x="320" y="228" width="400" height="58" rx="10" fill="#eef6f4" stroke="#bdded8"></rect>
+              <text x="366" y="263" fill="#0f766e" font-size="16" font-weight="800">模型在循环里推理，Harness 在循环外定边界</text>
+            </svg>
+            <p class="caption" id="map-caption">点击图中的节点，可以查看每个环节在 Claude Code 中对应的工程机制。</p>
+          </div>
+
+          <div class="tabs" style="margin-top:1rem">
+            <div class="tab-list" role="tablist">
+              <button class="tab-btn active" data-tab="model">把它当同事</button>
+              <button class="tab-btn" data-tab="compiler">把它当编译器</button>
+              <button class="tab-btn" data-tab="workflow">把它当流水线</button>
+            </div>
+            <div class="tab-panel active" data-panel="model">
+              <h3>同事视角：给它背景、边界和验收标准</h3>
+              <p>如果你把 Claude Code 当作新人同事，它需要知道项目结构、编码约定、风险区域、测试方法、交付格式。`CLAUDE.md`、Skills 和 SubAgents 就是它的入职材料、岗位手册和专家协作网络。</p>
+            </div>
+            <div class="tab-panel" data-panel="compiler">
+              <h3>编译器视角：输入越结构化，输出越稳定</h3>
+              <p>命令、Skill、SDK 的价值，是把自然语言任务变成更稳定的工程输入。好的 Prompt 不是花哨语气，而是约束明确、数据充分、输出可验证。</p>
+            </div>
+            <div class="tab-panel" data-panel="workflow">
+              <h3>流水线视角：让 AI 输出进入检查、审计和回滚机制</h3>
+              <p>Hooks、CI/CD、权限和审计日志让 AI 的每一步都可以被观察、拦截、复核。工程团队真正需要的不是“AI 看起来聪明”，而是“AI 出错时系统知道怎么兜住”。</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="architecture">
+          <div class="section-head">
+            <div>
+              <h2>二、四层架构</h2>
+              <p>可以把 Claude Code 的能力分成四层：记忆层、扩展层、集成层、编程层。每一层解决不同类型的问题。</p>
+            </div>
+          </div>
+
+          <div class="grid cols-2">
+            <div class="card">
+              <h3>层 1：记忆层</h3>
+              <p><strong>代表机制：</strong><code>CLAUDE.md</code>、项目说明、团队规范。</p>
+              <p><strong>解决问题：</strong>让 Claude Code 每次进入项目时都知道“这里怎么做事”。比如代码风格、目录职责、禁止修改的文件、测试命令、PR 规范。</p>
+            </div>
+            <div class="card">
+              <h3>层 2：扩展层</h3>
+              <p><strong>代表机制：</strong>Skills、SubAgents、Slash Commands、Hooks。</p>
+              <p><strong>解决问题：</strong>把重复任务、专家能力和自动化检查沉淀下来，不再依赖每次手动提示。</p>
+            </div>
+            <div class="card">
+              <h3>层 3：集成层</h3>
+              <p><strong>代表机制：</strong>MCP servers、外部 API、数据库、GitHub/Jira/Slack 等工具。</p>
+              <p><strong>解决问题：</strong>让 Claude Code 不只读写本地文件，也能接入团队真实工作流和业务系统。</p>
+            </div>
+            <div class="card">
+              <h3>层 4：编程层</h3>
+              <p><strong>代表机制：</strong>Headless CLI、Agent SDK、结构化输出。</p>
+              <p><strong>解决问题：</strong>把 Claude Code 变成可编程组件，嵌进 CI、后台服务、内部平台和自动化脚本。</p>
+            </div>
+          </div>
+
+          <details>
+            <summary>什么时候该用哪一层？</summary>
+            <p>如果问题是“Claude 老忘记项目规则”，用记忆层。如果问题是“同类任务每次都要重新教”，用 Skills 或 Commands。如果问题是“上下文太大、任务太杂”，用 SubAgents。如果问题是“AI 的操作需要被拦截或自动验证”，用 Hooks。如果问题是“Claude 需要访问外部系统”，用 MCP。如果问题是“我要让 AI 在无人值守流程里跑”，用 Headless 或 SDK。</p>
+          </details>
+        </section>
+
+        <section id="memory">
+          <div class="section-head">
+            <div>
+              <h2>三、记忆系统：CLAUDE.md</h2>
+              <p>记忆不是让模型“永远记住一切”，而是给每次会话一个高质量、可维护的起点。</p>
+            </div>
+          </div>
+
+          <div class="grid cols-2">
+            <div>
+              <div class="card">
+                <h3>CLAUDE.md 应该写什么</h3>
+                <ul>
+                  <li>项目是什么，主要用户和核心目标是什么。</li>
+                  <li>目录结构如何分工，哪些目录不能随便改。</li>
+                  <li>开发、测试、构建、格式化命令。</li>
+                  <li>编码风格、命名习惯、错误处理原则。</li>
+                  <li>安全边界：密钥、生产配置、迁移脚本、数据文件。</li>
+                  <li>交付格式：修改说明、验证结果、风险提示。</li>
+                </ul>
+              </div>
+              <div class="callout" style="margin-top:1rem">
+                <strong>写作原则：</strong>少写愿望，多写可执行规则。比如“代码要优雅”太虚；“新增 API 必须包含错误路径测试，并运行 <code>npm test -- api</code>”才有用。
+              </div>
+            </div>
+            <div class="code-block">
+              <button class="copy" type="button">复制</button>
+              <pre><code># Project Guide
+
+## What this project is
+This repository contains a multi-tenant billing service.
+The critical path is invoice generation, payment reconciliation, and audit logs.
+
+## Development commands
+- Install: `pnpm install`
+- Test: `pnpm test`
+- Lint: `pnpm lint`
+- Typecheck: `pnpm typecheck`
+
+## Engineering rules
+- Do not edit generated files under `src/generated/`.
+- Do not change database migrations unless the user explicitly asks.
+- Prefer small, reversible patches.
+- Add tests for bug fixes and behavior changes.
+
+## Delivery format
+When done, summarize:
+1. Files changed
+2. Behavior changed
+3. Commands run
+4. Remaining risks</code></pre>
+            </div>
+          </div>
+
+          <div class="matrix" style="margin-top:1rem">
+            <div class="head">记忆类型</div><div class="head">适合内容</div><div class="head">不适合内容</div><div class="head">更新频率</div><div class="head">风险</div>
+            <div><strong>项目记忆</strong></div><div>稳定架构、命令、目录职责</div><div>临时 TODO、个人偏好</div><div>低</div><div><span class="tag ok">低</span></div>
+            <div><strong>团队记忆</strong></div><div>代码评审标准、发布流程</div><div>某个人的临时习惯</div><div>中</div><div><span class="tag warn">中</span></div>
+            <div><strong>本地记忆</strong></div><div>个人环境、实验性配置</div><div>团队必须遵守的规范</div><div>高</div><div><span class="tag warn">中</span></div>
+            <div><strong>企业策略</strong></div><div>权限、合规、安全强制项</div><div>项目细节</div><div>低</div><div><span class="tag danger">高影响</span></div>
+          </div>
+
+          <details>
+            <summary>一个好 CLAUDE.md 的自检清单</summary>
+            <ul>
+              <li>新人读完能在十分钟内知道项目怎么跑起来。</li>
+              <li>Claude 读完能知道哪些操作需要谨慎。</li>
+              <li>每条规则都能被执行或验证。</li>
+              <li>没有把大量业务文档、API 手册、历史讨论塞进去。</li>
+              <li>有明确的“完成后汇报格式”。</li>
+            </ul>
+          </details>
+        </section>
+
+        <section id="skills">
+          <div class="section-head">
+            <div>
+              <h2>四、Skills：把专业能力打包</h2>
+              <p>Skill 是“按需加载的能力包”。它不是把所有知识塞进主上下文，而是让 Claude 在任务相关时加载专门说明、脚本和参考资料。</p>
+            </div>
+          </div>
+
+          <div class="grid cols-3">
+            <div class="card">
+              <h3>参考型 Skill</h3>
+              <p>像一本薄手册，告诉 Claude 某个领域的规则。适合代码审查、安全检查、写作风格、财务分析口径。</p>
+            </div>
+            <div class="card">
+              <h3>任务型 Skill</h3>
+              <p>像一个操作流程，指导 Claude 完成一类任务。适合发版、提交、生成报告、迁移数据。</p>
+            </div>
+            <div class="card">
+              <h3>复合型 Skill</h3>
+              <p>包含说明、脚本、模板、参考资料。适合复杂生产任务，但要通过渐进式披露控制上下文成本。</p>
+            </div>
+          </div>
+
+          <div class="grid cols-2" style="margin-top:1rem">
+            <div class="card">
+              <h3>SKILL.md 的设计重点</h3>
+              <p><strong>description 是触发器。</strong>它要准确描述什么时候用，而不是泛泛介绍“我很强”。</p>
+              <p><strong>正文是路由器。</strong>正文告诉 Claude 先做什么、何时读取哪个参考文件、何时运行哪个脚本，而不是把全部知识堆在一个文件里。</p>
+              <p><strong>工具权限要最小化。</strong>如果 Skill 只是读文件做总结，就不该默认拥有写文件或执行任意 Bash 的能力。</p>
+            </div>
+            <div class="code-block">
+              <button class="copy" type="button">复制</button>
+              <pre><code>---
+name: api-review
+description: Use when reviewing REST or GraphQL API changes for compatibility, security, and test coverage.
+version: 1.0.0
+allowed-tools: Read, Grep, Bash(npm test:*), Bash(pnpm test:*)
+---
+
+# API Review Skill
+
+## Goal
+Review API changes before merge. Focus on contract stability, auth checks,
+input validation, error shape, and regression tests.
+
+## Workflow
+1. Inspect changed route/controller/schema files.
+2. Compare public response shapes with existing tests and docs.
+3. Check auth and permission boundaries.
+4. Run the narrowest relevant test command.
+5. Report findings by severity.
+
+## Reference files
+- Read `references/api-checklist.md` only if the change touches public API shape.
+- Read `references/security-rules.md` only if auth, tokens, or PII are involved.</code></pre>
+            </div>
+          </div>
+
+          <div class="callout warn" style="margin-top:1rem">
+            <strong>常见误区：</strong>把 Skill 当成“更长的 Prompt”。真正好的 Skill 更像小型软件包：入口短、资源分层、脚本稳定、权限收紧、可测试。
+          </div>
+        </section>
+
+        <section id="subagents">
+          <div class="section-head">
+            <div>
+              <h2>五、SubAgents：任务委派与上下文隔离</h2>
+              <p>子智能体不是为了显得热闹，而是为了解决主上下文被污染、任务过大、专业边界不清的问题。</p>
+            </div>
+          </div>
+
+          <div class="grid cols-2">
+            <div class="card">
+              <h3>什么时候用子智能体</h3>
+              <ul>
+                <li>需要大范围探索，但主线程只需要结论。</li>
+                <li>需要并行调查多个模块。</li>
+                <li>任务噪声很高，比如读日志、扫依赖、找历史实现。</li>
+                <li>需要专业角色，比如安全审查、测试修复、性能分析。</li>
+                <li>希望限制某类任务的工具权限。</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>什么时候不要用</h3>
+              <ul>
+                <li>任务很小，主线程直接完成更快。</li>
+                <li>下一步完全依赖子智能体结果，且没有并行空间。</li>
+                <li>任务需要高度统一的编辑上下文，拆开会增加冲突。</li>
+                <li>只是为了“多 Agent”而多 Agent。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="timeline" style="margin-top:1rem">
+            <div class="step"><div class="card"><h3>只读观察者</h3><p>负责读代码、找事实、整理证据。适合 codebase-explorer、doc-researcher、log-analyzer。</p></div></div>
+            <div class="step"><div class="card"><h3>执行型处理器</h3><p>负责一个清晰写入范围内的修改。适合 test-fixer、migration-writer、docs-updater。</p></div></div>
+            <div class="step"><div class="card"><h3>并行调查组</h3><p>多个子智能体分别调查前端、后端、数据库、部署配置，主线程整合。</p></div></div>
+            <div class="step"><div class="card"><h3>流水线角色</h3><p>先探索，再实现，再审查，再验证。每一环有清楚输入输出。</p></div></div>
+            <div class="step"><div class="card"><h3>团队型协作</h3><p>为团队沉淀固定角色：架构师、实现者、审查者、发布员。适合成熟组织，但治理成本更高。</p></div></div>
+          </div>
+
+          <div class="code-block" style="margin-top:1rem">
+            <button class="copy" type="button">复制</button>
+            <pre><code>---
+name: codebase-explorer
+description: Use proactively when a task requires locating relevant files, ownership boundaries, or existing implementation patterns before editing.
+tools: Read, Grep, Glob, LS
+---
+
+You are a read-only codebase explorer.
+
+Your job:
+- Find the files and patterns relevant to the user's task.
+- Summarize the smallest useful implementation path.
+- Cite concrete file paths and symbols.
+- Do not edit files.
+- Do not run broad or destructive commands.
+
+Return:
+1. Relevant files
+2. Existing patterns
+3. Recommended edit scope
+4. Risks or unknowns</code></pre>
+          </div>
+        </section>
+
+        <section id="hooks">
+          <div class="section-head">
+            <div>
+              <h2>六、Hooks：把“应该”变成“自动”</h2>
+              <p>Hooks 是 Claude Code 的事件驱动机制。它允许你在工具调用前后、用户提交提示、会话停止等时机运行命令，从而实现拦截、审计、格式化和质量门禁。</p>
+            </div>
+          </div>
+
+          <div class="tabs">
+            <div class="tab-list" role="tablist">
+              <button class="tab-btn active" data-tab="pretool">PreToolUse</button>
+              <button class="tab-btn" data-tab="posttool">PostToolUse</button>
+              <button class="tab-btn" data-tab="stop">Stop</button>
+              <button class="tab-btn" data-tab="substop">SubagentStop</button>
+            </div>
+            <div class="tab-panel active" data-panel="pretool">
+              <h3>执行前拦截：适合安全边界</h3>
+              <p>在 Bash、Edit、Write 等工具执行前检查输入。比如阻止删除生产配置、阻止读取密钥文件、阻止危险 shell 命令。</p>
+            </div>
+            <div class="tab-panel" data-panel="posttool">
+              <h3>执行后处理：适合自动格式化和审计</h3>
+              <p>在文件编辑后运行格式化、lint、记录操作日志，或者把工具结果压缩成 Claude 能理解的反馈。</p>
+            </div>
+            <div class="tab-panel" data-panel="stop">
+              <h3>停止前门禁：适合验收</h3>
+              <p>当 Claude 准备结束任务时，检查测试是否运行、是否还有未处理 TODO、是否遗漏交付说明。</p>
+            </div>
+            <div class="tab-panel" data-panel="substop">
+              <h3>子智能体结束检查：适合输出质量</h3>
+              <p>当子智能体返回结果时，检查它是否给出证据、文件路径、风险说明，而不是只写宽泛结论。</p>
+            </div>
+          </div>
+
+          <div class="grid cols-2" style="margin-top:1rem">
+            <div class="code-block">
+              <button class="copy" type="button">复制</button>
+              <pre><code>{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-dangerous-bash.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/format-and-lint.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+            </div>
+            <div class="card">
+              <h3>Hook 设计三原则</h3>
+              <p><strong>确定性优先：</strong>能用脚本判断的，就不要让模型再猜。</p>
+              <p><strong>失败信息要可行动：</strong>不要只说 failed，要告诉 Claude 哪个文件、哪条规则、下一步怎么修。</p>
+              <p><strong>控制阻塞成本：</strong>格式化可以快跑；全量测试可能放到 Stop Hook 或 CI 里。</p>
+            </div>
+          </div>
+
+          <div class="callout danger" style="margin-top:1rem">
+            <strong>安全提醒：</strong>Hook 自己也是代码。团队共享 Hook 前，应像审查构建脚本一样审查它，避免它读取密钥、发外网、修改无关文件或吞掉错误。
+          </div>
+        </section>
+
+        <section id="mcp">
+          <div class="section-head">
+            <div>
+              <h2>七、MCP：连接外部世界</h2>
+              <p>MCP 可以理解为 AI 工具世界的标准适配层。它让 Claude Code 通过统一协议访问数据库、浏览器、GitHub、工单系统、知识库和内部服务。</p>
+            </div>
+          </div>
+
+          <div class="grid cols-2">
+            <div class="card">
+              <h3>从 M×N 到 M+N</h3>
+              <p>没有标准协议时，每个 AI 客户端都要分别适配每个外部工具，复杂度是 M×N。MCP 把外部工具包装成 server，AI 客户端只要理解 MCP，复杂度接近 M+N。</p>
+            </div>
+            <div class="card">
+              <h3>MCP 与 Skill 的关系</h3>
+              <p>MCP 像厨房，提供真实工具和食材；Skill 像菜谱，告诉 Claude 什么时候用哪些工具、按什么步骤组合、如何判断做完。</p>
+            </div>
+          </div>
+
+          <div class="map" style="margin-top:1rem">
+            <svg viewBox="0 0 1000 300" role="img" aria-label="MCP 客户端服务器示意图">
+              <rect x="40" y="70" width="220" height="150" rx="14" fill="#eef6f4" stroke="#bdded8"></rect>
+              <text x="88" y="130" font-size="18" font-weight="800" fill="#0f766e">Claude Code</text>
+              <text x="78" y="160" font-size="14" fill="#475467">MCP Client</text>
+              <path class="line" d="M260 145 H410"></path>
+              <rect x="410" y="62" width="180" height="55" rx="10" fill="#fff" stroke="#c8d3e2"></rect>
+              <text x="456" y="96" font-size="14" font-weight="800">GitHub MCP</text>
+              <rect x="410" y="132" width="180" height="55" rx="10" fill="#fff" stroke="#c8d3e2"></rect>
+              <text x="459" y="166" font-size="14" font-weight="800">DB MCP</text>
+              <rect x="410" y="202" width="180" height="55" rx="10" fill="#fff" stroke="#c8d3e2"></rect>
+              <text x="442" y="236" font-size="14" font-weight="800">Knowledge MCP</text>
+              <path class="line" d="M590 90 H720"></path>
+              <path class="line" d="M590 160 H720"></path>
+              <path class="line" d="M590 230 H720"></path>
+              <rect x="720" y="62" width="220" height="55" rx="10" fill="#fff7ed" stroke="#fed7aa"></rect>
+              <text x="779" y="96" font-size="14" font-weight="800">PR / Issue / Repo</text>
+              <rect x="720" y="132" width="220" height="55" rx="10" fill="#fff7ed" stroke="#fed7aa"></rect>
+              <text x="785" y="166" font-size="14" font-weight="800">业务数据库</text>
+              <rect x="720" y="202" width="220" height="55" rx="10" fill="#fff7ed" stroke="#fed7aa"></rect>
+              <text x="785" y="236" font-size="14" font-weight="800">文档知识库</text>
+            </svg>
+          </div>
+
+          <details>
+            <summary>MCP 落地前要问的 6 个问题</summary>
+            <ul>
+              <li>这个 MCP server 会暴露哪些工具？是否需要全部暴露？</li>
+              <li>它能读取哪些数据？是否包含客户信息、密钥或生产数据？</li>
+              <li>它能写入或删除数据吗？写操作是否需要额外确认？</li>
+              <li>工具输出是否可能过大，导致上下文成本爆炸？</li>
+              <li>认证凭据放在哪里，如何轮换？</li>
+              <li>失败时 Claude 能收到可理解的错误信息吗？</li>
+            </ul>
+          </details>
+        </section>
+
+        <section id="automation">
+          <div class="section-head">
+            <div>
+              <h2>八、Headless 与 CI/CD</h2>
+              <p>当 Claude Code 从交互终端进入无人值守流程，它就不再只是个人助手，而是软件交付链的一环。</p>
+            </div>
+          </div>
+
+          <div class="grid cols-3">
+            <div class="card">
+              <h3>自动代码审查</h3>
+              <p>在 PR 创建或更新时，让 Claude 检查风险、测试覆盖和变更说明。适合做第一轮筛查，不应替代人类审批。</p>
+            </div>
+            <div class="card">
+              <h3>失败分析</h3>
+              <p>当 CI 失败时，收集日志、定位可能原因、提出修复建议，必要时生成补丁。</p>
+            </div>
+            <div class="card">
+              <h3>发布辅助</h3>
+              <p>根据提交、issue、PR 自动整理 changelog、迁移说明、回滚策略和验证清单。</p>
+            </div>
+          </div>
+
+          <div class="callout warn" style="margin-top:1rem">
+            <strong>无人值守的关键不是“大胆放权”，而是“窄授权 + 强验证”。</strong>CI 里的 Claude Code 应该默认只拿到完成任务所需的最小权限，并保留完整日志。
+          </div>
+
+          <div class="code-block" style="margin-top:1rem">
+            <button class="copy" type="button">复制</button>
+            <pre><code># CI 中的 AI 审查任务设计示例
+
+Goal:
+Review the pull request for risky changes.
+
+Inputs:
+- PR diff
+- Test results
+- Project CLAUDE.md
+- Security checklist
+
+Allowed actions:
+- Read repository files
+- Read CI logs
+- Comment with findings
+
+Forbidden actions:
+- Do not push commits
+- Do not approve the PR
+- Do not access production secrets
+
+Output:
+- Critical findings
+- Suggested tests
+- Questions for human reviewer
+- Confidence level</code></pre>
+          </div>
+        </section>
+
+        <section id="sdk">
+          <div class="section-head">
+            <div>
+              <h2>九、Agent SDK：把 Claude Code 变成组件</h2>
+              <p>CLI 适合人机协作，SDK 适合系统集成。SDK 的价值在于你可以用程序控制会话、工具、权限、消息流和结构化输出。</p>
+            </div>
+          </div>
+
+          <div class="grid cols-2">
+            <div class="card">
+              <h3>适合 SDK 的场景</h3>
+              <ul>
+                <li>内部代码分析服务。</li>
+                <li>批量文档生成或迁移助手。</li>
+                <li>带审计日志的 AI 运维工具。</li>
+                <li>面向业务用户的受控自动化平台。</li>
+                <li>需要 JSON Schema 输出的工作流。</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>CLI 与 SDK 的选型</h3>
+              <p>如果任务由工程师临场判断、频繁切换上下文，用 CLI。如果任务有固定入口、固定输入、固定输出、需要被其他系统调用，用 SDK。</p>
+              <p>不要太早 SDK 化。先在 CLI 中跑通工作流，再把稳定部分抽成命令、Skill、Hook，最后再封装成服务。</p>
+            </div>
+          </div>
+
+          <div class="code-block" style="margin-top:1rem">
+            <button class="copy" type="button">复制</button>
+            <pre><code>// 伪代码：代码分析服务的 SDK 化轮廓
+import { query } from "@anthropic-ai/claude-code";
+
+export async function analyzePatch(diffText) {
+  const messages = [];
+
+  for await (const message of query({
+    prompt: `
+      Review this diff for correctness, security, and missing tests.
+      Return strict JSON with fields: findings, tests, risks.
+
+      DIFF:
+      ${diffText}
+    `,
+    options: {
+      allowedTools: ["Read", "Grep"],
+      maxTurns: 6
+    }
+  })) {
+    messages.push(message);
+  }
+
+  return normalizeClaudeMessages(messages);
+}</code></pre>
+          </div>
+        </section>
+
+        <section id="plugins">
+          <div class="section-head">
+            <div>
+              <h2>十、Plugins：团队能力的封装与分发</h2>
+              <p>当一个团队积累了稳定的 Skills、SubAgents、Hooks 和 Commands，就需要把它们打包成可安装、可版本化、可治理的能力包。</p>
+            </div>
+          </div>
+
+          <div class="grid cols-2">
+            <div class="card">
+              <h3>什么时候该做 Plugin</h3>
+              <ul>
+                <li>多个项目重复使用同一套 AI 工作流。</li>
+                <li>安全、审查、发布等流程需要统一。</li>
+                <li>需要给新人一键安装团队标准能力。</li>
+                <li>需要版本管理和回滚。</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>什么时候不该做 Plugin</h3>
+              <ul>
+                <li>流程还不稳定，经常改。</li>
+                <li>只服务一个项目，放项目目录更清晰。</li>
+                <li>权限边界还没想清楚。</li>
+                <li>缺少 README、示例和测试方式。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="code-block" style="margin-top:1rem">
+            <button class="copy" type="button">复制</button>
+            <pre><code>team-ai-harness/
+  plugin.json
+  skills/
+    api-review/
+      SKILL.md
+      references/api-checklist.md
+    release-notes/
+      SKILL.md
+      templates/changelog.md
+  agents/
+    codebase-explorer.md
+    security-reviewer.md
+  commands/
+    review-pr.md
+    prepare-release.md
+  hooks/
+    block-dangerous-bash.sh
+    audit-tool-use.sh
+  README.md</code></pre>
+          </div>
+        </section>
+
+        <section id="practice">
+          <div class="section-head">
+            <div>
+              <h2>十一、综合实战：设计你的 Harness</h2>
+              <p>下面这个小工具可以把你的选择转换成一份 Harness 配置草案。它不是最终答案，但能帮你思考应该先建设哪些能力。</p>
+            </div>
+          </div>
+
+          <div class="builder">
+            <div class="card checklist">
+              <h3>选择你的团队痛点</h3>
+              <label><input type="checkbox" value="memory"> Claude 经常忘记项目规则</label>
+              <label><input type="checkbox" value="review"> 代码审查标准不稳定</label>
+              <label><input type="checkbox" value="context"> 大型代码库上下文太大</label>
+              <label><input type="checkbox" value="safety"> 担心误改敏感文件或危险命令</label>
+              <label><input type="checkbox" value="external"> 需要访问 GitHub/Jira/数据库</label>
+              <label><input type="checkbox" value="ci"> 希望进入 CI/CD 自动化</label>
+              <label><input type="checkbox" value="team"> 希望跨项目分发团队能力</label>
+              <button class="btn primary" type="button" id="build-plan">生成草案</button>
+            </div>
+            <div class="output" id="plan-output">选择左侧痛点，然后点击“生成草案”。</div>
+          </div>
+
+          <div class="grid cols-2" style="margin-top:1rem">
+            <div class="card">
+              <h3>练习 1：写一个项目 CLAUDE.md</h3>
+              <p>选一个真实项目，用 30 分钟写出项目目标、目录结构、命令、安全边界和交付格式。然后让 Claude Code 做一个小 bugfix，看它是否少问了重复问题。</p>
+            </div>
+            <div class="card">
+              <h3>练习 2：做一个代码审查 Skill</h3>
+              <p>先写最小版本，只包含 description、审查流程、输出格式。使用 3 个历史 PR 测试触发是否准确，再决定是否加入参考文件和脚本。</p>
+            </div>
+            <div class="card">
+              <h3>练习 3：做一个危险命令 Hook</h3>
+              <p>拦截 `rm -rf`、生产配置修改、密钥文件读取。让错误信息告诉 Claude 为什么被拦截，以及允许的替代方案。</p>
+            </div>
+            <div class="card">
+              <h3>练习 4：把审查放进 CI</h3>
+              <p>只让 AI 输出审查意见，不允许推送代码或批准 PR。观察一周后再决定是否扩大权限。</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="roadmap">
+          <div class="section-head">
+            <div>
+              <h2>十二、30 天学习路线</h2>
+              <p>不要一上来就搭复杂 Agent 团队。先让一个项目稳定受益，再逐层升级。</p>
+            </div>
+          </div>
+
+          <div class="timeline">
+            <div class="step"><div class="card"><h3>第 1-3 天：建立基本使用习惯</h3><p>熟悉 Claude Code 的交互方式、常用命令、权限确认、读写文件和运行测试。目标是让它完成小而明确的任务。</p></div></div>
+            <div class="step"><div class="card"><h3>第 4-7 天：写好 CLAUDE.md</h3><p>整理项目规则、命令、安全边界和交付格式。用真实任务反复修订，删除空话，保留可执行规则。</p></div></div>
+            <div class="step"><div class="card"><h3>第 8-12 天：沉淀第一个 Skill</h3><p>选择一个重复任务，如代码审查、发版说明、测试补全。写最小 Skill，并用历史案例验证触发准确性。</p></div></div>
+            <div class="step"><div class="card"><h3>第 13-17 天：引入 SubAgent</h3><p>先做只读型 explorer，让主线程不再承担大范围搜索噪声。之后再尝试执行型子智能体。</p></div></div>
+            <div class="step"><div class="card"><h3>第 18-22 天：加入 Hooks</h3><p>从低风险自动化开始：格式化、lint、审计日志。再加入危险命令拦截和 Stop Hook 门禁。</p></div></div>
+            <div class="step"><div class="card"><h3>第 23-26 天：连接外部系统</h3><p>用 MCP 接入一个低风险工具，比如只读知识库或 issue tracker。先读后写，先低权限后高权限。</p></div></div>
+            <div class="step"><div class="card"><h3>第 27-30 天：团队化试点</h3><p>把稳定的 CLAUDE.md、Skill、SubAgent 和 Hook 推给一个小团队试用。收集失败案例，更新文档，再考虑 Plugin 化。</p></div></div>
+          </div>
+
+          <div class="card" style="margin-top:1rem">
+            <h3>小测验：选择正确组件</h3>
+            <p>你的团队希望 Claude 每次修改代码后自动运行格式化，并在失败时把错误反馈给 Claude。应该优先使用什么？</p>
+            <button class="quiz-option" data-correct="false">CLAUDE.md，因为可以写规则</button>
+            <button class="quiz-option" data-correct="false">SubAgent，因为可以分派任务</button>
+            <button class="quiz-option" data-correct="true">PostToolUse Hook，因为它能在编辑后执行命令</button>
+            <p id="quiz-feedback" class="caption"></p>
+          </div>
+        </section>
+
+        <section id="sources">
+          <div class="section-head">
+            <div>
+              <h2>资料来源</h2>
+              <p>本文的结构参考公开目录，技术概念参考官方文档。这里列出便于继续阅读的链接。</p>
+            </div>
+          </div>
+          <ul class="source-list">
+            <li><a href="https://www.tenlong.com.tw/products/9787115696533">《Claude Code 实战：Harness 工程之道》天瓏书店页面</a></li>
+            <li><a href="https://docs.anthropic.com/en/docs/claude-code/settings">Anthropic Claude Code Settings</a></li>
+            <li><a href="https://docs.anthropic.com/en/docs/claude-code/sub-agents">Anthropic Claude Code Subagents</a></li>
+            <li><a href="https://docs.anthropic.com/en/docs/claude-code/hooks">Anthropic Claude Code Hooks Reference</a></li>
+            <li><a href="https://docs.anthropic.com/en/docs/claude-code/mcp">Anthropic Claude Code MCP</a></li>
+            <li><a href="https://docs.anthropic.com/en/docs/claude-code/slash-commands">Anthropic Claude Code Slash Commands</a></li>
+            <li><a href="https://code.claude.com/docs/en/skills">Claude Code Skills Documentation</a></li>
+          </ul>
+        </section>
+      </div>
+
+      <footer class="footer">
+        <p>教学扩展稿。建议结合你的真实项目边读边改：先写记忆，再做 Skill，再加 Hook，最后进入团队分发和 CI/CD。</p>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    const nodeText = {
+      memory: "记忆：CLAUDE.md、settings、项目规则，让 Claude 进入项目时有上下文。",
+      plan: "计划：模型把目标拆成步骤；好的 Harness 会要求它先调查、再编辑、最后验证。",
+      tools: "工具：Read、Edit、Bash、MCP 等。权限越清楚，工具调用越可靠。",
+      observe: "观察：读取工具结果、测试输出、错误信息，并据此调整下一步。",
+      verify: "验证：Hooks、测试、lint、CI、人工审查共同构成质量门禁。"
+    };
+
+    document.querySelectorAll(".node").forEach((node) => {
+      node.addEventListener("click", () => {
+        document.querySelectorAll(".node").forEach((n) => n.classList.remove("active"));
+        node.classList.add("active");
+        document.getElementById("map-caption").textContent = nodeText[node.dataset.node];
+      });
+    });
+
+    document.querySelectorAll(".tab-list").forEach((list) => {
+      list.addEventListener("click", (event) => {
+        const button = event.target.closest(".tab-btn");
+        if (!button) return;
+        const tabs = list.closest(".tabs");
+        tabs.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"));
+        tabs.querySelectorAll(".tab-panel").forEach((panel) => panel.classList.remove("active"));
+        button.classList.add("active");
+        tabs.querySelector(`[data-panel="${button.dataset.tab}"]`).classList.add("active");
+      });
+    });
+
+    document.querySelectorAll(".copy").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const text = button.parentElement.querySelector("pre").innerText;
+        try {
+          await navigator.clipboard.writeText(text);
+          button.textContent = "已复制";
+          setTimeout(() => button.textContent = "复制", 1200);
+        } catch {
+          button.textContent = "复制失败";
+          setTimeout(() => button.textContent = "复制", 1200);
+        }
+      });
+    });
+
+    document.querySelector("[data-expand-all]").addEventListener("click", () => {
+      const details = Array.from(document.querySelectorAll("details"));
+      const shouldOpen = details.some((item) => !item.open);
+      details.forEach((item) => item.open = shouldOpen);
+    });
+
+    const planMap = {
+      memory: ["建立 `CLAUDE.md`：项目目标、命令、目录职责、安全边界、交付格式。", "把稳定规则放共享配置，把个人偏好放本地配置。"],
+      review: ["创建 `api-review` 或 `code-review` Skill：写清触发场景、检查流程、输出格式。", "用 3-5 个历史 PR 回放测试，调 description 防止过触发。"],
+      context: ["创建只读 `codebase-explorer` SubAgent：专门定位文件、总结模式、给主线程建议。", "大型任务按模块拆给不同子智能体，主线程只负责整合与最终编辑。"],
+      safety: ["添加 PreToolUse Hook：拦截危险 Bash、敏感文件读取、生产配置修改。", "添加 PostToolUse Hook：记录审计日志，必要时运行格式化和 lint。"],
+      external: ["先接入只读 MCP server，例如 issue、docs、repo metadata。", "为写操作单独配置权限，并要求人工确认或 CI 审批。"],
+      ci: ["用 Headless 模式做 PR 审查或 CI 失败分析。", "限制为只读和评论权限，先不要允许自动 push 或 approve。"],
+      team: ["把稳定的 Skills、Agents、Hooks 和 Commands 打包成 Plugin。", "写 README、版本号、变更记录和回滚方式。"]
+    };
+
+    document.getElementById("build-plan").addEventListener("click", () => {
+      const checked = Array.from(document.querySelectorAll(".checklist input:checked")).map((item) => item.value);
+      const output = document.getElementById("plan-output");
+      if (!checked.length) {
+        output.textContent = "还没有选择痛点。建议先选 1-2 个最真实的问题，而不是一次建设全套系统。";
+        return;
+      }
+      const lines = ["# Harness 建设草案", "", "## 优先行动"];
+      checked.forEach((key) => {
+        planMap[key].forEach((line) => lines.push("- " + line));
+      });
+      lines.push("", "## 落地顺序建议", "1. 先收敛上下文和规则。", "2. 再沉淀重复任务。", "3. 然后加入安全与质量门禁。", "4. 最后才做跨项目分发和自动化。");
+      output.textContent = lines.join("\n");
+    });
+
+    document.querySelectorAll(".quiz-option").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".quiz-option").forEach((item) => item.classList.remove("correct", "wrong"));
+        const correct = button.dataset.correct === "true";
+        button.classList.add(correct ? "correct" : "wrong");
+        document.getElementById("quiz-feedback").textContent = correct
+          ? "正确。CLAUDE.md 能写规则，但不能保证自动执行；PostToolUse Hook 才适合编辑后的确定性动作。"
+          : "再想想：这里需要的是编辑之后自动运行命令并反馈结果。";
+      });
+    });
+  </script>
+</body>
+</html>
