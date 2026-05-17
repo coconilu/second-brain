@@ -40,14 +40,14 @@ export default defineConfig({
           { text: 'Claude Code Plugin：从打包到分发', link: '/claude-plugin/claude-plugin' },
           { text: 'Claude Code 会话机制', link: '/claude-session/claude-code-session-mechanism' },
           { text: 'Claude Code 实战指南', link: '/claude-best-practices/claude-code-best-practices' },
-          { text: 'Harness 工程之道教学扩展稿', link: '/claude-code-harness-engineering/' },
+          { text: 'Harness 工程之道教学扩展稿 · HTML', link: '/claude-code-harness-engineering/' },
         ],
       },
       {
         text: 'Agent 架构与协作',
         collapsed: false,
         items: [
-          { text: 'Agent 设计模式互动教学稿', link: '/agent-design-patterns/' },
+          { text: 'Agent 设计模式互动教学稿 · HTML', link: '/agent-design-patterns/' },
           { text: '从 sub-agent 到 agent-team', link: '/claude-sub-agent/sub-agent-and-agent-team' },
           { text: 'Sub-agent 和 Agent-team：从一个例子开始', link: '/claude-sub-agent/sub-agent-and-agent-team-guide' },
           { text: 'Hermes Agent 课程', link: '/hermes-agent-course/' },

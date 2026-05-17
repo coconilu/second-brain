@@ -187,7 +187,8 @@ function generateTimeline(entries, docsDir) {
       if (relPath.endsWith('/index.html')) {
         relPath = relPath.slice(0, -'index.html'.length);
       }
-      lines.push(`- [${entry.title}](${relPath})`);
+      const formatTag = path.extname(entry.path).toLowerCase() === '.html' ? ' `HTML`' : '';
+      lines.push(`- [${entry.title}](${relPath})${formatTag}`);
     }
     lines.push('');
   }
@@ -224,6 +225,16 @@ function updateIndex(docsDir) {
   content = content
     .replace('](agent-design-patterns/index.html)', '](agent-design-patterns/)')
     .replace('](claude-code-harness-engineering/index.html)', '](claude-code-harness-engineering/)');
+
+  content = content
+    .replace(
+      '[Agent 设计模式互动教学稿](agent-design-patterns/) —',
+      '[Agent 设计模式互动教学稿](agent-design-patterns/) `HTML` —'
+    )
+    .replace(
+      '[Claude Code 实战：Harness 工程之道教学扩展稿](claude-code-harness-engineering/) —',
+      '[Claude Code 实战：Harness 工程之道教学扩展稿](claude-code-harness-engineering/) `HTML` —'
+    );
 
   // d) Add timeline link — append to the intro sentence (exact match)
   const introEnd = '再按需查阅完整参考和对比分析。';

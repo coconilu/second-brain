@@ -4,14 +4,14 @@
 
 ## 2026-05
 
-- [Agent 设计模式教学文案](agent-design-patterns/)
-- [Claude Code 实战：Harness 工程之道｜教学扩展稿](claude-code-harness-engineering/)
 - [GitHub AI Trending Top 10（2026-05-05 至 2026-05-11）](github-ai-trending/2026-05-05_to_2026-05-11.md)
+- [Agent 设计模式教学文案](agent-design-patterns/) `HTML`
+- [Claude Code 实战：Harness 工程之道｜教学扩展稿](claude-code-harness-engineering/) `HTML`
 - [从 Human Interface 到 Agent Interface](from_human_interface_to_agent_interface/index.md)
 - [Hermes Agent：从智能助手到可持续进化的个人代理系统](hermes-agent-course/index.md)
-- [Top 20 AI 开源项目 — 2026 年 4 月](ai-monthly/2026-04_top20.md)
 - [AI 时代，什么才是稀缺能力](ai-era-scarce-abilities/index.md)
 - [GitHub AI Trending Top 10（2026-04-28 至 2026-05-04）](github-ai-trending/2026-04-28_to_2026-05-04.md)
+- [Top 20 AI 开源项目 — 2026 年 4 月](ai-monthly/2026-04_top20.md)
 - [Top 20 Agent Skills — 2026 年 4 月](skills-monthly/2026-04_top20.md)
 - [DeepSeek 大模型演进：从 V1 到 V4 的技术路线全梳理](deepseek-evolution/index.md)
 - [OpenCode 插件：从一个通知开始](opencode-plugins-tutorial/index.md)
