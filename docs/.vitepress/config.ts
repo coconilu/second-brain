@@ -5,6 +5,8 @@ import type { Plugin } from 'vite'
 import { defineConfig } from 'vitepress'
 
 const docsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+const standaloneHtmlPages = findStandaloneHtmlPages(docsRoot)
+const standaloneHtmlRoutes = [...standaloneHtmlPages].map((page) => `/${page.replace(/index\.html$/, '')}`)
 
 export default defineConfig({
   title: 'Second Brain',
@@ -18,10 +20,8 @@ export default defineConfig({
   // Standalone HTML pages are served by htmlStaticPagesPlugin below, not by
   // VitePress' Markdown router, so VitePress cannot statically verify them.
   ignoreDeadLinks: [
-    './agent-design-patterns/index',
-    './claude-code-harness-engineering/index',
-    '/agent-design-patterns/',
-    '/claude-code-harness-engineering/',
+    ...standaloneHtmlRoutes,
+    ...[...standaloneHtmlPages].map((page) => `./${page.replace(/\.html$/, '')}`),
   ],
   themeConfig: {
     nav: [
@@ -105,13 +105,14 @@ export default defineConfig({
     },
   },
   vite: {
-    plugins: [htmlStaticPagesPlugin(docsRoot)],
+    define: {
+      __STANDALONE_HTML_ROUTES__: JSON.stringify(standaloneHtmlRoutes),
+    },
+    plugins: [htmlStaticPagesPlugin(docsRoot, standaloneHtmlPages)],
   },
 })
 
-function htmlStaticPagesPlugin(root: string): Plugin {
-  const pages = findStandaloneHtmlPages(root)
-
+function htmlStaticPagesPlugin(root: string, pages: Set<string>): Plugin {
   return {
     name: 'second-brain-html-static-pages',
     configureServer(server) {
