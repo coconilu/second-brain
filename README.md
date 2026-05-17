@@ -13,7 +13,7 @@
 - `scripts/` — 工具脚本
 - `docs/.vitepress/` — VitePress 配置、主题和本地构建输出
 - `.opencode/skills/` — 本仓库本地 OpenCode 辅助技能（不通过 manifest 打包）
-- `package.json` — docs 网站脚本和依赖
+- `package.json` — plugins/docs 网站脚本和 docs 网站依赖
 - `dist/` — 构建产物（由 sync-plugins.sh 生成，不提交 Git）
 
 ## 快速开始
@@ -25,6 +25,12 @@
 ./scripts/sync-plugins.sh update [opencode|claudecode]  # 卸载 + 清理 + 构建 + 安装
 ./scripts/sync-plugins.sh all                          # 构建 + 安装（双平台）
 ./scripts/sync-plugins.sh clean                        # 清空 dist/
+pnpm plugins:build                                     # sync-plugins build 的 package script 别名
+pnpm plugins:install                                   # sync-plugins install 的 package script 别名
+pnpm plugins:uninstall                                 # sync-plugins uninstall 的 package script 别名
+pnpm plugins:update                                    # sync-plugins update 的 package script 别名
+pnpm plugins:all                                       # sync-plugins all 的 package script 别名
+pnpm plugins:clean                                     # sync-plugins clean 的 package script 别名
 pnpm docs:dev                                          # 启动本地 VitePress docs 网站
 pnpm docs:build                                        # 构建 docs 网站
 pnpm docs:preview                                      # 预览构建后的 docs 网站

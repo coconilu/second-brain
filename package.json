@@ -3,6 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "plugins:build": "./scripts/sync-plugins.sh build",
+    "plugins:install": "./scripts/sync-plugins.sh install",
+    "plugins:uninstall": "./scripts/sync-plugins.sh uninstall",
+    "plugins:update": "./scripts/sync-plugins.sh update",
+    "plugins:all": "./scripts/sync-plugins.sh all",
+    "plugins:clean": "./scripts/sync-plugins.sh clean",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",

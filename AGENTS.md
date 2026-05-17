@@ -16,7 +16,7 @@ manifest.yaml            — registry: declares which skills/agents/commands tar
 docs/                    — general knowledge docs (Markdown and standalone HTML)
 docs/.vitepress/         — VitePress config/theme and generated site output
 .opencode/skills/        — local OpenCode helper skills for this repo; not packaged via manifest.yaml
-package.json             — VitePress docs-site scripts and dependencies
+package.json             — plugin/docs-site scripts and docs-site dependencies
 ```
 
 ## Key commands
@@ -28,6 +28,12 @@ package.json             — VitePress docs-site scripts and dependencies
 ./scripts/sync-plugins.sh update [opencode|claudecode]  # uninstall && clean && build && install
 ./scripts/sync-plugins.sh all                          # build && install (both platforms)
 ./scripts/sync-plugins.sh clean                        # rm -rf dist/*
+pnpm plugins:build                                     # package-script alias for sync-plugins build
+pnpm plugins:install                                   # package-script alias for sync-plugins install
+pnpm plugins:uninstall                                 # package-script alias for sync-plugins uninstall
+pnpm plugins:update                                    # package-script alias for sync-plugins update
+pnpm plugins:all                                       # package-script alias for sync-plugins all
+pnpm plugins:clean                                     # package-script alias for sync-plugins clean
 pnpm docs:dev                                          # run the local VitePress docs site
 pnpm docs:build                                        # build the VitePress docs site
 pnpm docs:preview                                      # preview the built VitePress docs site
