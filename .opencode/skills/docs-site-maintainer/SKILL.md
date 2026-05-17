@@ -32,9 +32,26 @@ pnpm docs:update-index # update docs/index.md and docs/timeline.md
 When documents are added, renamed, moved, or retitled:
 
 1. Run `pnpm docs:update-index`.
-2. Review `docs/index.md` for the correct human-curated category.
+
+2. **Verify and manually curate `docs/index.md`** — this step is **not optional**.
+   The script updates `docs/timeline.md` fully, but for `docs/index.md` it only touches metadata
+   (header/footer). **The category sections under `##` headings are hand-maintained.** The script
+   will never add new entries to those sections, regardless of what the output says.
+
+   After the script runs, do this exact check:
+   - Open `docs/index.md` and visually confirm every newly added document appears under at least
+     one category section (e.g. `## 工具操作指南`, `## AI 工具生态`).
+   - If a new document is missing, add a bullet link in the right category. If no existing category
+     fits, create a new `##` section.
+   - **Do not skip this check because the script printed "Done."**
+
 3. Review `docs/timeline.md` to ensure creation-time ordering is reasonable.
+
 4. Run `pnpm docs:build` before finishing.
+
+**Common failure pattern:** The script says `✅ All done.` so you assume `index.md` is fully
+updated. It is not — only `timeline.md` is automatically complete. The category index is your
+responsibility. Missing this check means new documents are invisible from the docs homepage.
 
 `docs/timeline.md` is sorted by Git first-added time, newest first. If Git does not know a file yet, the update script falls back to filesystem timestamps.
 
