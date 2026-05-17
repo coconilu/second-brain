@@ -3,3 +3,5 @@ dist/
 node_modules/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
+.vercel
+.env*.local

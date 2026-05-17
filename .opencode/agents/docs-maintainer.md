@@ -1,6 +1,7 @@
 ---
 description: 在生成文件后，分析本项目的 AGENTS.md、manifest.yaml、README.md 是否需要更新，并在必要时执行修改。
 mode: subagent
+model: deepseek/deepseek-v4-flash
 permission:
   edit: allow
   read: allow
