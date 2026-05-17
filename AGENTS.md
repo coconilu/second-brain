@@ -1,6 +1,6 @@
 # Second Brain — Agent Guide
 
-This is a **content repository** for authoring and packaging AI agent skills/skills and sub-agents, plus a local VitePress docs site for browsing the knowledge base. There is no application runtime, test suite, or CI. Plugin packaging is handled by a bash script that transforms Markdown files into platform-specific output. Markdown docs can be checked with Vale using the local config under `docs/`; standalone HTML teaching pages may also live under `docs/`.
+This is a **content repository** for authoring and packaging AI agent skills/skills and sub-agents, plus a VitePress docs site for browsing the knowledge base locally or on Vercel. There is no application runtime, test suite, or CI. Plugin packaging is handled by a bash script that transforms Markdown files into platform-specific output. Markdown docs can be checked with Vale using the local config under `docs/`; standalone HTML teaching pages may also live under `docs/`.
 
 ## Directory layout
 
@@ -17,6 +17,7 @@ docs/                    — general knowledge docs (Markdown and standalone HTM
 docs/.vitepress/         — VitePress config/theme and generated site output
 .opencode/skills/        — local OpenCode helper skills for this repo; not packaged via manifest.yaml
 package.json             — plugin/docs-site scripts and docs-site dependencies
+vercel.json              — Vercel deployment config for the docs site
 ```
 
 ## Key commands
@@ -38,6 +39,9 @@ pnpm docs:dev                                          # run the local VitePress
 pnpm docs:build                                        # build the VitePress docs site
 pnpm docs:preview                                      # preview the built VitePress docs site
 pnpm docs:update-index                                 # refresh docs/index.md and docs/timeline.md
+pnpm deploy                                            # deploy the docs site with Vercel
+pnpm deploy:preview                                    # build docs site, then deploy with Vercel
+pnpm deploy:prod                                       # deploy the docs site to Vercel production
 vale --config="docs/.vale.ini" --output=JSON "docs/**/*.md" # lint docs Markdown
 ```
 
@@ -84,7 +88,8 @@ Without a platform argument, install/uninstall/update defaults to both platforms
 1. Add or edit Markdown/HTML content under `docs/`.
 2. Run `pnpm docs:update-index` to refresh `docs/timeline.md` and any generated links in `docs/index.md`.
 3. Run `pnpm docs:dev` for local preview, or `pnpm docs:build` to validate the VitePress build.
-4. Do not commit generated `docs/.vitepress/dist/` or cache output.
+4. Run `pnpm deploy:preview` to build and deploy a Vercel preview, `pnpm deploy` to deploy without a local build, or `pnpm deploy:prod` for production.
+5. Do not commit generated `docs/.vitepress/dist/` or cache output.
 
 ## Skill file format
 
