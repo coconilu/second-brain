@@ -4,6 +4,8 @@
 
 ## 2026-05
 
+- [前端 AI 工具速查手册](ai-toolkit-for-frontend/cheatsheet.md)
+- [前端工程师的 AI 工具兵器谱：Skills、MCP、Agent、Plugin 全解析](ai-toolkit-for-frontend/index.md)
 - [GitHub AI Trending Top 10（2026-05-05 至 2026-05-11）](github-ai-trending/2026-05-05_to_2026-05-11.md)
 - [Agent 设计模式教学文案](agent-design-patterns/) `HTML`
 - [Claude Code 实战：Harness 工程之道｜教学扩展稿](claude-code-harness-engineering/) `HTML`
