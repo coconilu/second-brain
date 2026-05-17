@@ -1,0 +1,10 @@
+.doc-preview-image {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: cover;
+  margin: 0 0 32px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  box-shadow: var(--vp-shadow-2);
+}

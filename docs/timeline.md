@@ -1,0 +1,28 @@
+# 文档时间线
+
+> 按 Git 首次加入时间排序，最近创建的文档在前。
+
+## 2026-05
+
+- [Agent 设计模式教学文案](agent-design-patterns/)
+- [Claude Code 实战：Harness 工程之道｜教学扩展稿](claude-code-harness-engineering/)
+- [GitHub AI Trending Top 10（2026-05-05 至 2026-05-11）](github-ai-trending/2026-05-05_to_2026-05-11.md)
+- [从 Human Interface 到 Agent Interface](from_human_interface_to_agent_interface/index.md)
+- [Hermes Agent：从智能助手到可持续进化的个人代理系统](hermes-agent-course/index.md)
+- [Top 20 AI 开源项目 — 2026 年 4 月](ai-monthly/2026-04_top20.md)
+- [AI 时代，什么才是稀缺能力](ai-era-scarce-abilities/index.md)
+- [GitHub AI Trending Top 10（2026-04-28 至 2026-05-04）](github-ai-trending/2026-04-28_to_2026-05-04.md)
+- [Top 20 Agent Skills — 2026 年 4 月](skills-monthly/2026-04_top20.md)
+- [DeepSeek 大模型演进：从 V1 到 V4 的技术路线全梳理](deepseek-evolution/index.md)
+- [OpenCode 插件：从一个通知开始](opencode-plugins-tutorial/index.md)
+- [与开源社区同类方案的对比](scan-reviewer/comparison.md)
+- [Scanning Strategy](scan-reviewer/scanning-strategy.md)
+- [Claude Code 实战指南：给不爱看文档的你](claude-best-practices/claude-code-best-practices.md)
+- [Claude Code Hooks 完整指南](claude-code-hooks/claude-code-hooks-guide.md)
+- [Claude Code Hooks：从一个例子开始](claude-code-hooks/claude-code-hooks-use.md)
+- [Claude Code Plugin：从打包到分发](claude-plugin/claude-plugin.md)
+- [像 Git 一样思考你的 Claude Code 会话](claude-session/claude-code-session-mechanism.md)
+- [Sub-agent 和 Agent-team：从一个例子开始](claude-sub-agent/sub-agent-and-agent-team-guide.md)
+- [从 sub-agent 到 agent-team：三个台阶，三套心智模型](claude-sub-agent/sub-agent-and-agent-team.md)
+- [OpenCode vs Claude Code：开源 AI 编程助手的全面对比](opencode-vs-claudecode/index.md)
+- [tmux：从一个例子开始](tmux/index.md)

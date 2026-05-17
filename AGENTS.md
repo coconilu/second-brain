@@ -1,6 +1,6 @@
 # Second Brain — Agent Guide
 
-This is a **content repository** for authoring and packaging AI agent skills/skills and sub-agents. There is no code, no package manager, no test suite, no CI. The "build" is a bash script that transforms Markdown files into platform-specific output. Markdown docs can be checked with Vale using the local config under `docs/`; standalone HTML teaching pages may also live under `docs/`.
+This is a **content repository** for authoring and packaging AI agent skills/skills and sub-agents, plus a local VitePress docs site for browsing the knowledge base. There is no application runtime, test suite, or CI. Plugin packaging is handled by a bash script that transforms Markdown files into platform-specific output. Markdown docs can be checked with Vale using the local config under `docs/`; standalone HTML teaching pages may also live under `docs/`.
 
 ## Directory layout
 
@@ -9,10 +9,14 @@ skills/<name>/skill.md   — skill source (YAML frontmatter + Markdown body)
 sub-agent/<name>.md      — sub-agent source (pure Markdown)
 commands/<name>.md       — command source (YAML frontmatter + Markdown body)
 templates/skill-template.md  — reference template for new skills
-scripts/sync-plugins.sh  — the only build/install tool
+scripts/sync-plugins.sh  — plugin build/install tool
+scripts/update-docs-index.mjs — refresh docs/index.md and docs/timeline.md
 dist/                    — generated output (git-ignored: .gitignore)
 manifest.yaml            — registry: declares which skills/agents/commands target which platforms
 docs/                    — general knowledge docs (Markdown and standalone HTML)
+docs/.vitepress/         — VitePress config/theme and generated site output
+.opencode/skills/        — local OpenCode helper skills for this repo; not packaged via manifest.yaml
+package.json             — VitePress docs-site scripts and dependencies
 ```
 
 ## Key commands
@@ -24,6 +28,10 @@ docs/                    — general knowledge docs (Markdown and standalone HTM
 ./scripts/sync-plugins.sh update [opencode|claudecode]  # uninstall && clean && build && install
 ./scripts/sync-plugins.sh all                          # build && install (both platforms)
 ./scripts/sync-plugins.sh clean                        # rm -rf dist/*
+pnpm docs:dev                                          # run the local VitePress docs site
+pnpm docs:build                                        # build the VitePress docs site
+pnpm docs:preview                                      # preview the built VitePress docs site
+pnpm docs:update-index                                 # refresh docs/index.md and docs/timeline.md
 vale --config="docs/.vale.ini" --output=JSON "docs/**/*.md" # lint docs Markdown
 ```
 
@@ -65,6 +73,13 @@ Without a platform argument, install/uninstall/update defaults to both platforms
 - **OpenCode**: copied as-is (YAML frontmatter is meaningful to OpenCode)
 - **Claude Code**: frontmatter stripped; output is pure Markdown (Claude Code commands have no frontmatter)
 
+## Workflow for updating the docs site
+
+1. Add or edit Markdown/HTML content under `docs/`.
+2. Run `pnpm docs:update-index` to refresh `docs/timeline.md` and any generated links in `docs/index.md`.
+3. Run `pnpm docs:dev` for local preview, or `pnpm docs:build` to validate the VitePress build.
+4. Do not commit generated `docs/.vitepress/dist/` or cache output.
+
 ## Skill file format
 
 Every skill source must have YAML frontmatter with `name`, `description`, and `version`:
@@ -98,7 +113,7 @@ version: 1.0.0
 
 - **No auto-discovery** — every skill/agent must be explicitly listed in `manifest.yaml`.
 - **Regex-based YAML parsing** — the bash script parses `manifest.yaml` with regex only. Nested structures, string quoting beyond basic `"` / `'` stripping, or unusual YAML formatting may break parsing.
-- **No tests or CI** — validate skill/agent/command packaging manually by running build and inspecting `dist/` output. Docs Markdown has a local Vale check only.
+- **No tests or CI** — validate skill/agent/command packaging manually by running build and inspecting `dist/` output. Docs Markdown has a local Vale check, and the docs site can be validated with `pnpm docs:build`.
 
 ## Post-generation documentation review
 
