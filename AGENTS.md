@@ -41,7 +41,7 @@ pnpm docs:preview                                      # preview the built ViteP
 pnpm docs:update-index                                 # refresh docs/index.md and docs/timeline.md
 pnpm deploy                                            # deploy the docs site with Vercel
 pnpm deploy:preview                                    # build docs site, then deploy with Vercel
-pnpm deploy:prod                                       # deploy the docs site to Vercel production
+pnpm deploy:prod                                       # build docs site, then deploy to Vercel production
 vale --config="docs/.vale.ini" --output=JSON "docs/**/*.md" # lint docs Markdown
 ```
 
@@ -88,7 +88,7 @@ Without a platform argument, install/uninstall/update defaults to both platforms
 1. Add or edit Markdown/HTML content under `docs/`.
 2. Run `pnpm docs:update-index` to refresh `docs/timeline.md` and any generated links in `docs/index.md`.
 3. Run `pnpm docs:dev` for local preview, or `pnpm docs:build` to validate the VitePress build.
-4. Run `pnpm deploy:preview` to build and deploy a Vercel preview, `pnpm deploy` to deploy without a local build, or `pnpm deploy:prod` for production.
+4. Run `pnpm deploy:preview` to build and deploy a Vercel preview, `pnpm deploy` to deploy without a local build, or `pnpm deploy:prod` to build and deploy to production.
 5. Do not commit generated `docs/.vitepress/dist/` or cache output.
 
 ## Skill file format

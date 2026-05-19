@@ -38,7 +38,7 @@ pnpm docs:preview                                      # 预览构建后的 docs
 pnpm docs:update-index                                 # 刷新 docs/index.md 和 docs/timeline.md
 pnpm deploy                                            # 通过 Vercel 部署 docs 网站预览环境
 pnpm deploy:preview                                    # 先构建 docs 网站，再通过 Vercel 部署预览环境
-pnpm deploy:prod                                       # 通过 Vercel 部署 docs 网站生产环境
+pnpm deploy:prod                                       # 先构建 docs 网站，再通过 Vercel 部署生产环境
 vale --config="docs/.vale.ini" --output=JSON "docs/**/*.md" # 校验 docs Markdown
 ```
 

@@ -15,7 +15,7 @@
     "docs:update-index": "node scripts/update-docs-index.mjs",
     "deploy": "vercel",
     "deploy:preview": "pnpm docs:build && vercel",
-    "deploy:prod": "vercel --prod"
+    "deploy:prod": "pnpm docs:build && vercel --prod"
   },
   "devDependencies": {
     "vercel": "^48.10.3",
