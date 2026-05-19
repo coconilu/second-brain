@@ -40,5 +40,7 @@
 ## 月度追踪
 
 - [Top 20 Agent Skills — 2026 年 4 月](skills-monthly/2026-04_top20.md)
+- [GitHub AI Trending Top 10（2026-05-12 至 2026-05-18）](github-ai-trending/2026-05-12_to_2026-05-18.md)
+- [GitHub AI Trending Top 10（2026-05-05 至 2026-05-11）](github-ai-trending/2026-05-05_to_2026-05-11.md)
 - [GitHub AI Trending Top 10（2026-04-28 至 2026-05-04）](github-ai-trending/2026-04-28_to_2026-05-04.md)
 - [Top 20 AI 开源项目 — 2026 年 4 月](ai-monthly/2026-04_top20.md)

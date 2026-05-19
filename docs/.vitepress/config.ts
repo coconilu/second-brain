@@ -76,8 +76,9 @@ export default defineConfig({
         collapsed: false,
         items: [
           { text: 'Top 20 Agent Skills — 2026 年 4 月', link: '/skills-monthly/2026-04_top20' },
-          { text: 'GitHub AI Trending Top 10（2026-04-28 至 2026-05-04）', link: '/github-ai-trending/2026-04-28_to_2026-05-04' },
+          { text: 'GitHub AI Trending Top 10（2026-05-12 至 2026-05-18）', link: '/github-ai-trending/2026-05-12_to_2026-05-18' },
           { text: 'GitHub AI Trending Top 10（2026-05-05 至 2026-05-11）', link: '/github-ai-trending/2026-05-05_to_2026-05-11' },
+          { text: 'GitHub AI Trending Top 10（2026-04-28 至 2026-05-04）', link: '/github-ai-trending/2026-04-28_to_2026-05-04' },
           { text: 'Top 20 AI 开源项目 — 2026 年 4 月', link: '/ai-monthly/2026-04_top20' },
         ],
       },
