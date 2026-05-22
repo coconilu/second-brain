@@ -41,6 +41,7 @@ export default defineConfig({
           { text: 'Claude Code 会话机制', link: '/claude-session/claude-code-session-mechanism' },
           { text: 'Claude Code 实战指南', link: '/claude-best-practices/claude-code-best-practices' },
           { text: 'Harness 工程之道教学扩展稿 · HTML', link: '/claude-code-harness-engineering/' },
+          { text: 'Harness 工程深度教案 · HTML', link: '/harness-engineering-lesson-plan/' },
         ],
       },
       {
