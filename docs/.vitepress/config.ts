@@ -22,6 +22,9 @@ export default defineConfig({
   ignoreDeadLinks: [
     ...standaloneHtmlRoutes,
     ...[...standaloneHtmlPages].map((page) => `./${page.replace(/\.html$/, '')}`),
+    // VitePress URL-encodes non-ASCII paths during dead-link checking,
+    // so we must also add the encoded variants to the ignore list.
+    ...[...standaloneHtmlPages].map((page) => encodeURI(`./${page.replace(/\.html$/, '')}`)),
   ],
   themeConfig: {
     nav: [
