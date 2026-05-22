@@ -19,7 +19,7 @@
     "deploy:prod": "bash scripts/deploy-prod.sh"
   },
   "devDependencies": {
-    "vercel": "^48.10.3",
+    "vercel": "^54.4.1",
     "vitepress": "^1.6.4"
   }
 }
