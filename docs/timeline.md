@@ -4,6 +4,7 @@
 
 ## 2026-05
 
+- [Harness Engineering 深度教案 · 从提示词到工程化](harness-engineering-lesson-plan/) `HTML`
 - [GitHub AI Trending Top 10（2026-05-12 至 2026-05-18）](github-ai-trending/2026-05-12_to_2026-05-18.md)
 - [前端 AI 工具速查手册](ai-toolkit-for-frontend/cheatsheet.md)
 - [前端工程师的 AI 工具兵器谱：Skills、MCP、Agent、Plugin 全解析](ai-toolkit-for-frontend/index.md)
