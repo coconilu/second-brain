@@ -16,7 +16,7 @@
     "docs:commit": "bash scripts/docs-commit.sh",
     "deploy": "vercel",
     "deploy:preview": "pnpm docs:build && vercel",
-    "deploy:prod": "pnpm docs:build && vercel --prod"
+    "deploy:prod": "bash scripts/deploy-prod.sh"
   },
   "devDependencies": {
     "vercel": "^48.10.3",
