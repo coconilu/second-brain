@@ -51,6 +51,7 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
+- [蒸馏人技术 · 教案 LP-2026-04](蒸馏人技术教案/) `HTML`
 - [Harness Engineering 深度教案 · 从提示词到工程化](harness-engineering-lesson-plan/) `HTML`
 - [Agent 设计模式教学文案](agent-design-patterns/) `HTML`
 - [Claude Code 实战：Harness 工程之道｜教学扩展稿](claude-code-harness-engineering/) `HTML`

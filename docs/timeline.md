@@ -4,7 +4,7 @@
 
 ## 2026-05
 
-- [蒸馏人技术 · 教案 LP-2026-04](蒸馏人技术教案.html) `HTML`
+- [蒸馏人技术 · 教案 LP-2026-04](蒸馏人技术教案/) `HTML`
 - [Harness Engineering 深度教案 · 从提示词到工程化](harness-engineering-lesson-plan/) `HTML`
 - [GitHub AI Trending Top 10（2026-05-12 至 2026-05-18）](github-ai-trending/2026-05-12_to_2026-05-18.md)
 - [前端 AI 工具速查手册](ai-toolkit-for-frontend/cheatsheet.md)
