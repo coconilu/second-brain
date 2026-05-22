@@ -13,6 +13,7 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "docs:update-index": "node scripts/update-docs-index.mjs",
+    "docs:commit": "bash scripts/docs-commit.sh",
     "deploy": "vercel",
     "deploy:preview": "pnpm docs:build && vercel",
     "deploy:prod": "pnpm docs:build && vercel --prod"

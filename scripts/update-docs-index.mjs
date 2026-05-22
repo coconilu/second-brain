@@ -200,13 +200,17 @@ function generateTimeline(entries, docsDir) {
 // 5. Update docs/index.md
 // ---------------------------------------------------------------------------
 
+const AUTO_HTML_BEGIN = '<!-- BEGIN_AUTO_HTML -->';
+const AUTO_HTML_END = '<!-- END_AUTO_HTML -->';
+
 /**
  * Update docs/index.md in-place:
  * - Remove "（草稿）" from the "Top 20 AI 开源项目 — 2026 年 4 月" entry.
  * - Fix the link if it references the .draft.md variant.
  * - Insert a timeline link into the intro.
+ * - Auto-generate standalone HTML page index between BEGIN_AUTO_HTML / END_AUTO_HTML markers.
  */
-function updateIndex(docsDir) {
+function updateIndex(docsDir, entries) {
   const indexPath = path.join(docsDir, 'index.md');
   let content = readFileUtf8(indexPath);
 
@@ -245,7 +249,51 @@ function updateIndex(docsDir) {
     );
   }
 
+  // e) Auto-generate standalone HTML page index
+  content = generateAutoHtmlSection(content, entries, docsDir);
+
   writeFileUtf8(indexPath, content);
+}
+
+/**
+ * Replace content between AUTO_HTML markers with a dynamically generated list
+ * of all standalone HTML pages, sorted by creation date (newest first).
+ */
+function generateAutoHtmlSection(content, entries, docsDir) {
+  const beginIdx = content.indexOf(AUTO_HTML_BEGIN);
+  const endIdx = content.indexOf(AUTO_HTML_END);
+
+  if (beginIdx === -1 || endIdx === -1) return content;
+
+  const before = content.slice(0, beginIdx + AUTO_HTML_BEGIN.length);
+  const after = content.slice(endIdx);
+
+  // Filter to only standalone HTML files (files that are index.html in subdirs)
+  const htmlPages = entries.filter((e) => {
+    const ext = path.extname(e.path).toLowerCase();
+    if (ext !== '.html') return false;
+    // Only count index.html in subdirectories (standalone HTML pages)
+    const rel = path.relative(docsDir, e.path);
+    if (path.basename(rel) !== 'index.html') return false;
+    if (path.dirname(rel) === '.') return false; // skip docs/index.html itself
+    return true;
+  });
+
+  // Sort by creation date descending
+  htmlPages.sort((a, b) => b.date - a.date);
+
+  // Build the link list
+  const lines = [];
+  for (const page of htmlPages) {
+    const rel = path.relative(docsDir, page.path).split(path.sep).join('/');
+    // Strip the /index.html suffix for clean URLs
+    const cleanPath = rel.replace(/\/index\.html$/, '/');
+    lines.push(`- [${page.title}](${cleanPath}) \`HTML\``);
+  }
+
+  const autoContent = lines.length > 0 ? lines.join('\n') + '\n' : '';
+
+  return before + '\n' + autoContent + after;
 }
 
 // ---------------------------------------------------------------------------
@@ -284,7 +332,7 @@ function main() {
 
   // Update docs/index.md
   console.log('\n📄 Updating docs/index.md...');
-  updateIndex(DOCS_DIR);
+  updateIndex(DOCS_DIR, entries);
   console.log('   Done.');
 
   console.log('\n✅ All done.');

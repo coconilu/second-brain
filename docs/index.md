@@ -12,6 +12,7 @@
 - [Claude Code 会话机制](claude-session/claude-code-session-mechanism.md) — 理解 session、上下文与工作流边界。
 - [Claude Code 实战指南：给不爱看文档的你](claude-best-practices/claude-code-best-practices.md) — 面向日常使用的 Claude Code 最佳实践速查。
 - [Claude Code 实战：Harness 工程之道教学扩展稿](claude-code-harness-engineering/) `HTML` — 用交互式单页串联记忆、技能、子智能体、Hooks、MCP、CI/CD、SDK 和插件化落地。
+- [Harness Engineering 深度教案 · 从提示词到工程化](harness-engineering-lesson-plan/) `HTML` — 用交互式单页串讲从提示词到工程化的完整教学体系。
 
 ## Agent 架构与协作
 
@@ -44,3 +45,13 @@
 - [GitHub AI Trending Top 10（2026-05-05 至 2026-05-11）](github-ai-trending/2026-05-05_to_2026-05-11.md)
 - [GitHub AI Trending Top 10（2026-04-28 至 2026-05-04）](github-ai-trending/2026-04-28_to_2026-05-04.md)
 - [Top 20 AI 开源项目 — 2026 年 4 月](ai-monthly/2026-04_top20.md)
+
+## 独立 HTML 页面（自动生成）
+
+> 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
+
+<!-- BEGIN_AUTO_HTML -->
+- [Harness Engineering 深度教案 · 从提示词到工程化](harness-engineering-lesson-plan/) `HTML`
+- [Agent 设计模式教学文案](agent-design-patterns/) `HTML`
+- [Claude Code 实战：Harness 工程之道｜教学扩展稿](claude-code-harness-engineering/) `HTML`
+<!-- END_AUTO_HTML -->
