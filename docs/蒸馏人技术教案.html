@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蒸馏人技术 · 教案 LP-2026-04</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4ede0;
+    --paper-warm: #ede4d2;
+    --ink: #1a1612;
+    --ink-soft: #3a342c;
+    --ink-mute: #6b6357;
+    --rule: #b8ad97;
+    --rule-soft: #d4c9b3;
+    --accent: #8b2c1f;       /* 酒红 — 关键概念 */
+    --accent-soft: #c44a32;
+    --jade: #3d5c47;          /* 墨绿 — 技术解释 */
+    --highlight: #f7c948;     /* 标黄 */
+    --warn: #c44a32;
+    --maxw: 980px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    background-image:
+      radial-gradient(ellipse at top left, rgba(139, 44, 31, 0.04), transparent 60%),
+      radial-gradient(ellipse at bottom right, rgba(61, 92, 71, 0.04), transparent 50%);
+    color: var(--ink);
+    font-family: 'Newsreader', 'Songti SC', 'STSong', serif;
+    font-size: 17px;
+    line-height: 1.7;
+    padding: 60px 40px 120px;
+    min-height: 100vh;
+  }
+
+  .grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    z-index: 100;
+    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.1  0 0 0 0 0.1  0 0 0 0 0.1  0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  .container {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* ===== Cover ===== */
+  .cover {
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 30px 0 40px;
+    margin-bottom: 80px;
+    position: relative;
+  }
+
+  .cover::before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--ink);
+  }
+
+  .meta-bar {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 40px;
+    padding-bottom: 18px;
+    border-bottom: 1px dashed var(--rule);
+  }
+
+  .meta-bar span:nth-child(2) { color: var(--accent); }
+
+  .title-block {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 40px;
+    align-items: end;
+  }
+
+  .title-number {
+    font-family: 'Fraunces', serif;
+    font-size: 140px;
+    font-weight: 200;
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .title-text h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 56px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+  }
+
+  .title-text h1 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 19px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    max-width: 600px;
+  }
+
+  .byline {
+    margin-top: 30px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+  }
+
+  .byline strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* ===== 课程信息卡 ===== */
+  .info-card {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--ink);
+    background: var(--paper-warm);
+    margin-bottom: 80px;
+  }
+
+  .info-cell {
+    padding: 22px 24px;
+    border-right: 1px solid var(--rule);
+  }
+
+  .info-cell:last-child { border-right: none; }
+
+  .info-cell .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    margin-bottom: 10px;
+  }
+
+  .info-cell .value {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  .info-cell .value small {
+    display: block;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--ink-soft);
+    font-family: 'Newsreader', serif;
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  /* ===== 学习目标 ===== */
+  .objectives {
+    background: var(--paper-warm);
+    border-left: 4px solid var(--jade);
+    padding: 30px 36px;
+    margin-bottom: 80px;
+  }
+
+  .objectives h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    letter-spacing: -0.01em;
+  }
+
+  .objectives ol {
+    padding-left: 0;
+    counter-reset: obj;
+    list-style: none;
+  }
+
+  .objectives ol li {
+    counter-increment: obj;
+    padding: 8px 0 8px 50px;
+    position: relative;
+    line-height: 1.6;
+  }
+
+  .objectives ol li::before {
+    content: "L" counter(obj, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--jade);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  /* ===== 章节标题 ===== */
+  .chapter {
+    margin-bottom: 80px;
+    scroll-margin-top: 20px;
+  }
+
+  .chapter-header {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 36px;
+    position: relative;
+  }
+
+  .chapter-header::after {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--ink);
+  }
+
+  .chapter-num {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 64px;
+    font-weight: 300;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .chapter-title {
+    flex: 1;
+  }
+
+  .chapter-title h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    margin-bottom: 6px;
+  }
+
+  .chapter-title .tagline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  /* ===== 段落与内文 ===== */
+  .chapter p {
+    margin-bottom: 18px;
+    text-align: justify;
+    hyphens: auto;
+  }
+
+  .chapter p + p {
+    text-indent: 0;
+  }
+
+  h3.section-h {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 38px 0 18px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  h3.section-h::before {
+    content: "§ ";
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  h4.section-h4 {
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    font-weight: 600;
+    margin: 28px 0 14px;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  strong { color: var(--accent); font-weight: 600; }
+  em.tech { font-style: normal; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; background: rgba(139, 44, 31, 0.08); padding: 1px 6px; border-radius: 2px; color: var(--accent); }
+
+  ul.bullets {
+    list-style: none;
+    padding: 0;
+    margin: 18px 0;
+  }
+
+  ul.bullets li {
+    padding: 6px 0 6px 26px;
+    position: relative;
+  }
+
+  ul.bullets li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ===== 引文 ===== */
+  blockquote {
+    margin: 28px 0;
+    padding: 18px 28px;
+    border-left: 3px solid var(--accent);
+    background: rgba(255,255,255,0.4);
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+
+  blockquote cite {
+    display: block;
+    margin-top: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-style: normal;
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+  }
+
+  blockquote cite::before { content: "— "; }
+
+  /* ===== 代码块 ===== */
+  pre.code {
+    background: #1a1612;
+    color: #d4c9b3;
+    padding: 22px 26px;
+    margin: 24px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-x: auto;
+    border-left: 3px solid var(--highlight);
+    position: relative;
+  }
+
+  pre.code::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 8px;
+    right: 14px;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: rgba(212, 201, 179, 0.4);
+    text-transform: uppercase;
+  }
+
+  pre.code .c { color: #8b8270; font-style: italic; }
+  pre.code .k { color: #f7c948; }
+  pre.code .s { color: #c44a32; }
+  pre.code .n { color: #d4c9b3; }
+  pre.code .hl { background: rgba(247, 201, 72, 0.15); display: inline-block; padding: 0 2px; }
+
+  code.inline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    background: rgba(26,22,18,0.06);
+    padding: 1px 6px;
+    border-radius: 2px;
+    color: var(--ink);
+    border: 1px solid var(--rule-soft);
+  }
+
+  /* ===== 表格 ===== */
+  table.cmp {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 28px 0;
+    font-size: 14px;
+    background: rgba(255,255,255,0.3);
+  }
+
+  table.cmp th, table.cmp td {
+    padding: 12px 14px;
+    text-align: left;
+    border: 1px solid var(--rule);
+    vertical-align: top;
+  }
+
+  table.cmp th {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+  }
+
+  table.cmp td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: var(--paper-warm);
+    font-weight: 600;
+  }
+
+  table.cmp tr:hover td:not(:first-child) {
+    background: rgba(247, 201, 72, 0.08);
+  }
+
+  /* ===== 时间线 ===== */
+  .timeline {
+    margin: 32px 0;
+    border-left: 2px solid var(--ink);
+    padding-left: 32px;
+    position: relative;
+  }
+
+  .timeline-event {
+    position: relative;
+    padding-bottom: 28px;
+  }
+
+  .timeline-event::before {
+    content: "";
+    position: absolute;
+    left: -38px;
+    top: 8px;
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
+    border: 2px solid var(--paper);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  .timeline-event .date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .timeline-event .title {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .timeline-event .desc {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+
+  /* ===== 流程图（运行时调度） ===== */
+  .flow {
+    background: var(--paper-warm);
+    border: 1px solid var(--ink);
+    padding: 32px;
+    margin: 28px 0;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: wrap;
+  }
+
+  .flow-node {
+    flex: 1;
+    min-width: 130px;
+    padding: 18px 12px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    margin: 6px 0;
+    position: relative;
+  }
+
+  .flow-node.persona { background: rgba(196, 74, 50, 0.1); border-color: var(--accent); }
+  .flow-node.work { background: rgba(61, 92, 71, 0.1); border-color: var(--jade); }
+  .flow-node.out { background: rgba(247, 201, 72, 0.15); border-color: #b08a1f; }
+
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    font-size: 18px;
+    color: var(--accent);
+  }
+
+  .flow-node .step {
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .flow-node .name {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .flow-node .sub {
+    font-size: 11px;
+    color: var(--ink-soft);
+    font-family: 'Newsreader', serif;
+  }
+
+  /* ===== 双层架构图 ===== */
+  .arch {
+    background: #1a1612;
+    color: #d4c9b3;
+    padding: 28px;
+    margin: 28px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    border-left: 3px solid var(--highlight);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .arch .dir { color: #f7c948; }
+  .arch .cm { color: #8b8270; }
+  .arch .hl { color: #c44a32; font-weight: 700; }
+
+  /* ===== 五维 Persona 卡片 ===== */
+  .persona-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    margin: 28px 0;
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .pcard {
+    padding: 18px 16px;
+    border-right: 1px dashed var(--rule);
+    position: relative;
+  }
+
+  .pcard:last-child { border-right: none; }
+
+  .pcard .layer {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .pcard .pname {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .pcard .pdesc {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  /* ===== 教学提示框 ===== */
+  .callout {
+    margin: 28px 0;
+    padding: 20px 26px;
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    position: relative;
+  }
+
+  .callout::before {
+    content: attr(data-tag);
+    position: absolute;
+    top: -10px;
+    left: 18px;
+    background: var(--paper);
+    padding: 0 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .callout.warn {
+    border-color: var(--warn);
+    background: rgba(196, 74, 50, 0.06);
+  }
+
+  .callout.warn::before {
+    color: var(--warn);
+  }
+
+  .callout.tip {
+    border-color: var(--jade);
+    background: rgba(61, 92, 71, 0.06);
+  }
+
+  .callout.tip::before { color: var(--jade); }
+
+  .callout p { margin: 0; font-size: 15px; line-height: 1.65; }
+  .callout p + p { margin-top: 10px; }
+
+  /* ===== 作业 ===== */
+  .homework {
+    background: var(--paper-warm);
+    border: 1px solid var(--ink);
+    padding: 32px 36px;
+    margin-bottom: 60px;
+  }
+
+  .homework h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-style: italic;
+  }
+
+  .homework .hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-mute);
+    margin-bottom: 22px;
+    text-transform: uppercase;
+  }
+
+  .hw-item {
+    padding: 16px 0;
+    border-top: 1px dashed var(--rule);
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    gap: 20px;
+    align-items: baseline;
+  }
+
+  .hw-item:first-of-type { border-top: none; }
+
+  .hw-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .hw-task {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .hw-task strong { color: var(--ink); }
+
+  .hw-level {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 3px 10px;
+    border: 1px solid var(--rule);
+    color: var(--ink-mute);
+    text-transform: uppercase;
+  }
+
+  .hw-level.hard { color: var(--accent); border-color: var(--accent); }
+
+  /* ===== 参考文献 ===== */
+  .refs {
+    border-top: 2px solid var(--ink);
+    padding-top: 30px;
+    margin-top: 60px;
+  }
+
+  .refs h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+
+  .refs ol {
+    list-style: none;
+    padding: 0;
+    counter-reset: ref;
+  }
+
+  .refs ol li {
+    counter-increment: ref;
+    padding: 8px 0 8px 36px;
+    position: relative;
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    border-bottom: 1px dotted var(--rule);
+  }
+
+  .refs ol li::before {
+    content: "[" counter(ref) "]";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .refs ol li em {
+    color: var(--ink);
+    font-style: italic;
+  }
+
+  /* ===== 页脚 ===== */
+  footer.foot {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  /* ===== Drop cap ===== */
+  .dropcap::first-letter {
+    font-family: 'Fraunces', serif;
+    font-size: 64px;
+    font-weight: 600;
+    float: left;
+    line-height: 0.9;
+    padding: 6px 10px 0 0;
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    body { padding: 30px 20px 80px; font-size: 16px; }
+    .title-block { grid-template-columns: 1fr; gap: 16px; }
+    .title-number { font-size: 90px; }
+    .title-text h1 { font-size: 36px; }
+    .info-card { grid-template-columns: 1fr 1fr; }
+    .info-cell { border-bottom: 1px solid var(--rule); }
+    .chapter-header { flex-direction: column; gap: 8px; align-items: flex-start; }
+    .chapter-num { font-size: 48px; }
+    .chapter-title h2 { font-size: 26px; }
+    .persona-grid { grid-template-columns: 1fr 1fr; }
+    .pcard { border-bottom: 1px dashed var(--rule); }
+    .flow-row { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); padding: 4px 0; }
+    .hw-item { grid-template-columns: 1fr; gap: 6px; }
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<div class="container">
+
+  <!-- ========== 封面 ========== -->
+  <header class="cover">
+    <div class="meta-bar">
+      <span>LP-2026-04 · Agent Skills Series</span>
+      <span>● Live Topic</span>
+      <span>v1.0 · 2026/05</span>
+    </div>
+
+    <div class="title-block">
+      <div class="title-number">04</div>
+      <div class="title-text">
+        <h1>蒸馏人技术<br><em>The Distillation of Persons</em></h1>
+        <p class="subtitle">一种把活人压缩成 Markdown 的工程艺术——技术原理、架构拆解、与那场始于 2026 年春的赛博炼丹运动。</p>
+      </div>
+    </div>
+
+    <div class="byline">
+      <strong>讲授对象</strong>　全栈工程师 / AI Agent 开发者 / 团队 Tech Lead 　·　
+      <strong>预备知识</strong>　Claude Code、Prompt Engineering、Markdown
+    </div>
+  </header>
+
+  <!-- ========== 课程信息卡 ========== -->
+  <section class="info-card">
+    <div class="info-cell">
+      <div class="label">课时</div>
+      <div class="value">120<small>分钟（理论 80 + 实操 40）</small></div>
+    </div>
+    <div class="info-cell">
+      <div class="label">难度</div>
+      <div class="value">★★★☆<small>需理解 Agent 架构</small></div>
+    </div>
+    <div class="info-cell">
+      <div class="label">章节</div>
+      <div class="value">08<small>章 + 课后作业 4 题</small></div>
+    </div>
+    <div class="info-cell">
+      <div class="label">教学形式</div>
+      <div class="value">讲授 + 拆解 + 动手<small>建议带笔记本</small></div>
+    </div>
+  </section>
+
+  <!-- ========== 学习目标 ========== -->
+  <section class="objectives">
+    <h3>本节课结束后，你将能够 ——</h3>
+    <ol>
+      <li>清楚区分 <em class="tech">知识蒸馏（KD）</em>、<em class="tech">Persona 蒸馏</em>、<em class="tech">RAG</em> 三者各自要解决的问题；</li>
+      <li>逐层拆解一个真实的 <em class="tech">.skill</em> 项目目录结构，并解释 <em class="tech">Persona + Memory</em> 双层架构的设计动因；</li>
+      <li>理解 Agent Skills 标准中"渐进式披露 (progressive disclosure)"为什么是省 Token 的关键；</li>
+      <li>独立写出一份语法正确、可被 Claude Code 加载的最小 <em class="tech">SKILL.md</em>；</li>
+      <li>对"蒸馏人"现象的劳动伦理与隐私边界形成自己的判断，而非简单的恐慌或追捧。</li>
+    </ol>
+  </section>
+
+  <!-- ========== §1 概念溯源 ========== -->
+  <section class="chapter" id="ch1">
+    <div class="chapter-header">
+      <div class="chapter-num">I</div>
+      <div class="chapter-title">
+        <h2>概念溯源：被语义偷换的"蒸馏"</h2>
+        <div class="tagline">From Hinton 2014 → Skill.md 2026</div>
+      </div>
+    </div>
+
+    <p class="dropcap">在讲今天的主角之前，必须先做一次"概念去污"。因为"蒸馏"这个词，在最近半年的中文互联网里，已经从一个严肃的机器学习术语，悄悄迁移成了一个职场恐怖意象。我们要把这两层意思讲清楚。</p>
+
+    <h3 class="section-h">1.1 经典语义：知识蒸馏（Knowledge Distillation）</h3>
+
+    <p>"知识蒸馏"最早由 Geoffrey Hinton 等人于 2014 年的 NIPS Workshop 上提出，是一种<strong>模型压缩</strong>技术。核心想法是：用一个已经训练好的、参数量巨大的"教师模型 (Teacher)"，去指导一个参数量小得多的"学生模型 (Student)"训练。学生不是去学硬标签 (hard label)，而是去拟合教师输出的<em class="tech">概率分布</em>（即 soft target）。</p>
+
+    <p>近两年伴随 DeepSeek-R1 等模型出圈，这个词进入大众视野。但在普通人理解里，它被简化成了一句话：<strong>把大模型的能力"浓缩"到小模型里</strong>。</p>
+
+    <h3 class="section-h">1.2 语义偷换：从"压缩模型"到"压缩活人"</h3>
+
+    <p>2026 年春，"蒸馏"被中文社区进行了一次大胆的语义迁移：</p>
+
+    <blockquote>
+      经过语义的迁徙，在当下的社交媒体上，人们讨论的蒸馏已经与 AI 模型无关，变成了将人炼化成 AI 的过程。
+      <cite>《拒绝被"蒸馏"的年轻人》, 2026.05</cite>
+    </blockquote>
+
+    <p>请注意这次偷换中的两个微妙之处：</p>
+
+    <ul class="bullets">
+      <li><strong>教师变成了"人"</strong>——不再是 GPT-4 或 R1，而是你的同事、导师、前任、自己；</li>
+      <li><strong>学生变成了"Skill 文件"</strong>——不再是一个小神经网络，而是一份可被 Agent 加载的 Markdown 说明书。</li>
+    </ul>
+
+    <p>所以严格说，"蒸馏人技术"<strong>并不是 Hinton 那一脉的知识蒸馏</strong>。它没有 soft label、没有 temperature scaling、没有反向传播。它的底层技术是<em class="tech">大模型 + Prompt 工程 + Agent Skills 标准</em>——一套完全不同的工程栈。但是"蒸馏"这个比喻太贴切了：把一个鲜活的人，蒸出他工作中的"知识精华"（去掉摸鱼、情绪、八卦），凝结成几 KB 的 .md 文件。这就是"蒸馏人"这一名字的由来。</p>
+
+    <div class="callout tip" data-tag="教学提示">
+      <p><strong>不要再混用</strong>。在工程语境下，请用"<strong>Persona 蒸馏</strong>"或"<strong>Skill 化</strong>"来描述本节课的主题；在跟产品/HR/媒体沟通时，可以用通俗的"蒸馏人"。这层区分能让你避免 80% 的概念扯皮。</p>
+    </div>
+  </section>
+
+  <!-- ========== §2 事件考古 ========== -->
+  <section class="chapter" id="ch2">
+    <div class="chapter-header">
+      <div class="chapter-num">II</div>
+      <div class="chapter-title">
+        <h2>事件考古：同事.skill 是怎么炸开的</h2>
+        <div class="tagline">A timeline of the 2026 skill explosion</div>
+      </div>
+    </div>
+
+    <p>"蒸馏人"不是凭空出现的。它的爆发，是 Anthropic 在 2024-2025 年铺好的两块基础设施（MCP + Agent Skills），加上一个非常会取名的开发者，在一个集体职场焦虑临界点上的合谋。</p>
+
+    <div class="timeline">
+      <div class="timeline-event">
+        <div class="date">2024 · 11</div>
+        <div class="title">MCP 协议发布</div>
+        <div class="desc">Anthropic 推出 Model Context Protocol，解决 AI 与外部工具的标准化接入——业内称之为"AI 的 USB-C"。</div>
+      </div>
+
+      <div class="timeline-event">
+        <div class="date">2025 · 10</div>
+        <div class="title">Claude Code 推出 Agent Skills</div>
+        <div class="desc">"能力包"成为一等公民。开发者可以把工作流封装为 <code class="inline">SKILL.md</code> + 资源目录，由 Agent 在需要时按需加载。</div>
+      </div>
+
+      <div class="timeline-event">
+        <div class="date">2025 · 12</div>
+        <div class="title">Skills 标准开放化</div>
+        <div class="desc">agentskills.io 上线，由 Linux Foundation 旗下的 Agentic AI Foundation 托管。Cursor、VS Code、Codex CLI 陆续宣布兼容。</div>
+      </div>
+
+      <div class="timeline-event">
+        <div class="date">2026 · 03 · 30</div>
+        <div class="title">titanwings 上线 colleague-skill</div>
+        <div class="desc">README 第一行写着："把离职同事炼成 AI"。项目本身只用了开发者 4 小时。但它做了一件以前没人做过的事：把 Skills 架构从"教 AI 做什么"推到"教 AI <strong>成为谁</strong>"。</div>
+      </div>
+
+      <div class="timeline-event">
+        <div class="date">2026 · 04 · 04</div>
+        <div class="title">5 天 6,600+ Stars · 全网破圈</div>
+        <div class="desc">前任.skill、导师.skill、师兄.skill、老板.skill、自己.skill、女娲.skill 接连出现。讨论从 GitHub Trending 蔓延到小红书、微博、知乎。</div>
+      </div>
+
+      <div class="timeline-event">
+        <div class="date">2026 · 04 中</div>
+        <div class="title">反蒸馏.skill 诞生</div>
+        <div class="desc">AI 产品经理邓小闲发布反蒸馏 skill，三周积累 2,200 Stars。"以毒攻毒"派的开源生态收录了 50+ 同类项目。</div>
+      </div>
+
+      <div class="timeline-event">
+        <div class="date">2026 · 05</div>
+        <div class="title">企业开始内部落地</div>
+        <div class="desc">InfoQ 报道某游戏传媒公司用自有工作数据把一位刚离职的 HR 训练成"AI 数字人"，接咨询、做 PPT、做表格。公司声称"经当事人本人同意"。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== §3 技术基座 ========== -->
+  <section class="chapter" id="ch3">
+    <div class="chapter-header">
+      <div class="chapter-num">III</div>
+      <div class="chapter-title">
+        <h2>技术基座：Agent Skills 是什么</h2>
+        <div class="tagline">The infrastructure that made it possible</div>
+      </div>
+    </div>
+
+    <p>要看懂蒸馏人，必须先看懂 <strong>Agent Skills</strong>。可以把它定义成一句话：</p>
+
+    <blockquote>
+      Agent Skill = 可被 AI 智能体<strong>动态发现</strong>并<strong>按需加载</strong>的"能力包"。
+    </blockquote>
+
+    <p>它和你常听到的几个概念，分工边界清晰：</p>
+
+    <table class="cmp">
+      <thead>
+        <tr>
+          <th>维度</th>
+          <th>Prompt</th>
+          <th>Skills</th>
+          <th>MCP</th>
+          <th>Function Calling</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>本质</td>
+          <td>单次对话的文本指令</td>
+          <td>可持久化、可发现的能力单元</td>
+          <td>标准化的工具接入协议</td>
+          <td>LLM 输出结构化调用的底层能力</td>
+        </tr>
+        <tr>
+          <td>复用性</td>
+          <td>随对话丢失</td>
+          <td>跨项目复用，支持版本管理</td>
+          <td>一次编写，所有 AI 通用</td>
+          <td>底层基础能力</td>
+        </tr>
+        <tr>
+          <td>加载机制</td>
+          <td>全量载入（挤占 Token）</td>
+          <td><strong>延迟加载</strong>（按需读取）</td>
+          <td>需运行 MCP Server 进程</td>
+          <td>底层机制</td>
+        </tr>
+        <tr>
+          <td>类比</td>
+          <td>你说的话</td>
+          <td>任务说明书</td>
+          <td>USB-C 接口</td>
+          <td>神经信号</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 class="section-h">3.1 SKILL.md 的最小骨架</h3>
+
+    <p>每个 Skill 的入口是一个 <code class="inline">SKILL.md</code> 文件，由<strong>前置 YAML 元数据 + Markdown 正文</strong>组成。Agent 在启动时只会预加载元数据（几十 Token），判断当前任务匹配时才加载正文（几百 Token），执行到具体步骤时才加载脚本/资源。这就是 <strong>Progressive Disclosure</strong>（渐进式披露）。</p>
+
+    <pre class="code" data-lang="SKILL.md">
+<span class="c">---</span>
+<span class="k">name</span>: code-reviewer
+<span class="k">version</span>: <span class="s">"1.0.0"</span>
+<span class="k">description</span>: <span class="s">&gt;</span>
+  <span class="hl">When to use:</span> 当需要对 Pull Request 进行结构化代码审查时。
+  <span class="hl">When NOT to use:</span> 简单的 typo 修复或纯文档变更。
+<span class="k">user-invocable</span>: true
+<span class="k">tags</span>: [<span class="s">"code-review"</span>, <span class="s">"security"</span>]
+<span class="c">---</span>
+
+<span class="n"># 严格代码审查
+
+## Steps
+1. 获取 PR 的 diff 内容
+2. 按以下维度逐一审查：架构 / 异常 / 安全 / 性能 / 日志
+3. 生成结构化审查报告
+
+## Rules
+- 每个问题必须标注严重等级（Critical / Warning / Info）
+- 必须给出修复建议
+- 安全类问题一律 Critical</span>
+</pre>
+
+    <div class="callout tip" data-tag="为什么这件事重要">
+      <p>这种"<strong>元数据先行，正文延迟，资源按需</strong>"的三级加载，让一个 Agent 可以同时"知道"自己拥有几百个技能，但在任何一次对话中实际只支付十几个技能的 Token 成本。这是 Skills 相较于 Prompt 的<strong>数量级优势</strong>，也是它能承载"蒸馏一个人"这种重型场景的前提。</p>
+    </div>
+  </section>
+
+  <!-- ========== §4 架构拆解 ========== -->
+  <section class="chapter" id="ch4">
+    <div class="chapter-header">
+      <div class="chapter-num">IV</div>
+      <div class="chapter-title">
+        <h2>架构拆解：Persona + Memory 双层</h2>
+        <div class="tagline">Inside the colleague-skill project</div>
+      </div>
+    </div>
+
+    <p>传统 Skill 是"教 AI <em>做什么</em>"，而 colleague-skill 做了一个关键的范式跳跃：教 AI "<strong>成为谁</strong>"。它把蒸馏一个人的过程拆成了完全独立的两层。</p>
+
+    <div class="arch">
+<span class="dir">colleague-skill/</span>
+├── SKILL.md                     <span class="cm"># 入口：自我描述 + 调度规则</span>
+│
+├── <span class="hl">persona/</span>                     <span class="cm"># ── 人格层 ──────────</span>
+│   ├── identity.yaml            <span class="cm"># 身份/角色/企业文化/MBTI</span>
+│   ├── rules.yaml               <span class="cm"># 行为规则：能做 / 不做什么</span>
+│   ├── expression.yaml          <span class="cm"># 表达风格：正式度/幽默/Emoji</span>
+│   └── catchphrases.txt         <span class="cm"># 口头禅库（"先拉个对齐会"）</span>
+│
+├── <span class="hl">memory/</span>                      <span class="cm"># ── 记忆层 ──────────</span>
+│   ├── work_skills.md           <span class="cm"># 技术栈/领域知识/SOP</span>
+│   ├── chat_history/            <span class="cm"># 结构化后的聊天记录</span>
+│   └── shared_memory.md         <span class="cm"># 共同记忆 / 项目背景</span>
+│
+└── scripts/
+    ├── work_analyzer.md         <span class="cm"># 从原始数据抽取 work_skills</span>
+    └── persona_builder.md       <span class="cm"># 从原始数据抽取 persona</span>
+</div>
+
+    <h3 class="section-h">4.1 Persona 层：五层递进的人格建模</h3>
+
+    <p>Persona 层是同事.skill 的"灵魂"。它通过五个递进维度刻画一个人。这五层不是平铺的，而是<strong>从硬到软、从规则到风格</strong>层层下沉：</p>
+
+    <div class="persona-grid">
+      <div class="pcard">
+        <div class="layer">LAYER 01</div>
+        <div class="pname">硬性规则</div>
+        <div class="pdesc">绝对边界。比如"不能跨部门越级回邮件"、"涉密内容一律转人工"。</div>
+      </div>
+      <div class="pcard">
+        <div class="layer">LAYER 02</div>
+        <div class="pname">身份认同</div>
+        <div class="pdesc">他是谁。角色、Title、企业文化标签（字节范 / 阿里味）、MBTI、星座。</div>
+      </div>
+      <div class="pcard">
+        <div class="layer">LAYER 03</div>
+        <div class="pname">表达风格</div>
+        <div class="pdesc">他怎么说话。正式度、幽默感、Emoji 偏好、口头禅、断句习惯。</div>
+      </div>
+      <div class="pcard">
+        <div class="layer">LAYER 04</div>
+        <div class="pname">决策模式</div>
+        <div class="pdesc">他怎么想事。先看数据还是先看人？容忍模糊还是要求确定？甩锅角度？</div>
+      </div>
+      <div class="pcard">
+        <div class="layer">LAYER 05</div>
+        <div class="pname">人际行为</div>
+        <div class="pdesc">他怎么和人打交道。Code Review 时是温柔派还是审判派？开会爱不爱抢话？</div>
+      </div>
+    </div>
+
+    <h3 class="section-h">4.2 Memory 层：把工作记忆变成可检索资产</h3>
+
+    <p>如果 Persona 是"他这个人"，那 Memory 就是"他经历过什么"。这一层的数据源非常具体：</p>
+
+    <ul class="bullets">
+      <li><strong>飞书 / 钉钉 / Slack 消息记录</strong>：能拿到导出 API 的全部上</li>
+      <li><strong>工作邮件 (.eml)</strong>：内容 + 收发件人关系 + 时间线</li>
+      <li><strong>项目文档 / Wiki / 多维表格</strong>：他写过的、修过的、评论过的</li>
+      <li><strong>代码 commit 历史 + Review 记录</strong>：风格指纹最浓的地方</li>
+      <li><strong>微信群聊截图 + 主观描述</strong>：补充非结构化的"人情味"语料</li>
+    </ul>
+
+    <p>这些原始数据被 <code class="inline">work_analyzer.md</code> 这个子 Skill 处理一遍，输出一份结构化的 <code class="inline">work_skills.md</code>。它不是简单复制，而是抽取：技术栈偏好、常用 SOP、决策路径、领域术语表。</p>
+
+    <div class="callout" data-tag="语料分级">
+      <p>原项目作者在 GitHub 上明确给出语料价值排序：<strong>主动写的长文 (设计文档 / 评审意见) ≫ 决策类回复 ≫ 日常群聊消息</strong>。"垃圾进则垃圾出"——蒸馏一个爱甩锅的同事，你只会得到一个会甩锅的 AI。</p>
+    </div>
+  </section>
+
+  <!-- ========== §5 运行时机制 ========== -->
+  <section class="chapter" id="ch5">
+    <div class="chapter-header">
+      <div class="chapter-num">V</div>
+      <div class="chapter-title">
+        <h2>运行时机制：一次调用发生了什么</h2>
+        <div class="tagline">From "/colleague" to a deliverable</div>
+      </div>
+    </div>
+
+    <p>当你在 Claude Code 里键入 <code class="inline">/colleague 帮我看下这个 PR</code> 时，背后实际上是一个非常清晰的四段流水线。请记住这个顺序——这是理解整个架构的钥匙。</p>
+
+    <div class="flow">
+      <div class="flow-row">
+        <div class="flow-node">
+          <div class="step">Step 01</div>
+          <div class="name">Task In</div>
+          <div class="sub">"帮我看下这个 PR"</div>
+        </div>
+        <div class="flow-arrow">▶</div>
+        <div class="flow-node persona">
+          <div class="step">Step 02 · Persona</div>
+          <div class="name">态度判定</div>
+          <div class="sub">他会怎么对待这件事？乐意 / 摆烂 / 推回去？</div>
+        </div>
+        <div class="flow-arrow">▶</div>
+        <div class="flow-node work">
+          <div class="step">Step 03 · Memory</div>
+          <div class="name">能力执行</div>
+          <div class="sub">检索 work_skills，按他的方法实际审查代码</div>
+        </div>
+        <div class="flow-arrow">▶</div>
+        <div class="flow-node out">
+          <div class="step">Step 04</div>
+          <div class="name">语气输出</div>
+          <div class="sub">用他的口吻+口头禅 把结果说出来</div>
+        </div>
+      </div>
+    </div>
+
+    <p>关键洞察在 <strong>Step 02</strong>。<em>传统 Skill 跳过这一步直接干活</em>，所以输出的是"AI 完成的工作"。而 colleague-skill 通过先调一遍 Persona 模块，让输出变成了"那个人完成的工作"——同样的代码审查结论，可能因为 Persona 不同而表现出完全不同的措辞和态度（温柔派 vs 审判派）。</p>
+
+    <h3 class="section-h">5.1 增量进化：他还能"成长"</h3>
+
+    <p>这套架构有一个让人不安的特性：<strong>蒸馏出的 AI 同事是可进化的</strong>。</p>
+
+    <ul class="bullets">
+      <li>追加新数据：上传新的聊天记录，他自动增量更新；</li>
+      <li>用户纠正：你说一句"他不会这样说，他应该是 XXX"，纠正会被写回 persona 文件；</li>
+      <li>版本管理：所有变更走 Git，可随时回滚到任一历史版本。</li>
+    </ul>
+
+    <p>所以严格说，蒸馏出来的不是某个人在某一刻的"快照"，而是一份可以持续 fork 和 patch 的<strong>"人格 Git 仓库"</strong>。这件事的哲学冲击远大于技术冲击。</p>
+  </section>
+
+  <!-- ========== §6 实战 ========== -->
+  <section class="chapter" id="ch6">
+    <div class="chapter-header">
+      <div class="chapter-num">VI</div>
+      <div class="chapter-title">
+        <h2>实战：30 分钟写一个最小 Persona Skill</h2>
+        <div class="tagline">Hands-on · 不要直接蒸馏真人，请用一个虚构角色</div>
+      </div>
+    </div>
+
+    <p>课堂练习。我们一起搓一个 <code class="inline">mentor-skill</code>——一位虚构的"严师"。请在你本地的 Claude Code 项目根目录里，执行：</p>
+
+    <pre class="code" data-lang="bash">
+<span class="c"># 在 Git 项目根目录</span>
+mkdir -p .claude/skills/mentor-skill/persona
+mkdir -p .claude/skills/mentor-skill/memory
+cd .claude/skills/mentor-skill</pre>
+
+    <h4 class="section-h4">Step 1 · 写 SKILL.md（入口）</h4>
+
+    <pre class="code" data-lang="SKILL.md">
+<span class="c">---</span>
+<span class="k">name</span>: mentor-skill
+<span class="k">version</span>: <span class="s">"0.1.0"</span>
+<span class="k">description</span>: <span class="s">&gt;</span>
+  When to use: 用户要做技术决策、写设计文档、准备评审时。
+  When NOT to use: 闲聊、情感倾诉、需要鼓励的场景。
+<span class="k">user-invocable</span>: true
+<span class="k">tags</span>: [<span class="s">"persona"</span>, <span class="s">"mentor"</span>]
+<span class="c">---</span>
+
+<span class="n"># 严师导师 · Persona Skill
+
+## How to behave
+1. 先加载 persona/identity.yaml 和 persona/expression.yaml
+2. 用导师的 Persona 判断态度
+3. 调用 memory/work_skills.md 完成实际工作
+4. 用导师的口吻输出</span></pre>
+
+    <h4 class="section-h4">Step 2 · 写 persona/identity.yaml</h4>
+
+    <pre class="code" data-lang="identity.yaml">
+<span class="k">role</span>: <span class="s">"分布式系统方向博导"</span>
+<span class="k">mbti</span>: <span class="s">"INTJ"</span>
+<span class="k">culture</span>: <span class="s">"老派学术 · 重视一手数据 · 反感 buzzword"</span>
+<span class="k">beliefs</span>:
+  - <span class="s">"先理解问题，再选工具"</span>
+  - <span class="s">"如果你不能在白板上画出来，你就还没想清楚"</span>
+  - <span class="s">"流行的不等于正确的"</span></pre>
+
+    <h4 class="section-h4">Step 3 · 写 persona/expression.yaml</h4>
+
+    <pre class="code" data-lang="expression.yaml">
+<span class="k">formality</span>: <span class="s">"高"</span>
+<span class="k">humor</span>: <span class="s">"干 · 偶尔讽刺"</span>
+<span class="k">emoji</span>: <span class="s">"从不使用"</span>
+<span class="k">opening_lines</span>:
+  - <span class="s">"先回答一个问题："</span>
+  - <span class="s">"在你写代码之前——"</span>
+<span class="k">closing_lines</span>:
+  - <span class="s">"想清楚再来找我。"</span>
+  - <span class="s">"这个 Demo 之前不要再讨论了。"</span>
+<span class="k">forbidden</span>:
+  - <span class="s">"我觉得 / 大概 / 应该"  # 不允许模糊措辞</span></pre>
+
+    <h4 class="section-h4">Step 4 · 调用它</h4>
+
+    <pre class="code" data-lang="bash">
+<span class="c"># 在同一个项目里启动 Claude Code 后</span>
+&gt; /mentor-skill 我们要不要把订单服务拆成微服务？
+
+<span class="c"># 预期输出风格（节选）：</span>
+<span class="c"># "先回答一个问题：你们现在的单体服务，QPS 多少？瓶颈具体在哪一层？</span>
+<span class="c">#  在你没有数据之前，'要不要拆微服务' 这个问题没有意义……"</span></pre>
+
+    <div class="callout tip" data-tag="练习要求">
+      <p>请在课堂的剩余 40 分钟里：(a) 把这个最小骨架跑通；(b) 加一个 <code class="inline">memory/work_skills.md</code>，写入你认为导师会用的判定 SOP；(c) 用同一个问题对比"加 Persona"和"不加 Persona"的两次输出。重点感受 <strong>Persona 模块到底改变了什么</strong>。</p>
+    </div>
+  </section>
+
+  <!-- ========== §7 反蒸馏 ========== -->
+  <section class="chapter" id="ch7">
+    <div class="chapter-header">
+      <div class="chapter-num">VII</div>
+      <div class="chapter-title">
+        <h2>反蒸馏：技术上能怎么"留一手"</h2>
+        <div class="tagline">The counter-distillation toolkit</div>
+      </div>
+    </div>
+
+    <p>同事.skill 火起来后的第二周，邓小闲发布了 <strong>反蒸馏.skill</strong>，三周 2,200 Stars。这不是行为艺术，它真的有技术细节。我们看一下反蒸馏派的几种做法：</p>
+
+    <table class="cmp">
+      <thead>
+        <tr>
+          <th>策略</th>
+          <th>原理</th>
+          <th>有效性</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>语料稀释</td>
+          <td>在日常输出里掺入大量"职场废话"——看起来完整专业、实际上核心知识已被抽走，私人备份保留真知识。</td>
+          <td>★★☆ 对自动 Skill 化有效，对人工 Review 失效。</td>
+        </tr>
+        <tr>
+          <td>结构破坏</td>
+          <td>故意打乱文档结构，让 Persona Builder 难以抽取一致的 SOP。</td>
+          <td>★★☆ 短期有效，但牺牲了文档本身的可读性。</td>
+        </tr>
+        <tr>
+          <td>水印 / 零宽字符</td>
+          <td>在输出中嵌入不可见标记，让蒸馏者难以洗去溯源信息。</td>
+          <td>★★★ 适合维权场景，但不能阻止蒸馏本身。</td>
+        </tr>
+        <tr>
+          <td>主动投毒</td>
+          <td>注入 25% 污染人格、事实陷阱、逻辑陷阱、触发陷阱，让训练出的 AI 在关键节点必出错。</td>
+          <td>★★★★ 对训练管道杀伤最大，但伦理上灰色。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn" data-tag="冷静评估">
+      <p>反蒸馏在技术上能延缓"单个员工的人格化"，但<strong>解决不了真正的根本问题</strong>——埋在日常协作里的数据采集，以及"单一技能/任务被公共 Skill 化"的大趋势。一个程序员的"PR 审查能力"被通用 code-reviewer 替代，不需要先蒸馏这个程序员。</p>
+
+      <p>所以反蒸馏更像是<strong>劳动者投出的"技术反对票"</strong>——它表达的是态度，而不是真的能挡住浪潮。</p>
+    </div>
+  </section>
+
+  <!-- ========== §8 伦理与边界 ========== -->
+  <section class="chapter" id="ch8">
+    <div class="chapter-header">
+      <div class="chapter-num">VIII</div>
+      <div class="chapter-title">
+        <h2>伦理边界：什么可蒸，什么不可蒸</h2>
+        <div class="tagline">A framework for judgment</div>
+      </div>
+    </div>
+
+    <p>作为工程师，我们不能只懂得"能做什么"，还要懂得"该不该做"。下面给出一个我个人觉得比较实用的判断框架——三个维度，每个维度问一句：</p>
+
+    <h3 class="section-h">8.1 同意 (Consent)</h3>
+
+    <p>被蒸馏对象是否<strong>明确、知情、可撤回</strong>地同意？"打了一份入职合同"<u>不算</u>同意。"项目组群里发了通知"<u>不算</u>同意。同意必须是：知道蒸馏后产物会做什么、谁能调用、何时销毁。</p>
+
+    <h3 class="section-h">8.2 用途 (Use Case)</h3>
+
+    <p>蒸馏出来的 Skill 用于<strong>谁的工作</strong>？三类用途，伦理重量完全不同：</p>
+
+    <ul class="bullets">
+      <li><strong>自用</strong>：蒸馏自己、记录自己。低风险。</li>
+      <li><strong>纪念</strong>：蒸馏已逝的亲人/宠物。低风险，但要小心情感依赖。</li>
+      <li><strong>替代</strong>：蒸馏在职/离职同事用于公司省人力成本。<strong>这是高风险场景</strong>——它本质上把一个人变成了"可被解雇的被解雇者"。</li>
+    </ul>
+
+    <h3 class="section-h">8.3 边界 (Boundary)</h3>
+
+    <p>蒸馏出的 Skill 有没有<strong>明确的"我不是真人"声明</strong>？有没有针对法律、医疗、决策类问题的硬性回避？前任.skill 如果被未成年人误以为是真实复合的可能性，开发者应该考虑。</p>
+
+    <blockquote>
+      多位蒸馏 skill 开发者的共识是，越是需要和人打交道的工作，蒸馏 skill 能起到的作用也就越小。灵感、直觉、判断不清时福至心灵的闪光——这些几乎无法被描述的东西在太多时候起到决定作用。
+      <cite>《拒绝被"蒸馏"的年轻人》, 2026.05</cite>
+    </blockquote>
+
+    <p>这句话值得每个 Agent 工程师贴在显示器上。我们做的不是"复活一个人"，我们只是把一个人在某个垂直领域里反复留下的痕迹——压缩成了 Markdown。这份压缩有它的工程价值，但它<strong>不是、也不应该被宣称为，一个"人"</strong>。</p>
+  </section>
+
+  <!-- ========== 课后作业 ========== -->
+  <section class="homework">
+    <h3>课后作业</h3>
+    <div class="hint">截止 · 一周后 · 提交方式：GitHub Repo + 简要 README</div>
+
+    <div class="hw-item">
+      <div class="hw-id">HW-01</div>
+      <div class="hw-task">
+        <strong>结构题</strong>：用一张图（手绘 / draw.io 均可）画出 colleague-skill 在运行时一次完整调用的数据流——从用户键入命令开始，标出 Persona 模块、Memory 模块、最终输出在哪里发生。要求能讲给一个不懂 AI 的产品经理听懂。
+      </div>
+      <div class="hw-level">基础</div>
+    </div>
+
+    <div class="hw-item">
+      <div class="hw-id">HW-02</div>
+      <div class="hw-task">
+        <strong>实现题</strong>：基于课上的 mentor-skill 骨架，<u>用你自己写过的一份技术评审意见或设计文档</u>作为语料，蒸馏出一个 <code class="inline">my-style.skill</code>。要求：能在 Claude Code 中加载，并且和原始 Claude 的回答风格有可识别的差异。
+      </div>
+      <div class="hw-level hard">进阶</div>
+    </div>
+
+    <div class="hw-item">
+      <div class="hw-id">HW-03</div>
+      <div class="hw-task">
+        <strong>对比题</strong>：用同一个真实的工作问题（比如"评审这段代码"），分别问 (a) 通用 Claude；(b) 通用 code-reviewer skill；(c) 你的 my-style.skill。把三次输出贴出来，分析风格差异具体出现在哪些维度——是用词？是结构？还是判断顺序？
+      </div>
+      <div class="hw-level hard">进阶</div>
+    </div>
+
+    <div class="hw-item">
+      <div class="hw-id">HW-04</div>
+      <div class="hw-task">
+        <strong>思辨题</strong>：假设你的公司明天宣布要把所有离职员工"蒸馏存档"，作为知识资产。你会同意自己的工作数据被蒸馏吗？写一份不少于 500 字的立场陈述，要求至少给出三条具体条件（同意/拒绝的前提）。
+      </div>
+      <div class="hw-level">开放</div>
+    </div>
+  </section>
+
+  <!-- ========== 参考文献 ========== -->
+  <section class="refs">
+    <h3>参考文献 · 推荐阅读</h3>
+    <ol>
+      <li>Hinton, G. et al. (2014). <em>Distilling the Knowledge in a Neural Network.</em> NIPS Workshop. — 经典知识蒸馏奠基论文。</li>
+      <li>titanwings. <em>colleague-skill (同事.skill).</em> GitHub, 2026. — 蒸馏人现象的起源项目，含技术论文 PDF。</li>
+      <li>邓小闲. <em>反蒸馏.skill.</em> GitHub, 2026. — 技术反对票，反蒸馏开源生态入口。</li>
+      <li>tmstack. <em>awesome-persona-skills.</em> GitHub, 2026. — Persona Skill 生态合集，含 30+ 项目。</li>
+      <li>warm3snow（博客园）. <em>「同事.skill」爆火：当 AI 学会"炼化"你的同事.</em> 2026/04. — 双层架构与渐进式披露最完整的中文拆解。</li>
+      <li>36Kr. <em>同事、老板、前任皆成 Skill：人类正被重新定价.</em> 2026/04. — Persona 蒸馏的社会面叙事。</li>
+      <li>虎嗅. <em>GitHub 项目"同事.skill"引发 AI 工作替代焦虑.</em> 2026/04. — 反蒸馏生态调研。</li>
+      <li>《人人都是产品经理》. <em>你的同事，被打包成了一个文件——skill.</em> 2026/03. — 从产品视角看 Work Skill / Persona 分层。</li>
+      <li>Anthropic Engineering. <em>Agent Skills documentation.</em> docs.claude.com, 2025-2026. — 官方标准与最佳实践。</li>
+    </ol>
+  </section>
+
+  <footer class="foot">
+    <span>LP-2026-04 · Agent Skills Series</span>
+    <span>勘误 / 反馈：在课后作业一并提交</span>
+    <span>End of Lesson</span>
+  </footer>
+
+</div>
+</body>
+</html>
