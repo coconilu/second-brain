@@ -187,8 +187,10 @@ function generateTimeline(entries, docsDir) {
       if (relPath.endsWith('/index.html')) {
         relPath = relPath.slice(0, -'index.html'.length);
       }
-      const formatTag = path.extname(entry.path).toLowerCase() === '.html' ? ' `HTML`' : '';
-      lines.push(`- [${entry.title}](${relPath})${formatTag}`);
+      const isHtml = path.extname(entry.path).toLowerCase() === '.html';
+      const formatTag = isHtml ? ' `HTML`' : '';
+      const targetAttr = isHtml ? '{target="_self"}' : '';
+      lines.push(`- [${entry.title}](${relPath})${formatTag}${targetAttr}`);
     }
     lines.push('');
   }
@@ -233,11 +235,11 @@ function updateIndex(docsDir, entries) {
   content = content
     .replace(
       '[Agent 设计模式互动教学稿](agent-design-patterns/) —',
-      '[Agent 设计模式互动教学稿](agent-design-patterns/) `HTML` —'
+      '[Agent 设计模式互动教学稿](agent-design-patterns/) `HTML`{target="_self"} —'
     )
     .replace(
       '[Claude Code 实战：Harness 工程之道教学扩展稿](claude-code-harness-engineering/) —',
-      '[Claude Code 实战：Harness 工程之道教学扩展稿](claude-code-harness-engineering/) `HTML` —'
+      '[Claude Code 实战：Harness 工程之道教学扩展稿](claude-code-harness-engineering/) `HTML`{target="_self"} —'
     );
 
   // d) Add timeline link — append to the intro sentence (exact match)
@@ -288,7 +290,7 @@ function generateAutoHtmlSection(content, entries, docsDir) {
     const rel = path.relative(docsDir, page.path).split(path.sep).join('/');
     // Strip the /index.html suffix for clean URLs
     const cleanPath = rel.replace(/\/index\.html$/, '/');
-    lines.push(`- [${page.title}](${cleanPath}) \`HTML\``);
+    lines.push(`- [${page.title}](${cleanPath}) \`HTML\`{target="_self"}`);
   }
 
   const autoContent = lines.length > 0 ? lines.join('\n') + '\n' : '';

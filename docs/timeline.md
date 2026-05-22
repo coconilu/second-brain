@@ -4,14 +4,14 @@
 
 ## 2026-05
 
-- [蒸馏人技术 · 教案 LP-2026-04](蒸馏人技术教案/) `HTML`
-- [Harness Engineering 深度教案 · 从提示词到工程化](harness-engineering-lesson-plan/) `HTML`
+- [蒸馏人技术 · 教案 LP-2026-04](蒸馏人技术教案/) `HTML`{target="_self"}
+- [Harness Engineering 深度教案 · 从提示词到工程化](harness-engineering-lesson-plan/) `HTML`{target="_self"}
 - [GitHub AI Trending Top 10（2026-05-12 至 2026-05-18）](github-ai-trending/2026-05-12_to_2026-05-18.md)
 - [前端 AI 工具速查手册](ai-toolkit-for-frontend/cheatsheet.md)
 - [前端工程师的 AI 工具兵器谱：Skills、MCP、Agent、Plugin 全解析](ai-toolkit-for-frontend/index.md)
 - [GitHub AI Trending Top 10（2026-05-05 至 2026-05-11）](github-ai-trending/2026-05-05_to_2026-05-11.md)
-- [Agent 设计模式教学文案](agent-design-patterns/) `HTML`
-- [Claude Code 实战：Harness 工程之道｜教学扩展稿](claude-code-harness-engineering/) `HTML`
+- [Agent 设计模式教学文案](agent-design-patterns/) `HTML`{target="_self"}
+- [Claude Code 实战：Harness 工程之道｜教学扩展稿](claude-code-harness-engineering/) `HTML`{target="_self"}
 - [从 Human Interface 到 Agent Interface](from_human_interface_to_agent_interface/index.md)
 - [Hermes Agent：从智能助手到可持续进化的个人代理系统](hermes-agent-course/index.md)
 - [AI 时代，什么才是稀缺能力](ai-era-scarce-abilities/index.md)
