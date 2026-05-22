@@ -78,7 +78,7 @@ function findAnchor(event: MouseEvent) {
 }
 
 function routeVariants(route: string) {
-  const normalized = normalizePath(route)
+  const normalized = normalizePath(decodePath(route))
   const withoutTrailingSlash = normalized.slice(0, -1)
 
   return [
@@ -92,6 +92,14 @@ function routeVariants(route: string) {
 
 function normalizePath(pathname: string) {
   return pathname.endsWith('/') ? pathname : `${pathname}/`
+}
+
+function decodePath(pathname: string) {
+  try {
+    return decodeURIComponent(pathname)
+  } catch {
+    return pathname
+  }
 }
 
 function normalizeDirectoryUrl(url: URL) {
