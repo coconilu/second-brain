@@ -34,6 +34,7 @@
 
 ## 思考与趋势
 
+- [AI 时代，我们不要想好再做，而是边做边想边改](ai-era-think-by-doing/index.md) — 关于提示词焦虑、AI 协作和迭代式思考的感悟。
 - [AI 时代，什么才是稀缺能力](ai-era-scarce-abilities/index.md) — 关于判断力、提问能力和结构化能力的长文。
 - [从 Human Interface 到 Agent Interface](from_human_interface_to_agent_interface/index.md) — 讨论 AI 时代软件行业从人机界面到代理界面的范式转移。
 - [DeepSeek 演进](deepseek-evolution/index.md) — DeepSeek 相关演进观察。

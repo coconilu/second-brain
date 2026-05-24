@@ -4,6 +4,7 @@
 
 ## 2026-05
 
+- [AI 时代，我们不要想好再做，而是边做边想边改](ai-era-think-by-doing/index.md)
 - [蒸馏人技术 · 教案 LP-2026-04](蒸馏人技术教案/) `HTML`{target="_self"}
 - [Harness Engineering 深度教案 · 从提示词到工程化](harness-engineering-lesson-plan/) `HTML`{target="_self"}
 - [GitHub AI Trending Top 10（2026-05-12 至 2026-05-18）](github-ai-trending/2026-05-12_to_2026-05-18.md)
