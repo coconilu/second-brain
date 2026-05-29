@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Second Brain">
+  <defs>
+    <linearGradient id="bg" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7c3aed"/>
+      <stop offset="0.55" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="18" y1="14" x2="46" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#e0f2fe" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="18" fill="url(#bg)"/>
+  <path
+    d="M23.8 18.5c-4.2 0-7.6 3.4-7.6 7.6 0 1.5.4 2.9 1.2 4.1-2.3 1.4-3.9 3.9-3.9 6.8 0 4.3 3.5 7.8 7.8 7.8h2.4c1.3 3.4 4.6 5.8 8.4 5.8s7.1-2.4 8.4-5.8h2.1c4.3 0 7.8-3.5 7.8-7.8 0-2.9-1.6-5.4-3.9-6.8.8-1.2 1.2-2.6 1.2-4.1 0-4.2-3.4-7.6-7.6-7.6-2.7 0-5.1 1.4-6.4 3.6-.6-.1-1.1-.2-1.7-.2-.7 0-1.3.1-1.9.2-1.2-2.1-3.6-3.6-6.3-3.6Z"
+    fill="url(#shine)"
+    opacity="0.96"
+  />
+  <path
+    d="M25.5 27.2c-2.8.8-4.8 3.3-4.8 6.3 0 3.7 3 6.6 6.6 6.6h9.4c3.7 0 6.6-3 6.6-6.6 0-3-2-5.5-4.8-6.3M32 22v26M23.2 33.6h17.6M28 27.4h8M28.4 40.1h7.2"
+    fill="none"
+    stroke="#1e1b4b"
+    stroke-width="3.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.72"
+  />
+  <circle cx="44.5" cy="18.5" r="3.8" fill="#fef08a"/>
+</svg>

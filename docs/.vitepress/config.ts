@@ -7,11 +7,17 @@ import { defineConfig } from 'vitepress'
 const docsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const standaloneHtmlPages = findStandaloneHtmlPages(docsRoot)
 const standaloneHtmlRoutes = [...standaloneHtmlPages].map((page) => `/${page.replace(/index\.html$/, '')}`)
+const previewImages = findPreviewImages(docsRoot)
 
 export default defineConfig({
   title: 'Second Brain',
   description: 'AI Agent 工具链、写作方法、工程实践和月度追踪文档',
   lang: 'zh-CN',
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+    ['link', { rel: 'alternate icon', type: 'image/png', href: '/favicon.png' }],
+    ['link', { rel: 'apple-touch-icon', href: '/favicon.png' }],
+  ],
   cleanUrls: true,
   lastUpdated: true,
   markdown: {
@@ -27,6 +33,7 @@ export default defineConfig({
     ...[...standaloneHtmlPages].map((page) => encodeURI(`./${page.replace(/\.html$/, '')}`)),
   ],
   themeConfig: {
+    logo: '/favicon.svg',
     nav: [
       { text: '目录', link: '/' },
       { text: '时间线', link: '/timeline' },
@@ -113,9 +120,27 @@ export default defineConfig({
     define: {
       __STANDALONE_HTML_ROUTES__: JSON.stringify(standaloneHtmlRoutes),
     },
-    plugins: [htmlStaticPagesPlugin(docsRoot, standaloneHtmlPages)],
+    plugins: [
+      htmlStaticPagesPlugin(docsRoot, standaloneHtmlPages),
+      previewImagesPlugin(docsRoot, previewImages),
+    ],
   },
 })
+
+function previewImagesPlugin(root: string, images: Set<string>): Plugin {
+  return {
+    name: 'second-brain-preview-images',
+    generateBundle() {
+      for (const relativePath of images) {
+        this.emitFile({
+          type: 'asset',
+          fileName: relativePath,
+          source: fs.readFileSync(path.join(root, relativePath)),
+        })
+      }
+    },
+  }
+}
 
 function htmlStaticPagesPlugin(root: string, pages: Set<string>): Plugin {
   return {
@@ -167,4 +192,27 @@ function findStandaloneHtmlPages(root: string) {
 
   walk(root)
   return pages
+}
+
+function findPreviewImages(root: string) {
+  const images = new Set<string>()
+
+  function walk(dir: string) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name === '.vitepress' || entry.name === 'public') continue
+
+      const fullPath = path.join(dir, entry.name)
+      if (entry.isDirectory()) {
+        walk(fullPath)
+        continue
+      }
+
+      if (entry.isFile() && entry.name === 'preview.png') {
+        images.add(path.relative(root, fullPath).split(path.sep).join('/'))
+      }
+    }
+  }
+
+  walk(root)
+  return images
 }
