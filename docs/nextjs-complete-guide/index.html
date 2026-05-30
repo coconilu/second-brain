@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Next.js 系统精讲 · 架构 · 运行 · 数据结构 · 数据流</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Noto+Serif+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/atelier-cave.min.css">
+<style>
+:root{
+  --paper:#f6f2e9;
+  --paper-2:#efe9dc;
+  --ink:#211f1b;
+  --ink-soft:#544f45;
+  --ink-faint:#8a8273;
+  --accent:#c0512f;        /* burnt terracotta */
+  --accent-soft:#e9d3c6;
+  --teal:#1f6b63;          /* deep teal */
+  --teal-soft:#cfe2df;
+  --gold:#a9802b;
+  --line:#ddd4c1;
+  --line-strong:#cabfa6;
+  --code-bg:#1c1b18;
+  --code-ink:#e8e2d4;
+  --shadow:0 1px 2px rgba(40,34,20,.06),0 8px 30px rgba(40,34,20,.07);
+  --maxw:880px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:
+    radial-gradient(900px 600px at 88% -5%, rgba(192,81,47,.06), transparent 60%),
+    radial-gradient(800px 500px at -8% 10%, rgba(31,107,99,.05), transparent 55%),
+    var(--paper);
+  color:var(--ink);
+  font-family:"Newsreader","Noto Serif SC",Georgia,serif;
+  font-size:18.5px;
+  line-height:1.78;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+/* reading progress */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:120;
+  background:linear-gradient(90deg,var(--accent),var(--gold),var(--teal));}
+/* layout */
+.shell{display:grid;grid-template-columns:300px minmax(0,1fr);gap:0;max-width:1320px;margin:0 auto;}
+/* sidebar */
+aside{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;
+  padding:38px 26px 60px 34px;border-right:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(239,233,220,.6),rgba(246,242,233,.2));}
+aside::-webkit-scrollbar{width:8px}
+aside::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:8px}
+.brand{font-family:"Fraunces",serif;font-weight:600;font-size:23px;line-height:1.2;letter-spacing:-.01em;}
+.brand .dot{color:var(--accent)}
+.brand-sub{font-size:12.5px;color:var(--ink-faint);letter-spacing:.16em;text-transform:uppercase;margin-top:8px;font-family:"JetBrains Mono",monospace;}
+nav{margin-top:30px;font-family:"Noto Serif SC","Newsreader",serif;font-size:14.5px;}
+nav a{display:block;color:var(--ink-soft);text-decoration:none;padding:5px 12px;border-left:2px solid transparent;line-height:1.5;transition:.18s;border-radius:0 6px 6px 0;}
+nav a:hover{color:var(--ink);background:rgba(192,81,47,.06)}
+nav a.active{color:var(--accent);border-left-color:var(--accent);background:rgba(192,81,47,.08);font-weight:600}
+nav .grp{margin-top:18px;margin-bottom:4px;font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);font-family:"JetBrains Mono",monospace;padding-left:12px;}
+nav a .n{color:var(--ink-faint);font-family:"JetBrains Mono",monospace;font-size:11.5px;margin-right:7px;}
+/* main */
+main{padding:64px clamp(28px,5vw,90px) 140px;max-width:calc(var(--maxw) + 180px);}
+.hero{margin-bottom:18px}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:500}
+h1{font-family:"Fraunces",serif;font-weight:600;font-size:clamp(38px,6vw,62px);line-height:1.04;letter-spacing:-.02em;margin:.25em 0 .2em;}
+.lede{font-size:21px;color:var(--ink-soft);max-width:42em;font-style:italic;}
+.meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.pill{font-family:"JetBrains Mono",monospace;font-size:12.5px;padding:6px 13px;border:1px solid var(--line-strong);border-radius:999px;color:var(--ink-soft);background:rgba(255,255,255,.4)}
+.pill b{color:var(--accent)}
+h2{font-family:"Fraunces",serif;font-weight:600;font-size:clamp(28px,3.6vw,38px);line-height:1.1;letter-spacing:-.015em;margin:2.4em 0 .1em;padding-top:.4em;scroll-margin-top:24px;}
+h2 .h2n{font-family:"JetBrains Mono",monospace;font-size:.42em;color:var(--accent);vertical-align:middle;margin-right:.5em;font-weight:500;letter-spacing:0}
+h3{font-family:"Noto Serif SC","Fraunces",serif;font-weight:600;font-size:24px;margin:2em 0 .3em;letter-spacing:-.01em;scroll-margin-top:24px;}
+h4{font-family:"Noto Serif SC",serif;font-weight:600;font-size:19.5px;margin:1.5em 0 .2em;color:var(--ink)}
+.section-rule{height:1px;background:linear-gradient(90deg,var(--line-strong),transparent);margin:.6em 0 1.4em;border:0}
+p{margin:.9em 0}
+a.inline{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-soft)}
+strong{font-weight:600;color:var(--ink)}
+em{color:var(--ink-soft)}
+code{font-family:"JetBrains Mono",monospace;font-size:.82em;background:var(--paper-2);border:1px solid var(--line);padding:.08em .4em;border-radius:5px;color:#9c3d22;white-space:nowrap}
+mark{background:linear-gradient(transparent 58%, var(--accent-soft) 58%);color:inherit;padding:0 .1em}
+.term{font-family:"JetBrains Mono",monospace;font-size:.86em;color:var(--teal);font-weight:500}
+ul,ol{margin:.8em 0;padding-left:1.4em}
+li{margin:.4em 0}
+li::marker{color:var(--accent)}
+/* code block */
+pre{margin:1.3em 0;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);border:1px solid #34322c}
+pre .bar{background:#26241f;padding:9px 16px;font-family:"JetBrains Mono",monospace;font-size:12px;color:#a9a394;display:flex;align-items:center;gap:8px;border-bottom:1px solid #34322c}
+pre .bar .dotr{width:11px;height:11px;border-radius:50%;background:#5a564c}
+pre .bar .fname{margin-left:auto;color:#7d776a}
+pre code.hljs{display:block;padding:18px 20px;background:var(--code-bg)!important;font-size:14px;line-height:1.7;overflow-x:auto;white-space:pre;border:0;color:var(--code-ink);border-radius:0}
+pre code.hljs::-webkit-scrollbar{height:8px}
+pre code.hljs::-webkit-scrollbar-thumb{background:#444035;border-radius:8px}
+/* callouts */
+.box{margin:1.5em 0;padding:18px 22px 18px 20px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.5);position:relative;box-shadow:var(--shadow)}
+.box .tag{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:600;display:inline-flex;align-items:center;gap:7px;margin-bottom:6px}
+.box p:first-of-type{margin-top:.2em}.box p:last-child{margin-bottom:0}
+.box.exam{border-left:4px solid var(--accent);background:linear-gradient(90deg,rgba(192,81,47,.06),rgba(255,255,255,.4))}
+.box.exam .tag{color:var(--accent)}
+.box.trap{border-left:4px solid var(--gold);background:linear-gradient(90deg,rgba(169,128,43,.08),rgba(255,255,255,.4))}
+.box.trap .tag{color:var(--gold)}
+.box.analogy{border-left:4px solid var(--teal);background:linear-gradient(90deg,rgba(31,107,99,.07),rgba(255,255,255,.4))}
+.box.analogy .tag{color:var(--teal)}
+.box.note{border-left:4px solid var(--ink-faint)}
+.box.note .tag{color:var(--ink-faint)}
+/* table */
+.tbl{margin:1.4em 0;overflow-x:auto;border-radius:12px;border:1px solid var(--line);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:15px;background:rgba(255,255,255,.45)}
+th,td{padding:11px 15px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.55}
+th{background:var(--paper-2);font-family:"Noto Serif SC",serif;font-weight:600;font-size:14px;color:var(--ink);position:sticky;top:0}
+td code{white-space:normal}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:rgba(192,81,47,.04)}
+/* diagrams */
+.fig{margin:1.8em 0;padding:26px 24px;border-radius:14px;background:rgba(255,255,255,.55);border:1px solid var(--line);box-shadow:var(--shadow)}
+.fig .cap{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-top:16px;text-align:center}
+.fig svg{display:block;width:100%;height:auto;font-family:"Noto Serif SC","Newsreader",serif}
+.layerstack{display:flex;flex-direction:column;gap:10px}
+.layer{border-radius:10px;padding:14px 18px;border:1px solid var(--line-strong)}
+.layer .lt{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;margin-bottom:3px}
+.layer .ld{font-size:15px;color:var(--ink-soft)}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:0}
+.fnode{flex:1;min-width:120px;background:#fff;border:1px solid var(--line-strong);border-radius:10px;padding:13px 14px;text-align:center;display:flex;flex-direction:column;justify-content:center;box-shadow:0 2px 6px rgba(40,34,20,.05)}
+.fnode .ft{font-weight:600;font-size:15px}
+.fnode .fd{font-size:12.5px;color:var(--ink-faint);font-family:"JetBrains Mono",monospace;margin-top:3px}
+.farrow{display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:24px;padding:0 6px;font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;font-size:13px;color:var(--ink-soft)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:14px;height:14px;border-radius:4px;display:inline-block}
+/* footer */
+footer{border-top:1px solid var(--line);margin-top:80px;padding-top:30px;color:var(--ink-faint);font-size:14px}
+footer .src{font-family:"JetBrains Mono",monospace;font-size:12.5px}
+/* qa */
+.qa{border-bottom:1px solid var(--line);padding:14px 0}
+.qa .q{font-family:"Noto Serif SC",serif;font-weight:600;font-size:17.5px;color:var(--ink);cursor:pointer;display:flex;gap:10px;align-items:baseline}
+.qa .q .qm{color:var(--accent);font-family:"Fraunces",serif;font-weight:700}
+.qa .a{margin-top:8px;color:var(--ink-soft);font-size:16px}
+.kbd{font-family:"JetBrains Mono",monospace;font-size:.78em;background:#fff;border:1px solid var(--line-strong);border-bottom-width:2px;border-radius:5px;padding:.05em .4em;color:var(--ink-soft)}
+@media(max-width:920px){
+  .shell{grid-template-columns:1fr}
+  aside{display:none}
+  main{padding:40px 22px 100px}
+  body{font-size:17.5px}
+  .flow{flex-direction:column}
+  .farrow{transform:rotate(90deg);padding:4px 0}
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="shell">
+<aside>
+  <div class="brand">Next.js <span class="dot">·</span> 系统精讲</div>
+  <div class="brand-sub">Architecture / Runtime / Data</div>
+  <nav id="toc">
+    <div class="grp">起步</div>
+    <a href="#intro"><span class="n">00</span>定位与心智模型</a>
+    <div class="grp">架构设计</div>
+    <a href="#arch"><span class="n">01</span>整体架构三层模型</a>
+    <a href="#rsc"><span class="n">02</span>RSC 服务端组件</a>
+    <a href="#boundary"><span class="n">03</span>Server/Client 边界</a>
+    <a href="#build"><span class="n">04</span>编译与构建架构</a>
+    <div class="grp">实际运行</div>
+    <a href="#routing"><span class="n">05</span>路由系统</a>
+    <a href="#render"><span class="n">06</span>渲染策略全景</a>
+    <a href="#pipeline"><span class="n">07</span>SSR 渲染流水线</a>
+    <a href="#ppr"><span class="n">08</span>PPR 部分预渲染</a>
+    <a href="#navigation"><span class="n">09</span>客户端导航</a>
+    <div class="grp">数据</div>
+    <a href="#data"><span class="n">10</span>数据获取与缓存</a>
+    <a href="#actions"><span class="n">11</span>Server Actions</a>
+    <a href="#dataflow"><span class="n">12</span>数据流全链路</a>
+    <div class="grp">数据结构</div>
+    <a href="#structures"><span class="n">13</span>核心数据结构</a>
+    <a href="#manifests"><span class="n">14</span>构建产物与清单</a>
+    <div class="grp">工程化</div>
+    <a href="#proxy"><span class="n">15</span>proxy / 中间件</a>
+    <a href="#lifecycle"><span class="n">16</span>完整请求生命周期</a>
+    <a href="#engineering"><span class="n">17</span>项目工程化</a>
+    <div class="grp">冲刺</div>
+    <a href="#qa"><span class="n">18</span>面试速记 Q&amp;A</a>
+  </nav>
+</aside>
+<main>
+<header class="hero">
+  <div class="eyebrow">基于 Next.js 16.2 · App Router · React 19</div>
+  <h1>Next.js 的架构、运行与数据流</h1>
+  <p class="lede">这份文档不教你"怎么写一个页面"，而是带你看清 Next.js 这台机器内部是怎么转的——它的架构怎么分层、一次请求在它体内如何流动、有哪些关键数据结构在背后支撑、数据又是如何从服务器一路串到屏幕上的。读完你应该能在面试里把"原理题"答出底气。</p>
+  <div class="meta-row">
+    <span class="pill">当前稳定版 <b>16.2.x</b></span>
+    <span class="pill">默认打包器 <b>Turbopack</b></span>
+    <span class="pill">缓存模型 <b>Cache Components</b></span>
+    <span class="pill">中间件 <b>proxy.ts</b></span>
+    <span class="pill">React <b>19.2</b></span>
+  </div>
+</header>
+
+<section id="intro">
+<h2><span class="h2n">00</span>定位与心智模型</h2>
+<hr class="section-rule">
+
+<p>面试官问"Next.js 是什么"，最差的答案是"一个 React 框架"。这句话对，但什么都没说。准确的定位是：</p>
+
+<div class="box analogy">
+<div class="tag">◆ 一句话定位</div>
+<p>Next.js 是一个 <strong>建立在 React 之上的全栈应用框架</strong>，它把"服务端渲染、路由、数据获取、构建打包、部署运行时"这些原本要你自己拼装的能力，整合成一套<strong>以文件系统为约定、以 React Server Components 为渲染内核</strong>的一体化方案。它要解决的核心矛盾是：<em>既要服务端渲染带来的首屏速度与 SEO，又要单页应用的交互体验，还要让开发者写起来像写普通 React。</em></p>
+</div>
+
+<h3>三个层次理解它</h3>
+<p>要真正"懂"Next.js，得在脑子里分清它同时扮演的三个角色。这三层贯穿全文，建议先记住：</p>
+
+<div class="fig">
+  <div class="layerstack">
+    <div class="layer" style="background:rgba(192,81,47,.08);border-color:var(--accent)">
+      <div class="lt" style="color:var(--accent)">① 框架层 / Framework</div>
+      <div class="ld">文件系统路由、布局嵌套、约定式文件（page/layout/loading…）、配置体系。这是你直接打交道的"开发者界面"。</div>
+    </div>
+    <div class="layer" style="background:rgba(31,107,99,.07);border-color:var(--teal)">
+      <div class="lt" style="color:var(--teal)">② 渲染层 / React + RSC</div>
+      <div class="ld">React Server Components、Suspense、Streaming、Hydration。这是决定"什么在服务端跑、什么在客户端跑、HTML 怎么生成"的内核。</div>
+    </div>
+    <div class="layer" style="background:rgba(169,128,43,.08);border-color:var(--gold)">
+      <div class="lt" style="color:var(--gold)">③ 运行时与工具链 / Runtime &amp; Toolchain</div>
+      <div class="ld">Turbopack（打包）、SWC（编译）、Node.js / Edge 运行时、缓存系统、部署适配器。这是把代码变成可运行产物、并在生产环境里跑起来的底座。</div>
+    </div>
+  </div>
+  <div class="cap">图 0 · Next.js 的三层心智模型——全文都会回到这张图</div>
+</div>
+
+<div class="box exam">
+<div class="tag">★ 面试高频</div>
+<p><strong>"Next.js 相比纯 React（CRA/Vite）多了什么？"</strong> 答题骨架：① 服务端渲染能力（SSR/SSG/ISR/PPR），首屏更快、利于 SEO；② 约定式路由与嵌套布局，省去手动配置 React Router；③ React Server Components，让一部分组件在服务端运行、零 JS 下发；④ 内建数据获取与缓存模型；⑤ 内建优化（图片、字体、脚本、代码分割）；⑥ 全栈能力（Route Handlers / Server Actions 让前后端同仓）；⑦ 开箱即用的构建与部署优化。一句话收尾：<em>它把"渲染策略 + 路由 + 数据 + 构建 + 运行时"打包成了一个有明确约定的整体。</em></p>
+</div>
+
+<h3>版本演进：为什么现在长这样</h3>
+<p>理解架构必须知道它"从哪来"。这条演进线本身就是高频面试题：</p>
+
+<div class="tbl"><table>
+<thead><tr><th>阶段</th><th>关键变化</th><th>背后的架构动机</th></tr></thead>
+<tbody>
+<tr><td><b>Pages Router</b><br>(经典时代)</td><td><code>pages/</code> 目录、<code>getServerSideProps</code> / <code>getStaticProps</code> / <code>getInitialProps</code> 三件套</td><td>页面级的渲染策略，数据获取与组件分离，整页要么静态要么动态，粒度粗。</td></tr>
+<tr><td><b>App Router</b><br>(13 引入 / 现默认)</td><td><code>app/</code> 目录、React Server Components、嵌套布局、<code>fetch</code> 直接在组件里写、Streaming</td><td>把渲染粒度下沉到<strong>组件级</strong>：同一页面里可以混合服务端与客户端组件、静态与动态片段。这是范式转变。</td></tr>
+<tr><td><b>14 / 15</b></td><td>Server Actions 稳定、Turbopack 逐步成熟、缓存默认行为调整、请求 API 异步化</td><td>补齐数据"写"路径（Actions），并开始反思"默认全缓存"带来的心智负担。</td></tr>
+<tr><td><b>16</b><br>(当前)</td><td>Turbopack 成为默认；<code>middleware.ts</code> → <code>proxy.ts</code>（Node 运行时）；<strong>Cache Components</strong> 新缓存模型；同步请求 API 移除</td><td>缓存从"隐式默认缓存"翻转为<strong>"默认动态、显式 <code>use cache</code> 才缓存"</strong>，让缓存可预测；PPR 成为常态化能力。</td></tr>
+</tbody>
+</table></div>
+
+<div class="box trap">
+<div class="tag">▲ 常见误区</div>
+<p>很多人把 App Router 当成"换了个目录名的 Pages Router"。<strong>不是。</strong> App Router 的内核是 RSC，渲染默认发生在服务端、组件默认零 JS；Pages Router 里所有组件都是客户端组件（在服务端只是被渲染成 HTML 字符串再水合）。两者的数据获取、缓存、组件能力<strong>都不一样</strong>。本文以 App Router 为主线，必要处对照 Pages Router。</p>
+</div>
+</section>
+<section id="arch">
+<h2><span class="h2n">01</span>整体架构：一次请求看穿全貌</h2>
+<hr class="section-rule">
+
+<p>先建立"上帝视角"。下面这张图是 Next.js 处理一个页面请求时，各个子系统的协作关系。后面每一章，本质上都是在放大其中某一块。</p>
+
+<div class="fig">
+<svg viewBox="0 0 860 430" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#c0512f"/></marker>
+    <style>
+      .bx{fill:#fff;stroke:#cabfa6;stroke-width:1.5;rx:9}
+      .t{font-size:13px;fill:#211f1b;font-weight:600}
+      .s{font-size:10.5px;fill:#8a8273;font-family:'JetBrains Mono',monospace}
+      .gl{font-size:11px;fill:#544f45}
+      .ln{stroke:#c0512f;stroke-width:1.6;fill:none}
+      .zone{fill:none;stroke:#ddd4c1;stroke-width:1.2;stroke-dasharray:5 4;rx:12}
+      .zl{font-size:10.5px;fill:#a9802b;font-family:'JetBrains Mono',monospace;letter-spacing:.1em}
+    </style>
+  </defs>
+  <!-- client zone -->
+  <rect class="zone" x="14" y="20" width="200" height="390"/>
+  <text class="zl" x="24" y="40">CLIENT / 浏览器</text>
+  <rect class="bx" x="34" y="60" width="160" height="56" rx="9"/>
+  <text class="t" x="50" y="84">用户请求 / 导航</text>
+  <text class="s" x="50" y="102">URL · Link · router</text>
+  <rect class="bx" x="34" y="300" width="160" height="92" rx="9"/>
+  <text class="t" x="50" y="326">HTML + RSC Payload</text>
+  <text class="s" x="50" y="344">首屏直出 → 水合</text>
+  <text class="s" x="50" y="360">Router Cache 缓存</text>
+  <text class="s" x="50" y="376">交互后再请求</text>
+
+  <!-- edge/proxy -->
+  <rect class="zone" x="232" y="20" width="180" height="390"/>
+  <text class="zl" x="242" y="40">PROXY / 边缘</text>
+  <rect class="bx" x="252" y="120" width="142" height="70" rx="9"/>
+  <text class="t" x="266" y="146">proxy.ts</text>
+  <text class="s" x="266" y="164">重写/重定向</text>
+  <text class="s" x="266" y="180">鉴权/改 header</text>
+
+  <!-- server zone -->
+  <rect class="zone" x="430" y="20" width="416" height="390"/>
+  <text class="zl" x="440" y="40">SERVER / Node · Edge 运行时</text>
+  <rect class="bx" x="452" y="60" width="180" height="58" rx="9"/>
+  <text class="t" x="466" y="84">路由匹配</text>
+  <text class="s" x="466" y="102">Route Tree · Segments</text>
+  <rect class="bx" x="452" y="140" width="180" height="64" rx="9"/>
+  <text class="t" x="466" y="164">RSC 渲染</text>
+  <text class="s" x="466" y="182">Server Components</text>
+  <text class="s" x="466" y="196">→ RSC Payload</text>
+  <rect class="bx" x="452" y="226" width="180" height="64" rx="9"/>
+  <text class="t" x="466" y="250">SSR → HTML</text>
+  <text class="s" x="466" y="268">Streaming + Suspense</text>
+  <text class="s" x="466" y="282">静态壳先发</text>
+  <rect class="bx" x="452" y="312" width="180" height="64" rx="9"/>
+  <text class="t" x="466" y="336">数据层</text>
+  <text class="s" x="466" y="354">fetch / DB / use cache</text>
+  <text class="s" x="466" y="370">Server Actions</text>
+  <!-- caches -->
+  <rect class="bx" x="660" y="120" width="166" height="200" rx="9" style="fill:#faf6ec"/>
+  <text class="t" x="676" y="146">缓存系统</text>
+  <text class="s" x="676" y="168">Request Memo</text>
+  <text class="s" x="676" y="186">use cache /</text>
+  <text class="s" x="676" y="202">  cacheLife</text>
+  <text class="s" x="676" y="220">cacheTag</text>
+  <text class="s" x="676" y="244">─────────</text>
+  <text class="s" x="676" y="266">revalidateTag</text>
+  <text class="s" x="676" y="284">revalidatePath</text>
+  <text class="s" x="676" y="302">updateTag</text>
+
+  <!-- arrows -->
+  <path class="ln" d="M114,116 L114,118 Q114,260 198,300" marker-end="url(#ah)" opacity="0"/>
+  <path class="ln" d="M194,88 L250,150" marker-end="url(#ah)"/>
+  <path class="ln" d="M394,150 L450,89" marker-end="url(#ah)"/>
+  <path class="ln" d="M542,118 L542,138" marker-end="url(#ah)"/>
+  <path class="ln" d="M542,204 L542,224" marker-end="url(#ah)"/>
+  <path class="ln" d="M542,290 L542,310" marker-end="url(#ah)"/>
+  <path class="ln" d="M632,255 Q700,330 700,322" marker-end="url(#ah)"/>
+  <path class="ln" d="M632,338 L658,250" marker-end="url(#ah)"/>
+  <path class="ln" d="M450,255 Q300,330 196,346" marker-end="url(#ah)"/>
+</svg>
+<div class="cap">图 1 · 一次页面请求在 Next.js 各子系统间的流动</div>
+</div>
+
+<p>把这张图拆开，本文的章节其实就是沿着这条流水线展开的：<span class="term">路由匹配</span>（第 5 章）→ <span class="term">RSC 渲染</span>（第 2 章）→ <span class="term">SSR 流水线 + Streaming</span>（第 7、8 章）→ <span class="term">数据与缓存</span>（第 10、11 章）→ 回到客户端的 <span class="term">水合与导航</span>（第 9 章）。而第 13、14 章专门讲流水线里流动的"数据结构"是什么样子。</p>
+
+<h3>关键架构原则：服务端优先，按需下沉到客户端</h3>
+<p>App Router 的所有设计都围绕一条原则：<strong>默认在服务端做尽可能多的事，只把必须交互的部分下放到客户端。</strong> 这条原则带来三个直接结果——默认更少的客户端 JS、组件可以直接访问后端资源、数据获取就在组件内联完成。理解了这条原则，后面 RSC、边界、缓存的种种约定就都顺理成章了。</p>
+</section>
+
+<section id="rsc">
+<h2><span class="h2n">02</span>React Server Components：渲染内核</h2>
+<hr class="section-rule">
+
+<p>RSC 是 App Router 的地基。如果只能记住一个概念，就是它。</p>
+
+<h3>它到底是什么</h3>
+<p><strong>React Server Components 是一类只在服务端运行、永远不会被打包进客户端 JS 的组件。</strong> 在 App Router 里，<mark>组件默认就是 Server Component</mark>，除非你显式声明 <code>"use client"</code>。</p>
+
+<div class="box analogy">
+<div class="tag">◆ 类比</div>
+<p>把页面想象成一栋房子。<strong>Server Component 是预制好的墙体和家具</strong>——在工厂（服务端）就组装好，运到现场已经是成品，不需要现场施工（不下发 JS、不在浏览器执行）。<strong>Client Component 是需要通电的电器</strong>——必须把它的"电路图"（JS bundle）也运到现场，插上电（水合）才能用（响应点击、维持状态）。一栋房子里大部分是墙和家具，只有少数地方需要通电。</p>
+</div>
+
+<h3>Server Component 能做与不能做</h3>
+<div class="tbl"><table>
+<thead><tr><th></th><th>Server Component（默认）</th><th>Client Component（<code>"use client"</code>）</th></tr></thead>
+<tbody>
+<tr><td><b>运行位置</b></td><td>仅服务端（构建时或请求时）</td><td>服务端预渲染一次 + 浏览器水合后运行</td></tr>
+<tr><td><b>下发 JS</b></td><td>❌ 零客户端 JS</td><td>✅ 组件代码打包进客户端</td></tr>
+<tr><td><b>直接访问后端</b></td><td>✅ 数据库、文件系统、密钥</td><td>❌ 只能通过 API / Action</td></tr>
+<tr><td><b><code>async/await</code></b></td><td>✅ 组件本身可以是 async</td><td>❌ 不能（用 <code>use</code> / hooks）</td></tr>
+<tr><td><b>state / effect</b></td><td>❌ 不能用 <code>useState</code>/<code>useEffect</code></td><td>✅ 完整 hooks</td></tr>
+<tr><td><b>事件处理</b></td><td>❌ 不能 <code>onClick</code> 等</td><td>✅ 可交互</td></tr>
+<tr><td><b>浏览器 API</b></td><td>❌ 无 <code>window</code>/<code>localStorage</code></td><td>✅ 有</td></tr>
+</tbody>
+</table></div>
+
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">app/posts/page.tsx — Server Component（默认）</span></div><code class="language-typescript">// 没有 "use client"，这就是一个服务端组件
+// 注意它是 async 的，可以直接 await 数据 —— 这是 RSC 才有的能力
+export default async function PostsPage() {
+  // 直接读数据库 / 调内部服务，代码不会下发到浏览器
+  const posts = await db.post.findMany({ orderBy: { createdAt: 'desc' } })
+
+  return (
+    &lt;ul&gt;
+      {posts.map((p) =&gt; (
+        &lt;li key={p.id}&gt;{p.title}&lt;/li&gt;
+      ))}
+    &lt;/ul&gt;
+  )
+}</code></pre>
+
+<div class="box exam">
+<div class="tag">★ 面试高频</div>
+<p><strong>"Server Component 为什么能直接 await 数据，而普通 React 组件不行？"</strong> 因为 RSC 在服务端被渲染成一段<strong>序列化的描述（RSC Payload）</strong>，而不是立即生成 DOM；服务端渲染本身就是一个可以等待的异步过程，React 在服务端会等 Promise resolve 后再把结果写进 payload。客户端组件要参与浏览器的同步水合，无法在渲染期挂起等待网络（要异步数据得用 <code>use()</code> 配合 Suspense 或 effect）。</p>
+</div>
+
+<h3>RSC 的输出不是 HTML，而是"RSC Payload"</h3>
+<p>这是最容易答错的点。Server Component 渲染的产物<strong>不是直接的 HTML 字符串</strong>，而是一种 React 专用的序列化格式，常被称为 <span class="term">RSC Payload</span> 或 <span class="term">Flight</span> 数据。它本质上是一棵<strong>被序列化的 React 元素树</strong>，里面包含：</p>
+<ul>
+<li>Server Component 渲染出来的结果（已经"算好"的元素树）；</li>
+<li>遇到 Client Component 的地方，<strong>不内联代码</strong>，而是放一个<strong>模块引用（reference）</strong>——告诉客户端"这里要挂载哪个 chunk 里的哪个组件"；</li>
+<li>从服务端传给 Client Component 的 <strong>props</strong>（必须可序列化）；</li>
+<li>Suspense 边界的占位与后续补发的分块（用于 Streaming）。</li>
+</ul>
+
+<p>这个 payload 有两个用途：① 服务端用它生成初始 <strong>HTML</strong>（首屏）；② 同时把 payload 本身也发给客户端，客户端据此<strong>水合</strong>，并在后续导航时复用。第 13 章会详细拆 payload 的结构。</p>
+
+<div class="box trap">
+<div class="tag">▲ 易错点</div>
+<p>"RSC = 服务端渲染 SSR" 是错的。<strong>RSC 是组件模型，SSR 是渲染过程，二者正交。</strong> RSC 决定"哪些组件在服务端运行、产出 payload"；SSR 决定"把这棵树转成 HTML 字符串发给浏览器"。App Router 同时用了两者：先 RSC 产出 payload，再 SSR 把它转成 HTML。一个 RSC 应用也可以完全静态化（构建时就跑完 RSC）。</p>
+</div>
+</section>
+<section id="boundary">
+<h2><span class="h2n">03</span>Server / Client 边界</h2>
+<hr class="section-rule">
+
+<p>整棵组件树被 <code>"use client"</code> 切成两个世界。理解"边界画在哪、props 怎么穿过去"是 App Router 工程实践的核心，也是面试常考的"原理 + 实践"结合题。</p>
+
+<h3>"use client" 是一道传染性的边界</h3>
+<p><code>"use client"</code> 写在文件顶部，含义是：<strong>从这个模块开始，它以及它 import 进来的所有模块，都进入客户端世界。</strong> 它标记的是"进入客户端的入口点"，而不是"只有这个组件是客户端"。</p>
+
+<div class="fig">
+<svg viewBox="0 0 760 330" xmlns="http://www.w3.org/2000/svg">
+<defs><style>
+.n{fill:#fff;stroke-width:1.6;rx:9}
+.lab{font-size:12.5px;font-weight:600;fill:#211f1b}
+.sub{font-size:10px;fill:#8a8273;font-family:'JetBrains Mono',monospace}
+.e{stroke:#cabfa6;stroke-width:1.4;fill:none}
+</style></defs>
+<text x="20" y="28" style="font-size:12px;font-family:'JetBrains Mono',monospace;fill:#1f6b63;letter-spacing:.1em">组件树 / 边界示意</text>
+<!-- root layout (server) -->
+<rect class="n" x="300" y="44" width="160" height="46" style="stroke:#1f6b63;fill:#e9f3f1"/>
+<text class="lab" x="320" y="66">RootLayout</text><text class="sub" x="320" y="82">server</text>
+<!-- page server -->
+<rect class="n" x="300" y="130" width="160" height="46" style="stroke:#1f6b63;fill:#e9f3f1"/>
+<text class="lab" x="324" y="152">Page</text><text class="sub" x="324" y="168">server · async</text>
+<!-- left: server child -->
+<rect class="n" x="70" y="220" width="170" height="56" style="stroke:#1f6b63;fill:#e9f3f1"/>
+<text class="lab" x="88" y="242">PostList</text><text class="sub" x="88" y="258">server · 直接读 DB</text>
+<!-- right: client island -->
+<rect class="n" x="500" y="210" width="200" height="86" style="stroke:#c0512f;fill:#f6e7e1"/>
+<text class="lab" x="518" y="232">"use client" LikeButton</text>
+<text class="sub" x="518" y="250">client · useState</text>
+<text class="sub" x="518" y="266">+ import 的子模块</text>
+<text class="sub" x="518" y="282">也全部进客户端</text>
+<!-- edges -->
+<path class="e" d="M380,90 L380,130"/>
+<path class="e" d="M340,176 L155,220"/>
+<path class="e" d="M420,176 L560,210"/>
+<text x="60" y="305" style="font-size:11px;fill:#1f6b63">绿=服务端组件（零 JS）</text>
+<text x="500" y="305" style="font-size:11px;fill:#c0512f">红=客户端孤岛（下发 JS + 水合）</text>
+</svg>
+<div class="cap">图 2 · 服务端组件构成树干，客户端组件是其中的"交互孤岛"</div>
+</div>
+
+<h3>关键规则：Server 可以包 Client，Client 不能直接 import Server</h3>
+<p>数据流方向决定了组合方式。下面这三条是必背规则：</p>
+<ol>
+<li><strong>Server Component 可以渲染 Client Component</strong>（在树里把客户端组件当子节点）。</li>
+<li><strong>Client Component 不能直接 <code>import</code> 一个 Server Component</strong>——因为 Client 的代码要打包进浏览器，而 Server Component 本不该出现在浏览器。</li>
+<li>但可以通过 <strong>children / props 把 Server Component "插槽"进 Client Component</strong>。这是绕过上一条限制的标准姿势。</li>
+</ol>
+
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">把 Server Component 作为 children 传进 Client Component</span></div><code class="language-typescript">// ✅ 正确：服务端组件作为 children 注入客户端组件
+// app/page.tsx (Server)
+import ClientWrapper from './client-wrapper'      // client
+import ServerData from './server-data'            // server
+
+export default function Page() {
+  return (
+    &lt;ClientWrapper&gt;
+      {/* ServerData 在服务端渲染好，作为 RSC payload 的一部分 */}
+      {/* 被"投影"进客户端组件的插槽里，客户端拿到的是渲染结果而非源码 */}
+      &lt;ServerData /&gt;
+    &lt;/ClientWrapper&gt;
+  )
+}</code></pre>
+
+<div class="box exam">
+<div class="tag">★ 面试高频</div>
+<p><strong>"为什么 Client Component 不能 import Server Component，但能用 children 传进来？"</strong> 因为 <code>import</code> 是<strong>构建期</strong>的静态依赖，会把被引模块打包进客户端 bundle——这会让服务端组件的代码（含密钥、DB 访问）泄漏到浏览器。而 <strong>children/props 是运行期的数据流</strong>：服务端先把 Server Component 渲染成 payload，再把"渲染结果"作为一个已序列化的节点传给客户端组件，客户端拿到的只是<strong>结果</strong>，不是源码，所以安全。</p>
+</div>
+
+<div class="box trap">
+<div class="tag">▲ 易错点：传给 Client 的 props 必须可序列化</div>
+<p>跨越边界传给客户端组件的 props 要能被序列化（写进 RSC payload）。<strong>函数、类实例、Symbol、Date 之外的复杂对象不能直接传</strong>（Server Actions 是被特殊处理的例外）。所以你不能把一个数据库连接、一个回调函数随手传过边界。这也是为什么"事件处理函数不能从 Server Component 传给 DOM"。</p>
+</div>
+
+<h3>实践：把 "use client" 推到叶子节点</h3>
+<p>性能上的最佳实践是<strong>让边界尽量靠近叶子</strong>。一个常见反模式是在根布局上写 <code>"use client"</code>，结果整棵树都变成客户端，RSC 的优势荡然无存。正确做法：只把真正需要交互的那一小块（按钮、表单输入、带动画的卡片）标成客户端，其余保持服务端。</p>
+</section>
+
+<section id="build">
+<h2><span class="h2n">04</span>编译与构建架构</h2>
+<hr class="section-rule">
+
+<p>这一章回答"你的代码是怎么变成能跑的东西的"。面试里属于加分项——能讲清工具链说明你懂底层。</p>
+
+<h3>工具链分工</h3>
+<div class="tbl"><table>
+<thead><tr><th>工具</th><th>语言</th><th>职责</th></tr></thead>
+<tbody>
+<tr><td><b>Turbopack</b></td><td>Rust</td><td>当前默认<strong>打包器（bundler）</strong>，负责模块解析、依赖图、代码分割、HMR。取代了 webpack。Next 16 起 <code>dev</code> 与 <code>build</code> 默认走 Turbopack。</td></tr>
+<tr><td><b>SWC</b></td><td>Rust</td><td><strong>编译器（compiler）</strong>，负责 TS/JSX 转译、语法降级、各种 Next 专属转换（如标记 Server/Client 边界、Server Actions 转换）。取代了 Babel。</td></tr>
+<tr><td><b>React Compiler</b></td><td>—</td><td>1.0 已稳定（可选开启）。自动做 memo 化，减少手写 <code>useMemo</code>/<code>useCallback</code>。</td></tr>
+</tbody>
+</table></div>
+
+<h3>核心机制：一份代码，两份产物</h3>
+<p>这是构建阶段最关键的认知。因为有 Server/Client 之分，构建器会从你的代码生成<strong>两套 bundle</strong>：</p>
+
+<div class="fig">
+<div class="flow">
+  <div class="fnode"><div class="ft">你的源码</div><div class="fd">app/**/*.tsx</div></div>
+  <div class="farrow">→</div>
+  <div class="fnode" style="border-color:var(--teal)"><div class="ft">Server Graph</div><div class="fd">在 Node/Edge 运行</div></div>
+  <div class="farrow">→</div>
+  <div class="fnode" style="border-color:var(--teal)"><div class="ft">服务端产物</div><div class="fd">.next/server</div></div>
+</div>
+<div class="flow" style="margin-top:12px">
+  <div class="fnode" style="visibility:hidden"><div class="ft">.</div></div>
+  <div class="farrow" style="visibility:hidden">→</div>
+  <div class="fnode" style="border-color:var(--accent)"><div class="ft">Client Graph</div><div class="fd">从"use client"入口起</div></div>
+  <div class="farrow">→</div>
+  <div class="fnode" style="border-color:var(--accent)"><div class="ft">客户端产物</div><div class="fd">.next/static/chunks</div></div>
+</div>
+<div class="cap">图 3 · 构建器从同一份源码切出 Server / Client 两张依赖图，产出两套 bundle</div>
+</div>
+
+<p>构建器以 <code>"use client"</code> 标记的模块为分界：边界以上（含 Server Components）进入<strong>服务端图</strong>，不打包给浏览器；边界以下进入<strong>客户端图</strong>，做代码分割后输出到 <code>static/chunks</code>。RSC payload 里对 Client Component 的"模块引用"，指向的就是客户端图里对应的 chunk。</p>
+
+<h3>next build 都做了什么</h3>
+<ul>
+<li><strong>编译</strong>：SWC 把所有 TS/JSX 转译成可执行 JS。</li>
+<li><strong>打包与分割</strong>：Turbopack 构建依赖图，按路由做代码分割（每个路由只加载自己需要的 chunk）。</li>
+<li><strong>预渲染（prerender）</strong>：对可静态化的路由，在构建时就跑完 RSC + SSR，产出静态 <code>.html</code> 和对应的 <code>.rsc</code>（RSC payload 快照）。</li>
+<li><strong>生成清单（manifests）</strong>：把"哪个路由对应哪些文件、哪些是静态/动态、入口 chunk 是什么"等元信息写成一堆 JSON（第 14 章详解）。</li>
+<li><strong>优化</strong>：tree-shaking、minify、图片/字体处理等。</li>
+</ul>
+
+<div class="box note">
+<div class="tag">注</div>
+<p>开发模式（<code>next dev</code>）和生产（<code>next build &amp;&amp; next start</code>）行为不同：开发模式很多东西按需编译、缓存行为也更宽松。<strong>调试缓存/渲染问题，永远以生产构建为准。</strong> 这是实战里反复踩的坑，也值得在面试里点一句。</p>
+</div>
+</section>
+<section id="routing">
+<h2><span class="h2n">05</span>路由系统：文件即路由</h2>
+<hr class="section-rule">
+
+<p>Next.js 用<strong>文件系统约定</strong>来表达路由——目录结构就是路由结构，特殊文件名承担特殊角色。这是"开发者界面"层最直观的部分，也是数据结构层"路由树"的来源。</p>
+
+<h3>约定式特殊文件</h3>
+<p>在 <code>app/</code> 下，每个目录代表一个<strong>路由段（route segment）</strong>，目录里的特殊文件决定这一段的行为：</p>
+
+<div class="tbl"><table>
+<thead><tr><th>文件</th><th>作用</th><th>关键特性</th></tr></thead>
+<tbody>
+<tr><td><code>page.tsx</code></td><td>该路由的<strong>页面 UI</strong>，使路由可被访问</td><td>有它路由才"存在"。默认 Server Component。</td></tr>
+<tr><td><code>layout.tsx</code></td><td><strong>共享布局</strong>，包裹子路由</td><td>导航时<strong>不重新挂载、保留状态</strong>；可嵌套。必须渲染 <code>children</code>。</td></tr>
+<tr><td><code>template.tsx</code></td><td>类似 layout，但<strong>每次导航重新挂载</strong></td><td>需要"进入即重置"（如埋点、动画）时用。</td></tr>
+<tr><td><code>loading.tsx</code></td><td>该段的<strong>加载态</strong></td><td>本质是自动包了一层 <code>&lt;Suspense&gt;</code>，配合 Streaming。</td></tr>
+<tr><td><code>error.tsx</code></td><td>该段的<strong>错误边界</strong></td><td>必须是 Client Component；捕获子树渲染错误。</td></tr>
+<tr><td><code>not-found.tsx</code></td><td>404 UI</td><td>由 <code>notFound()</code> 触发。</td></tr>
+<tr><td><code>route.ts</code></td><td><strong>API 端点</strong>（Route Handler）</td><td>导出 <code>GET/POST/...</code>，处理 <code>Request</code>→<code>Response</code>。与 <code>page</code> 互斥。</td></tr>
+<tr><td><code>default.tsx</code></td><td>平行路由的<strong>兜底 UI</strong></td><td>配合 <code>@slot</code> 使用。</td></tr>
+<tr><td><code>global-error.tsx</code></td><td>根级错误边界</td><td>兜住整个应用的渲染错误。</td></tr>
+</tbody>
+</table></div>
+
+<h3>这些文件如何"组装"成一个页面</h3>
+<p>关键认知：<strong>同一路由的特殊文件会按固定顺序嵌套包裹起来。</strong> Next.js 渲染一个路由时，自动生成这样一棵包裹树：</p>
+
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">特殊文件的嵌套顺序</span></div><code class="language-jsx">&lt;Layout&gt;
+  &lt;Template&gt;
+    &lt;ErrorBoundary fallback={&lt;Error /&gt;}&gt;
+      &lt;Suspense fallback={&lt;Loading /&gt;}&gt;
+        &lt;ErrorBoundary fallback={&lt;NotFound /&gt;}&gt;
+          &lt;Page /&gt;
+        &lt;/ErrorBoundary&gt;
+      &lt;/Suspense&gt;
+    &lt;/ErrorBoundary&gt;
+  &lt;/Template&gt;
+&lt;/Layout&gt;</code></pre>
+
+<div class="box exam">
+<div class="tag">★ 面试高频</div>
+<p><strong>"layout 和 template 的区别？"</strong> 两者都包裹子内容，但 <strong>layout 在导航中持久化</strong>——切换兄弟路由时 layout 实例及其内部状态（如展开的侧边栏、滚动位置）保留；<strong>template 每次导航都重新创建实例</strong>，状态清空、effect 重跑。需要"跨页面保持"用 layout，需要"每次进入都重来"用 template。</p>
+</div>
+
+<h3>嵌套布局：路由树天然分层</h3>
+<p>目录嵌套天然形成布局嵌套。<code>app/layout.tsx</code> 包裹一切，<code>app/dashboard/layout.tsx</code> 只包裹 dashboard 子树。导航到 <code>/dashboard/settings</code> 时，<strong>只有变化的最深层段会重新渲染</strong>，外层布局原地不动——这是性能与体验的关键。</p>
+
+<div class="fig">
+<svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg">
+<defs><style>.r{fill:none;stroke-width:1.6;rx:8}.tx{font-size:12px;font-weight:600}.ts{font-size:10px;font-family:'JetBrains Mono',monospace;fill:#8a8273}</style></defs>
+<rect class="r" x="20" y="20" width="680" height="210" style="stroke:#1f6b63"/>
+<text class="tx" x="34" y="40" style="fill:#1f6b63">RootLayout · app/layout.tsx</text>
+<text class="ts" x="540" y="40">导航中保持不变 ▲</text>
+<rect class="r" x="44" y="58" width="640" height="150" style="stroke:#a9802b"/>
+<text class="tx" x="58" y="78" style="fill:#a9802b">DashboardLayout · app/dashboard/layout.tsx</text>
+<text class="ts" x="500" y="78">侧边栏状态保留 ▲</text>
+<rect class="r" x="68" y="96" width="290" height="96" style="stroke:#c0512f;fill:#f6e7e1"/>
+<text class="tx" x="82" y="118" style="fill:#c0512f">SettingsPage</text>
+<text class="ts" x="82" y="136">/dashboard/settings</text>
+<text class="ts" x="82" y="154">← 切到 /dashboard/billing</text>
+<text class="ts" x="82" y="170">  只有这块替换</text>
+<rect class="r" x="378" y="96" width="290" height="96" style="stroke:#c0512f;stroke-dasharray:5 4;fill:#faf3f0"/>
+<text class="tx" x="392" y="118" style="fill:#c0512f">BillingPage</text>
+<text class="ts" x="392" y="136">/dashboard/billing</text>
+<text class="ts" x="392" y="154">新段，仅请求它的</text>
+<text class="ts" x="392" y="170">RSC payload</text>
+</svg>
+<div class="cap">图 4 · 嵌套布局：导航只替换变化的最深段，外层布局与状态原地保留</div>
+</div>
+
+<h3>动态路由与高级路由约定</h3>
+<div class="tbl"><table>
+<thead><tr><th>约定</th><th>含义</th><th>例子</th></tr></thead>
+<tbody>
+<tr><td><code>[id]</code></td><td>动态段，匹配单段</td><td><code>app/post/[id]</code> → <code>/post/42</code></td></tr>
+<tr><td><code>[...slug]</code></td><td>捕获所有后续段</td><td><code>/docs/a/b/c</code></td></tr>
+<tr><td><code>[[...slug]]</code></td><td>可选捕获（含空）</td><td>匹配 <code>/docs</code> 也匹配 <code>/docs/a</code></td></tr>
+<tr><td><code>(group)</code></td><td><strong>路由组</strong>：组织目录但<strong>不进入 URL</strong></td><td><code>(marketing)/about</code> → <code>/about</code></td></tr>
+<tr><td><code>@slot</code></td><td><strong>平行路由</strong>：同一布局里渲染多个独立子树</td><td>仪表盘里 <code>@team</code> 与 <code>@analytics</code> 并存</td></tr>
+<tr><td><code>(.)folder</code></td><td><strong>拦截路由</strong>：用当前布局拦截另一路由（如模态框）</td><td>列表里点图片弹模态而非整页跳转</td></tr>
+<tr><td><code>_folder</code></td><td><strong>私有目录</strong>：不参与路由</td><td>放工具/组件</td></tr>
+</tbody>
+</table></div>
+
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">app/blog/[slug]/page.tsx — 动态路由读参数（注意 params 现在是 async）</span></div><code class="language-typescript">// Next 16：params / searchParams 都是 Promise，必须 await
+export default async function BlogPost({
+  params,
+}: {
+  params: Promise&lt;{ slug: string }&gt;
+}) {
+  const { slug } = await params
+  const post = await getPost(slug)
+  return &lt;article&gt;{post.title}&lt;/article&gt;
+}
+
+// 静态预渲染：告诉构建器要为哪些 slug 生成静态页
+export async function generateStaticParams() {
+  const posts = await getAllPosts()
+  return posts.map((p) =&gt; ({ slug: p.slug }))
+}</code></pre>
+
+<div class="box trap">
+<div class="tag">▲ 升级要点（Next 16）</div>
+<p><code>params</code>、<code>searchParams</code> 以及 <code>cookies()</code>、<code>headers()</code>、<code>draftMode()</code> 在 16 里<strong>全部异步化</strong>，必须 <code>await</code>。同步用法在 16 已被移除。面试若被问"Next 15→16 有哪些破坏性变更"，这是必答点之一（另两个是 Turbopack 默认、<code>middleware.ts</code>→<code>proxy.ts</code>）。</p>
+</div>
+
+<h3>路由系统在内存里：路由树（Route Tree）</h3>
+<p>所有这些文件约定，最终被 Next.js 解析成一棵<strong>路由树</strong>。每个节点是一个 <span class="term">route segment</span>，携带该段的 layout / page / loading / error 引用、是否动态、参数名等。这棵树既用于服务端匹配请求，也用于客户端导航时定位"哪一段变了"。它的数据结构形态见第 13 章。</p>
+</section>
+<section id="render">
+<h2><span class="h2n">06</span>渲染策略全景：SSG / SSR / ISR / CSR / PPR</h2>
+<hr class="section-rule">
+
+<p>这是 Next.js 面试的"必考大题"。先把五种策略一次性摆清楚，再讲它们在 App Router 里如何统一到一个模型下。</p>
+
+<div class="tbl"><table>
+<thead><tr><th>策略</th><th>HTML 何时生成</th><th>适用场景</th><th>权衡</th></tr></thead>
+<tbody>
+<tr><td><b>SSG</b><br>静态生成</td><td><strong>构建时</strong>一次性生成</td><td>博客、文档、营销页等内容不常变</td><td>最快、可走 CDN；但内容更新要重新构建</td></tr>
+<tr><td><b>ISR</b><br>增量静态再生</td><td>构建时生成 + <strong>按需/定时在后台再生</strong></td><td>电商商品页、列表，量大且更新有节奏</td><td>兼顾静态速度与新鲜度；首个过期请求可能拿到旧值（stale-while-revalidate）</td></tr>
+<tr><td><b>SSR</b><br>服务端渲染</td><td><strong>每次请求时</strong>生成</td><td>个性化、强实时（用户面板、搜索结果）</td><td>总是最新；但每请求都要算，TTFB 受服务端速度影响</td></tr>
+<tr><td><b>CSR</b><br>客户端渲染</td><td>浏览器里用 JS 生成</td><td>纯交互、登录后内部工具、无需 SEO 的部分</td><td>首屏需等 JS；交互后体验好</td></tr>
+<tr><td><b>PPR</b><br>部分预渲染</td><td><strong>静态壳构建时 + 动态洞请求时</strong></td><td>同一页面里既有静态框架又有个性化片段</td><td>兼得：壳秒开走 CDN，动态部分流式补上（Next 16 默认能力）</td></tr>
+</tbody>
+</table></div>
+
+<div class="box analogy">
+<div class="tag">◆ 类比</div>
+<p>把渲染想成"出餐"：<strong>SSG</strong> 是预制菜，开门前全做好，谁来都直接端（最快但样式固定）；<strong>SSR</strong> 是现点现做，每位客人都新鲜炒（最对口味但要等）；<strong>ISR</strong> 是热柜里的预制菜，卖光或过一段时间就补一锅新的；<strong>CSR</strong> 是给你一套食材和说明书，回家自己炒；<strong>PPR</strong> 是预制好餐盘和摆盘（静态壳），只把那道需要现做的主菜（动态洞）现炒后补上桌。</p>
+</div>
+
+<h3>App Router 如何把这些统一起来</h3>
+<p>在经典 Pages Router 里，渲染策略是<strong>页面级</strong>的（由你导出 <code>getStaticProps</code> 还是 <code>getServerSideProps</code> 决定）。App Router 把粒度下沉到<strong>组件 / 数据级</strong>，并在 Next 16 的 <strong>Cache Components</strong> 模型下统一成一句话原则：</p>
+
+<div class="box exam">
+<div class="tag">★ 核心原则（Next 16）</div>
+<p><strong>默认动态（dynamic by default），显式缓存（<code>use cache</code>）才静态。</strong> 一个组件/函数有没有标 <code>use cache</code>、读不读请求特定数据（cookies/headers/动态 params），共同决定了它是被预渲染进静态壳，还是在请求时动态计算。整页不再是"非静态即动态"，而是<strong>一页之内静态与动态并存</strong>——这正是 PPR。</p>
+</div>
+
+<p>具体而言，决定某段是静态还是动态的因素：</p>
+<ul>
+<li>标了 <code>use cache</code>（配合 <code>cacheLife</code>）→ 可被预渲染、缓存复用 → 走静态/ISR 语义。</li>
+<li>读取了请求特定数据（<code>cookies()</code> / <code>headers()</code> / 动态 <code>searchParams</code>）→ 只能请求时算 → 动态。</li>
+<li>未缓存的数据访问被 <code>&lt;Suspense&gt;</code> 包裹 → 成为"动态洞"，壳先发、它流式补上 → PPR。</li>
+</ul>
+
+<div class="box trap">
+<div class="tag">▲ 新旧模型对照（重要）</div>
+<p>Next 16 之前是<strong>"默认缓存"</strong>：<code>fetch</code> 默认被缓存、整页倾向静态，靠 <code>export const dynamic = 'force-dynamic'</code> / <code>revalidate</code> 等路由段配置来"退出缓存"。Next 16 启用 <code>cacheComponents: true</code> 后翻转为<strong>"默认动态"</strong>，靠 <code>use cache</code> 主动"进入缓存"。心智从"我要怎么关掉缓存"变成"我要给什么加缓存"，更可预测。<em>注意：不开 <code>cacheComponents</code> 时，旧的 <code>export const revalidate</code> 等仍可用，但官方建议迁移到 <code>use cache</code>。</em></p>
+</div>
+</section>
+
+<section id="pipeline">
+<h2><span class="h2n">07</span>SSR 渲染流水线：从请求到屏幕</h2>
+<hr class="section-rule">
+
+<p>把第 6 章的"策略"落到"过程"。一次动态请求，HTML 是怎么一步步出现在用户屏幕上的？这是把 RSC、SSR、Streaming、Hydration 串起来的关键一章。</p>
+
+<div class="fig">
+<svg viewBox="0 0 840 360" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#c0512f"/></marker>
+<style>.st{fill:#fff;stroke:#cabfa6;stroke-width:1.5;rx:9}.num{font-family:'Fraunces',serif;font-size:20px;font-weight:700;fill:#c0512f}.tt{font-size:13px;font-weight:600;fill:#211f1b}.ss{font-size:10.5px;fill:#8a8273;font-family:'JetBrains Mono',monospace}.ar{stroke:#c0512f;stroke-width:1.6;fill:none}</style></defs>
+<!-- step boxes vertical -->
+<g>
+<rect class="st" x="40" y="20" width="360" height="52"/><text class="num" x="56" y="52">1</text><text class="tt" x="90" y="42">请求到达 · 路由匹配</text><text class="ss" x="90" y="60">在路由树中定位 segments，确定要渲染的组件</text>
+<rect class="st" x="40" y="88" width="360" height="60"/><text class="num" x="56" y="124">2</text><text class="tt" x="90" y="112">服务端运行 RSC</text><text class="ss" x="90" y="130">Server Components 执行 · await 数据</text><text class="ss" x="90" y="144">产出 RSC Payload（含 Client 组件引用）</text>
+<rect class="st" x="40" y="164" width="360" height="60"/><text class="num" x="56" y="200">3</text><text class="tt" x="90" y="188">SSR：payload → HTML</text><text class="ss" x="90" y="206">React 把 payload 转成 HTML 字符串</text><text class="ss" x="90" y="220">遇 Suspense 边界先发 fallback</text>
+<rect class="st" x="40" y="240" width="360" height="60"/><text class="num" x="56" y="276">4</text><text class="tt" x="90" y="264">流式传输 Streaming</text><text class="ss" x="90" y="282">HTML 分块发送，静态壳先到</text><text class="ss" x="90" y="296">数据 ready 后补发对应 chunk</text>
+<rect class="st" x="40" y="316" width="360" height="36"/><text class="num" x="56" y="342">5</text><text class="tt" x="90" y="338">浏览器：边收边画首屏</text>
+</g>
+<!-- right side client -->
+<g>
+<rect class="st" x="460" y="88" width="340" height="60" style="stroke:#1f6b63"/><text class="num" x="476" y="124" style="fill:#1f6b63">6</text><text class="tt" x="510" y="112">下载 Client chunks</text><text class="ss" x="510" y="130">按 payload 里的模块引用</text><text class="ss" x="510" y="144">拉取交互组件的 JS</text>
+<rect class="st" x="460" y="164" width="340" height="76" style="stroke:#1f6b63"/><text class="num" x="476" y="208" style="fill:#1f6b63">7</text><text class="tt" x="510" y="188">水合 Hydration</text><text class="ss" x="510" y="206">React 用 RSC payload + 已有 HTML</text><text class="ss" x="510" y="222">给客户端组件"接上事件/状态"</text><text class="ss" x="510" y="236">不重绘 DOM，只附加交互</text>
+<rect class="st" x="460" y="256" width="340" height="44" style="stroke:#1f6b63"/><text class="num" x="476" y="284" style="fill:#1f6b63">8</text><text class="tt" x="510" y="276">页面完全可交互</text><text class="ss" x="510" y="294">后续导航走客户端软导航</text>
+</g>
+<path class="ar" d="M400,270 C440,250 440,140 458,118" marker-end="url(#a2)"/>
+<text class="ss" x="402" y="170" style="fill:#c0512f">HTML+payload</text>
+</svg>
+<div class="cap">图 5 · 一次动态请求的完整流水线：服务端 RSC→SSR→Streaming（1-5）与客户端下载→水合（6-8）</div>
+</div>
+
+<h3>逐步拆解</h3>
+<p><strong>① 路由匹配。</strong> 服务端拿到 URL，在路由树里定位命中的 segments，组装出第 5 章那棵"layout→…→page"的包裹树。</p>
+<p><strong>② 运行 RSC。</strong> 服务端执行所有 Server Components。async 组件在这里 <code>await</code> 数据。产物是 RSC Payload——元素树 + Client 组件的模块引用 + 序列化 props。</p>
+<p><strong>③ SSR 转 HTML。</strong> React 把 payload 转成 HTML 字符串。这一步让首屏<strong>不依赖 JS 就能显示</strong>，对 SEO 和首屏速度至关重要。</p>
+<p><strong>④ Streaming。</strong> 关键优化：HTML 不是等全部算完才发，而是<strong>边算边发</strong>。能立即确定的"静态壳"先发出去；被 <code>&lt;Suspense&gt;</code>（或 <code>loading.tsx</code>）包裹、还在等数据的部分先发 fallback 占位，数据 ready 后再把真实内容作为后续 chunk 补发，浏览器原地替换占位。</p>
+<p><strong>⑤–⑧ 客户端接管。</strong> 浏览器边收边渲染首屏（用户很快看到内容）；同时按 payload 里的模块引用下载交互组件的 JS chunk；然后进行<strong>水合</strong>——把已有的静态 HTML"激活"，给客户端组件接上事件监听与状态，<strong>不重新创建 DOM</strong>。水合完成，页面完全可交互。</p>
+
+<div class="box exam">
+<div class="tag">★ 面试高频</div>
+<p><strong>"什么是 Hydration？为什么会有 hydration mismatch？"</strong> 水合是 React 在客户端"复用服务端已渲染的 HTML"、把事件与状态附加上去的过程，避免重绘。<strong>mismatch</strong> 发生在服务端渲染出的 HTML 与客户端首次渲染结果不一致时——常见原因：用了 <code>Date.now()</code>/<code>Math.random()</code>/<code>window</code> 等服务端客户端不一致的值，或把只在浏览器存在的状态用在了首渲染里。解决：把这类逻辑放进 <code>useEffect</code>、用 <code>suppressHydrationWarning</code>、或确保两端输入一致。</p>
+</div>
+
+<div class="box analogy">
+<div class="tag">◆ 类比 Streaming + Hydration</div>
+<p>Streaming 像<strong>上菜不等齐</strong>：先上能上的（静态壳），慢的菜（动态数据）做好了再端上来，客人不用干等整桌。Hydration 像<strong>给一栋已盖好的样板房通电</strong>：墙、家具（HTML）已经在了，电工只是把电线接上、开关装好（附加事件与状态），而不是把房子推倒重盖。</p>
+</div>
+</section>
+<section id="ppr">
+<h2><span class="h2n">08</span>PPR：部分预渲染（静态壳 + 动态洞）</h2>
+<hr class="section-rule">
+
+<p>PPR 是把第 6、7 章的能力推到极致的产物，也是 Next 现代架构的"招牌"。Next 16 通过 <code>cacheComponents</code> 让它成为常态行为。</p>
+
+<h3>核心思想：一页 = 一个静态壳 + 若干动态洞</h3>
+<p>传统模型里一个页面要么整页静态、要么整页动态。PPR 打破这点：把页面里<strong>能静态确定的部分</strong>（导航栏、布局、产品标题）在<strong>构建时</strong>预渲染成静态壳，可直接走 CDN 秒开；把<strong>个性化/实时的部分</strong>（购物车数量、推荐、库存）留作"<strong>动态洞</strong>"，用 <code>&lt;Suspense&gt;</code> 包起来，在请求时流式填充。</p>
+
+<div class="fig">
+<svg viewBox="0 0 760 280" xmlns="http://www.w3.org/2000/svg">
+<defs><style>.box2{rx:8}.lbl{font-size:12px;font-weight:600}.sm{font-size:10.5px;font-family:'JetBrains Mono',monospace;fill:#8a8273}</style></defs>
+<rect x="40" y="20" width="680" height="50" rx="8" fill="#e9f3f1" stroke="#1f6b63" stroke-width="1.5"/>
+<text class="lbl" x="60" y="42" fill="#1f6b63">静态壳 · 导航栏 / 页头（构建时预渲染，走 CDN）</text>
+<text class="sm" x="60" y="60">prerendered shell · 立即可见</text>
+<rect x="40" y="82" width="330" height="120" rx="8" fill="#e9f3f1" stroke="#1f6b63" stroke-width="1.5"/>
+<text class="lbl" x="60" y="104" fill="#1f6b63">静态：产品标题 / 描述 / 图片</text>
+<text class="sm" x="60" y="122">use cache · 预渲染</text>
+<rect x="386" y="82" width="334" height="120" rx="8" fill="#f6e7e1" stroke="#c0512f" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text class="lbl" x="406" y="104" fill="#c0512f">动态洞：库存 / 个性化推荐 / 购物车</text>
+<text class="sm" x="406" y="122">&lt;Suspense&gt; 包裹 · 请求时流式补上</text>
+<text class="sm" x="406" y="140">先显 fallback 骨架</text>
+<text class="sm" x="406" y="158">数据 ready → 替换</text>
+<rect x="40" y="214" width="680" height="44" rx="8" fill="#e9f3f1" stroke="#1f6b63" stroke-width="1.5"/>
+<text class="lbl" x="60" y="240" fill="#1f6b63">静态壳 · 页脚</text>
+</svg>
+<div class="cap">图 6 · PPR：绿色静态壳构建时就绪、秒开走 CDN，红色动态洞请求时流式填充</div>
+</div>
+
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">next.config.ts — 开启 Cache Components（含 PPR 行为）</span></div><code class="language-typescript">import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  cacheComponents: true, // 启用：默认动态 + use cache 才静态 + PPR 默认
+}
+export default nextConfig</code></pre>
+
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">app/product/[id]/page.tsx — 同页混合静态与动态</span></div><code class="language-typescript">import { Suspense } from 'react'
+
+// 静态片段：标了 use cache，可预渲染进壳
+async function ProductInfo({ id }: { id: string }) {
+  'use cache'
+  const product = await getProduct(id) // 缓存复用
+  return &lt;h1&gt;{product.name}&lt;/h1&gt;
+}
+
+// 动态片段：读实时库存，无缓存 → 成为动态洞
+async function LiveStock({ id }: { id: string }) {
+  const stock = await getStock(id) // 每次请求真实查询
+  return &lt;span&gt;剩余 {stock} 件&lt;/span&gt;
+}
+
+export default async function Page({
+  params,
+}: { params: Promise&lt;{ id: string }&gt; }) {
+  const { id } = await params
+  return (
+    &lt;div&gt;
+      {/* 静态壳的一部分，秒出 */}
+      &lt;ProductInfo id={id} /&gt;
+      {/* 动态洞：壳先发，骨架占位，数据好了再流式替换 */}
+      &lt;Suspense fallback={&lt;StockSkeleton /&gt;}&gt;
+        &lt;LiveStock id={id} /&gt;
+      &lt;/Suspense&gt;
+    &lt;/div&gt;
+  )
+}</code></pre>
+
+<div class="box exam">
+<div class="tag">★ 面试高频</div>
+<p><strong>"PPR 和 ISR/SSR 的关系？"</strong> 可以这样收束：ISR/SSR/SSG 是<strong>页面级</strong>的渲染时机选择，而 PPR 是把它们<strong>融合进同一页面</strong>——壳走"构建时静态（≈SSG）"并可走 CDN，洞走"请求时动态（≈SSR）"，靠 Streaming 把两者拼起来。它的前提是 RSC + Suspense + 流式渲染。一句话：<em>PPR 让"静态的快"与"动态的新"在一个页面里共存。</em></p>
+</div>
+</section>
+
+<section id="navigation">
+<h2><span class="h2n">09</span>客户端导航：软导航与 Router Cache</h2>
+<hr class="section-rule">
+
+<p>首屏之后，应用就变成了 SPA。理解"客户端导航时到底请求了什么"，是区分初级与中级的分水岭。</p>
+
+<h3>软导航：只取变化段的 RSC Payload</h3>
+<p>用 <code>&lt;Link&gt;</code> 或 <code>useRouter()</code> 在应用内跳转时，<strong>不会请求整页 HTML</strong>，也不会刷新浏览器。Next 客户端路由器做的是：</p>
+<ol>
+<li>对比当前路由树与目标路由树，算出<strong>哪些 segment 变了</strong>；</li>
+<li>只向服务端请求变化段的 <strong>RSC Payload</strong>（不是 HTML）；</li>
+<li>把新 payload 与保留的布局拼接，局部更新 UI；外层 layout 及其状态<strong>原地保留</strong>。</li>
+</ol>
+
+<h3>Router Cache：客户端的内存缓存</h3>
+<p>客户端有一个内存中的 <span class="term">Router Cache</span>（也叫 Client-side Router Cache），按路由段缓存已获取的 RSC payload。它带来两个效果：<strong>前进/后退秒回</strong>（命中缓存不再请求）、<strong>预取（prefetch）</strong>——视口内的 <code>&lt;Link&gt;</code> 会被自动预取其 payload，点击时几乎瞬开。</p>
+
+<div class="box analogy">
+<div class="tag">◆ 类比</div>
+<p>软导航像<strong>在同一本活页夹里换一页</strong>：封面、目录（layout）不动，只抽掉旧内页、插上新内页（变化段的 payload）。而硬导航（整页刷新）是<strong>把整本夹子扔了重买一本</strong>。Router Cache 则是手边的<strong>便签缓存</strong>：刚看过的内页贴在手边，再翻回去不用重新去打印。</p>
+</div>
+
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">客户端导航的两种姿势</span></div><code class="language-typescript">// 声明式：视口内自动预取 payload
+import Link from 'next/link'
+&lt;Link href="/dashboard/billing"&gt;账单&lt;/Link&gt;
+
+// 命令式
+'use client'
+import { useRouter } from 'next/navigation'
+const router = useRouter()
+router.push('/dashboard/billing')   // 软导航
+router.refresh()                    // 重取当前路由的 server 数据并合并</code></pre>
+
+<div class="box trap">
+<div class="tag">▲ 易错点</div>
+<p>Router Cache 的存在意味着导航回某页可能拿到<strong>缓存的旧数据</strong>。数据变更后想让 UI 立即反映，需要主动失效：在 Server Action 里调 <code>revalidatePath()</code> / <code>revalidateTag()</code>（使服务端缓存与客户端 Router Cache 失效），或客户端调 <code>router.refresh()</code>。这是"为什么我改了数据列表没更新"的高频根因。</p>
+</div>
+</section>
+<section id="data">
+<h2><span class="h2n">10</span>数据获取与缓存模型</h2>
+<hr class="section-rule">
+
+<p>这是 Next.js 区别于纯前端框架的灵魂，也是面试最能拉开差距的部分。我们分"读"（本章）与"写"（下一章 Server Actions）两条线。</p>
+
+<h3>读路径：在组件里直接取数据</h3>
+<p>App Router 的数据获取哲学是<strong>"数据获取下沉到需要它的组件，且优先在服务端完成"</strong>。Server Component 是 async 的，直接 <code>await</code> 即可——不需要 <code>getServerSideProps</code> 那种页面级钩子。</p>
+
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">服务端组件内联取数（最常见）</span></div><code class="language-typescript">async function UserProfile({ id }: { id: string }) {
+  // 直接调数据库 / 内部服务 / fetch，代码不下发浏览器
+  const user = await db.user.findUnique({ where: { id } })
+  return &lt;h2&gt;{user.name}&lt;/h2&gt;
+}</code></pre>
+
+<h3>四类缓存：先认清各自管什么</h3>
+<p>"缓存"在 Next.js 里不是一个东西，而是分布在不同层、生命周期不同的几套机制。这是面试的"深水区"，务必分清：</p>
+
+<div class="tbl"><table>
+<thead><tr><th>缓存</th><th>位置 / 生命周期</th><th>缓存什么</th><th>怎么控制</th></tr></thead>
+<tbody>
+<tr><td><b>Request Memoization</b><br>请求记忆化</td><td>服务端 · <strong>单次渲染内</strong></td><td>同一次渲染中相同的 <code>fetch</code>/<code>cache()</code> 调用去重，只发一次</td><td>React 自动；<code>React.cache()</code> 包裹自定义函数</td></tr>
+<tr><td><b>Data Cache</b><br>（经典模型）</td><td>服务端 · <strong>跨请求持久</strong></td><td>数据获取结果，可定时/按需再验证</td><td>旧模型 <code>fetch</code> 选项 / <code>revalidate</code>；新模型由 <code>use cache</code> 取代</td></tr>
+<tr><td><b>Full Route Cache</b><br>（经典模型）</td><td>服务端 · 构建/再验证时</td><td>静态路由的 HTML + RSC payload</td><td>路由是否静态决定；新模型由 Cache Components 统管</td></tr>
+<tr><td><b>Router Cache</b><br>客户端路由缓存</td><td>客户端内存 · 会话内</td><td>已访问/预取路由的 RSC payload</td><td><code>prefetch</code>、<code>router.refresh()</code>、<code>revalidate*</code></td></tr>
+</tbody>
+</table></div>
+
+<h3>Next 16 的新缓存模型：Cache Components</h3>
+<p>Next 16 用 <strong>Cache Components</strong> 重塑了上面的"服务端持久缓存"那部分。核心是三个新原语，配合 <code>cacheComponents: true</code> 使用：</p>
+
+<div class="tbl"><table>
+<thead><tr><th>原语</th><th>作用</th></tr></thead>
+<tbody>
+<tr><td><code>'use cache'</code></td><td>放在文件顶部或函数/组件内首行，<strong>把这个文件的导出 / 这个函数 / 这个 async 组件标记为可缓存</strong>。它的<strong>参数与 props 自动成为缓存键</strong>。</td></tr>
+<tr><td><code>cacheLife(profile)</code></td><td>设定缓存的生命周期。内置 profile：<code>seconds</code>/<code>minutes</code>/<code>hours</code>/<code>days</code>/<code>weeks</code>/<code>max</code>，也可自定义 <code>{ stale, revalidate, expire }</code>。语义是 stale-while-revalidate。</td></tr>
+<tr><td><code>cacheTag(tag)</code></td><td>给缓存条目打标签，便于<strong>按标签精准失效</strong>。</td></tr>
+</tbody>
+</table></div>
+
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">use cache + cacheLife + cacheTag 三件套</span></div><code class="language-typescript">import { cacheLife, cacheTag } from 'next/cache'
+
+async function ProductCard({ id }: { id: string }) {
+  'use cache'                 // 标记可缓存
+  cacheLife('hours')          // 缓存按"小时"档过期/再验证
+  cacheTag(`product-${id}`)   // 打标签，便于精准失效
+  const product = await db.product.findById(id)
+  return &lt;ProductDetail product={product} /&gt;
+  // id 作为入参，自动成为缓存键的一部分：
+  // 不同 id 命中不同缓存条目
+}</code></pre>
+
+<h3>失效：让缓存"过时"</h3>
+<p>缓存的另一半是"如何让它失效"。数据变更（通常在 Server Action 里）后调用：</p>
+<ul>
+<li><code>revalidateTag('product-42')</code> —— 失效所有打了该标签的缓存条目（精准、推荐）。</li>
+<li><code>revalidatePath('/products')</code> —— 失效某路径相关缓存。</li>
+<li><code>updateTag('...')</code> —— 较新 API，在当前这次变更后<strong>立即</strong>让对应内容在本次渲染中更新（更强的即时一致性）。</li>
+</ul>
+
+<div class="box exam">
+<div class="tag">★ 面试高频</div>
+<p><strong>"Next 16 缓存模型相比以前最大的变化是什么？"</strong> 由<strong>隐式默认缓存</strong>翻转为<strong>显式按需缓存</strong>：以前 <code>fetch</code> 默认被缓存、整页倾向静态，开发者要不断"退出缓存"且容易踩坑；现在默认动态，靠 <code>use cache</code>/<code>cacheLife</code>/<code>cacheTag</code> 主动声明哪些可缓存、缓存多久、怎么失效。配合 PPR，缓存粒度精确到组件/函数级，行为更可预测。<em>补一句：客户端的 SWR/React Query 解决的是另一层问题（客户端缓存、聚焦重取、乐观更新），与 <code>use cache</code>（服务端）不冲突。</em></p>
+</div>
+
+<div class="box trap">
+<div class="tag">▲ 易错点</div>
+<p><code>use cache</code> 的作用域里<strong>不能读请求特定数据</strong>（<code>cookies()</code>/<code>headers()</code>），因为那是 per-request 的、无法被多请求共享的缓存复用。带鉴权的页面别整页 <code>use cache</code>——应让页面保持动态，只缓存其中与用户无关的数据函数；或使用私有缓存语义。</p>
+</div>
+</section>
+
+<section id="actions">
+<h2><span class="h2n">11</span>Server Actions：数据变更（写路径）</h2>
+<hr class="section-rule">
+
+<p>读路径之外，App Router 用 <strong>Server Actions</strong> 统一了"写"。它让你<strong>在客户端直接调用一个运行在服务端的函数</strong>，无需手写 API 路由。</p>
+
+<h3>本质：编译器生成的安全 RPC</h3>
+<p>带 <code>"use server"</code> 标记的函数，会被编译器处理成一个<strong>可从客户端安全调用的服务端端点</strong>。客户端调用它时，实际是发起一个 POST 请求，参数被序列化送到服务端执行，结果（或副作用）再返回。你写起来像调一个本地异步函数，底层是 RPC。</p>
+
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">app/actions.ts — 定义 Server Action</span></div><code class="language-typescript">'use server'                      // 整个文件的导出都是 Server Action
+import { revalidateTag } from 'next/cache'
+import { redirect } from 'next/navigation'
+
+export async function createPost(formData: FormData) {
+  const title = formData.get('title') as string
+  // 直接在服务端写库（安全，代码不下发）
+  await db.post.create({ data: { title } })
+
+  // 写完让相关缓存失效，UI 拿到新数据
+  revalidateTag('posts')
+  redirect('/posts')              // 也可重定向
+}</code></pre>
+
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">在表单中使用 — 支持渐进增强（无 JS 也能提交）</span></div><code class="language-jsx">import { createPost } from './actions'
+
+export default function NewPost() {
+  return (
+    // 把 action 直接绑到 form，提交即调用服务端函数
+    &lt;form action={createPost}&gt;
+      &lt;input name="title" /&gt;
+      &lt;button type="submit"&gt;发布&lt;/button&gt;
+    &lt;/form&gt;
+  )
+}</code></pre>
+
+<div class="box analogy">
+<div class="tag">◆ 类比</div>
+<p>Server Action 像<strong>店里的服务铃</strong>：你（客户端）按一下铃并说出需求（序列化参数），后厨（服务端）真正去做事（写库、改状态），做完顺手把菜单上的"今日已售"更新掉（<code>revalidateTag</code>），你不用知道后厨怎么走线、也碰不到食材库（密钥、DB）。而传统做法是你得自己跑去后厨门口（手写 <code>/api</code> 路由 + fetch）递条子。</p>
+</div>
+
+<h3>Server Action 的完整数据流</h3>
+<div class="fig">
+<svg viewBox="0 0 820 200" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a3" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#c0512f"/></marker>
+<style>.fb{fill:#fff;stroke:#cabfa6;stroke-width:1.5;rx:9}.ftt{font-size:12.5px;font-weight:600;fill:#211f1b}.fsd{font-size:10px;font-family:'JetBrains Mono',monospace;fill:#8a8273}.fln{stroke:#c0512f;stroke-width:1.6;fill:none}</style></defs>
+<rect class="fb" x="20" y="60" width="130" height="62"/><text class="ftt" x="36" y="86">① 客户端</text><text class="fsd" x="36" y="104">表单提交 / 调用</text>
+<rect class="fb" x="200" y="60" width="140" height="62"/><text class="ftt" x="216" y="86">② 序列化 + POST</text><text class="fsd" x="216" y="104">参数发往服务端</text>
+<rect class="fb" x="390" y="60" width="140" height="62" style="stroke:#1f6b63"/><text class="ftt" x="406" y="86" fill="#1f6b63">③ 服务端执行</text><text class="fsd" x="406" y="104">写库 / 改状态</text>
+<rect class="fb" x="580" y="20" width="220" height="55" style="stroke:#a9802b"/><text class="ftt" x="596" y="44" fill="#a9802b">④ 失效缓存</text><text class="fsd" x="596" y="62">revalidateTag / Path</text>
+<rect class="fb" x="580" y="110" width="220" height="62"/><text class="ftt" x="596" y="136">⑤ 返回 + 重渲</text><text class="fsd" x="596" y="154">新 RSC payload 合并</text>
+<path class="fln" d="M150,91 L198,91" marker-end="url(#a3)"/>
+<path class="fln" d="M340,91 L388,91" marker-end="url(#a3)"/>
+<path class="fln" d="M530,80 L578,55" marker-end="url(#a3)"/>
+<path class="fln" d="M530,100 L578,135" marker-end="url(#a3)"/>
+</svg>
+<div class="cap">图 7 · Server Action 写路径：调用→序列化→服务端执行→失效缓存→回传新 payload 局部更新</div>
+</div>
+
+<div class="box exam">
+<div class="tag">★ 面试高频</div>
+<p><strong>"Server Action 和 Route Handler（<code>route.ts</code>）怎么选？"</strong> Server Action 适合<strong>应用内的变更</strong>（表单提交、点赞、增删改），与 RSC/缓存失效深度集成、写法简洁、支持渐进增强；Route Handler 适合<strong>需要标准 HTTP 接口</strong>的场景（给第三方/移动端用的 REST、webhook、需要自定义响应头/流式响应）。一句话：<em>对内变更用 Action，对外接口用 Route Handler。</em></p>
+</div>
+
+<div class="box trap">
+<div class="tag">▲ 安全要点</div>
+<p>Server Action 是<strong>公开的端点</strong>——任何人都可能构造请求调用它。<strong>必须在 Action 内部自行做鉴权与输入校验</strong>（别假设只有你的表单会调它）。这是常被忽视的安全考点。</p>
+</div>
+</section>
+<section id="dataflow">
+<h2><span class="h2n">12</span>数据流全链路：把一切串起来</h2>
+<hr class="section-rule">
+
+<p>这一章是全文的"会合点"。我们把前面的零件拼成一张完整的数据流图，覆盖<strong>读</strong>（首屏→交互）与<strong>写</strong>（变更→回流）两个方向。能把这张图讲顺，原理题基本稳了。</p>
+
+<div class="fig">
+<svg viewBox="0 0 860 470" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="a4" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#c0512f"/></marker>
+<marker id="a4b" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#1f6b63"/></marker>
+<style>.db{fill:#fff;stroke:#cabfa6;stroke-width:1.5;rx:9}.dt{font-size:12.5px;font-weight:600;fill:#211f1b}.dd{font-size:10px;font-family:'JetBrains Mono',monospace;fill:#8a8273}.rd{stroke:#c0512f;stroke-width:1.7;fill:none}.gn{stroke:#1f6b63;stroke-width:1.7;fill:none;stroke-dasharray:6 4}.zl{font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:.1em}</style>
+</defs>
+<!-- zones -->
+<rect x="14" y="40" width="250" height="410" rx="12" fill="none" stroke="#ddd4c1" stroke-dasharray="5 4"/>
+<text class="zl" x="26" y="32" fill="#c0512f">客户端 / 浏览器</text>
+<rect x="290" y="40" width="556" height="410" rx="12" fill="none" stroke="#ddd4c1" stroke-dasharray="5 4"/>
+<text class="zl" x="302" y="32" fill="#1f6b63">服务端</text>
+<!-- server nodes -->
+<rect class="db" x="310" y="60" width="220" height="56"/><text class="dt" x="326" y="84">数据源</text><text class="dd" x="326" y="102">DB · API · 文件 · 第三方</text>
+<rect class="db" x="560" y="60" width="266" height="56" style="stroke:#a9802b"/><text class="dt" x="576" y="84" fill="#a9802b">缓存层</text><text class="dd" x="576" y="102">Request Memo · use cache · tag</text>
+<rect class="db" x="310" y="148" width="220" height="62" style="stroke:#1f6b63"/><text class="dt" x="326" y="174" fill="#1f6b63">RSC 渲染</text><text class="dd" x="326" y="192">Server Comp await 数据</text><text class="dd" x="326" y="206">→ RSC Payload</text>
+<rect class="db" x="560" y="148" width="266" height="62" style="stroke:#1f6b63"/><text class="dt" x="576" y="174" fill="#1f6b63">SSR + Streaming</text><text class="dd" x="576" y="192">payload → HTML 分块</text><text class="dd" x="576" y="206">静态壳先发 · 洞流式补</text>
+<rect class="db" x="310" y="370" width="220" height="62" style="stroke:#1f6b63"/><text class="dt" x="326" y="396" fill="#1f6b63">Server Action</text><text class="dd" x="326" y="414">执行写操作</text><text class="dd" x="326" y="428">+ revalidateTag/Path</text>
+<!-- client nodes -->
+<rect class="db" x="30" y="148" width="218" height="62"/><text class="dt" x="46" y="174">接收 HTML + payload</text><text class="dd" x="46" y="192">首屏直出（不等 JS）</text><text class="dd" x="46" y="206">Router Cache 存 payload</text>
+<rect class="db" x="30" y="240" width="218" height="62"/><text class="dt" x="46" y="266">下载 chunk + 水合</text><text class="dd" x="46" y="284">客户端组件接事件/状态</text><text class="dd" x="46" y="298">→ 完全可交互</text>
+<rect class="db" x="30" y="330" width="218" height="46"/><text class="dt" x="46" y="358">用户交互 / 软导航</text>
+<rect class="db" x="30" y="392" width="218" height="46"/><text class="dt" x="46" y="420">提交表单 / 触发变更</text>
+<!-- read flow arrows (red) -->
+<path class="rd" d="M420,116 L420,146" marker-end="url(#a4)"/>
+<path class="rd" d="M560,90 L532,90" marker-end="url(#a4)"/>
+<path class="rd" d="M530,179 L558,179" marker-end="url(#a4)"/>
+<path class="rd" d="M560,179 L560,179"/>
+<path class="rd" d="M693,210 C693,260 270,150 250,170" marker-end="url(#a4)"/>
+<text class="dd" x="300" y="135" fill="#c0512f">读路径 ▶</text>
+<path class="rd" d="M139,210 L139,238" marker-end="url(#a4)"/>
+<!-- soft nav: client asks server for new segment payload -->
+<path class="gn" d="M248,348 C400,330 420,250 420,212" marker-end="url(#a4b)"/>
+<text class="dd" x="255" y="320" fill="#1f6b63">软导航：仅取变化段 payload</text>
+<!-- write flow -->
+<path class="rd" d="M248,415 L308,408" marker-end="url(#a4)"/>
+<path class="rd" d="M420,370 C420,300 690,150 690,116" marker-end="url(#a4)"/>
+<text class="dd" x="430" y="300" fill="#c0512f">写后失效缓存 ▲</text>
+<path class="gn" d="M530,401 C620,401 250,300 248,290" marker-end="url(#a4b)"/>
+<text class="dd" x="300" y="370" fill="#1f6b63">回传新 payload 局部更新</text>
+</svg>
+<div class="cap">图 8 · 全链路数据流：红=读/写主路径，绿=客户端与服务端的局部回流</div>
+</div>
+
+<h3>读方向（首屏）一句话串联</h3>
+<p>数据源 →（经缓存层去重/复用）→ Server Component <code>await</code> 取数 → 产出 <strong>RSC Payload</strong> → SSR 转 HTML 并 Streaming → 浏览器首屏直出 → 下载 chunk → 水合 → 可交互。</p>
+
+<h3>读方向（软导航）一句话串联</h3>
+<p>用户点 <code>&lt;Link&gt;</code> → 客户端路由器算出变化段 → 只请求<strong>该段的新 payload</strong>（命中 Router Cache 则直接用）→ 与保留布局拼接 → 局部更新。</p>
+
+<h3>写方向一句话串联</h3>
+<p>用户提交 → <strong>Server Action</strong> 序列化参数 POST 到服务端 → 服务端执行写操作 → <code>revalidateTag/Path</code> 失效相关缓存（服务端 Data Cache + 客户端 Router Cache）→ 服务端重渲生成<strong>新 payload</strong> 回传 → 客户端局部更新，UI 反映最新数据。</p>
+
+<div class="box exam">
+<div class="tag">★ 终极串联题</div>
+<p><strong>"从用户在地址栏敲回车，到他点击页面上的按钮看到数据更新，整个过程发生了什么？"</strong> 这就是把图 1、图 5、图 7、图 8 串起来：① proxy 预处理 → ② 路由匹配 → ③ RSC 渲染（带缓存）产出 payload → ④ SSR+Streaming 发 HTML → ⑤ 浏览器首屏 → ⑥ 水合可交互 → ⑦ 用户点击触发 Server Action → ⑧ 服务端写库 + 失效缓存 → ⑨ 回传新 payload → ⑩ 局部更新。能把这十步讲顺，就拿下了大半。</p>
+</div>
+</section>
+<section id="structures">
+<h2><span class="h2n">13</span>核心数据结构</h2>
+<hr class="section-rule">
+
+<p>前面流水线里"流动"的东西，落到具体形态就是这几个数据结构。把它们的<strong>形状、职责、生命周期</strong>记清楚，是回答"有哪些重要数据结构"的标准答案。</p>
+
+<h3>① 路由树 / 路由段（Route Tree / Segment）</h3>
+<p>文件约定被解析成一棵树，每个节点是一个 <span class="term">segment</span>。它是<strong>服务端匹配请求</strong>和<strong>客户端定位变化</strong>的共同依据。概念上每个节点大致携带：</p>
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">路由段节点（概念形态）</span></div><code class="language-typescript">type RouteSegment = {
+  name: string                 // 段名，如 'dashboard'、'[id]'
+  type: 'static' | 'dynamic' | 'catch-all' | 'group'
+  layout?: ComponentRef        // 该段的 layout.tsx
+  page?: ComponentRef          // page.tsx
+  loading?: ComponentRef       // loading.tsx（→ Suspense fallback）
+  error?: ComponentRef         // error.tsx（→ ErrorBoundary）
+  children: RouteSegment[]     // 子段
+  params?: string[]            // 动态参数名，如 ['id']
+}</code></pre>
+
+<h3>② RSC Payload（Flight 数据）—— 最核心</h3>
+<p>这是整个体系的"血液"：Server Component 渲染的<strong>序列化产物</strong>，既用于生成 HTML，也发给客户端用于水合与导航复用。它是一个<strong>流式的、分行的</strong>序列化结构，概念上每一"行"是一个带 id 与类型标记的条目：</p>
+
+<div class="tbl"><table>
+<thead><tr><th>条目类型</th><th>承载内容</th></tr></thead>
+<tbody>
+<tr><td><b>元素树</b></td><td>Server Component 已渲染好的 React 元素树（标签、文本、属性）</td></tr>
+<tr><td><b>模块引用</b></td><td>遇到 Client Component 时，不内联代码，而是一个指向客户端 chunk 的引用（"挂载 chunk X 里的组件 Y"）</td></tr>
+<tr><td><b>序列化 props</b></td><td>从服务端传给客户端组件的可序列化属性</td></tr>
+<tr><td><b>Suspense 分块</b></td><td>挂起边界的占位，以及数据 ready 后<strong>后续补发</strong>的内容块（Streaming 的载体）</td></tr>
+</tbody>
+</table></div>
+
+<div class="box analogy">
+<div class="tag">◆ 类比</div>
+<p>RSC Payload 像一份<strong>宜家家具的图纸 + 已组装好的部件清单</strong>：大部分是已经拼好的成品（Server 渲染结果），少数地方写着"此处安装 3 号电动模块"（Client 组件的模块引用），并附上该模块的安装参数（props）。客户端拿到这份清单，去仓库（chunks）取出 3 号模块装上、通电（水合），而不需要重新生产那些已拼好的部件。</p>
+</div>
+
+<div class="box trap">
+<div class="tag">▲ 易错点</div>
+<p>RSC Payload <strong>不是 JSON、也不是 HTML</strong>，是 React 的专有序列化格式（社区常称 "Flight"）。它能描述 React 元素、Promise、Suspense、模块引用等 JSON 表达不了的东西，并且支持<strong>流式分块</strong>。面试别说成"服务端返回 JSON 数据"。</p>
+</div>
+
+<h3>③ Router Cache（客户端路由缓存）</h3>
+<p>浏览器内存里的一份缓存，<strong>按路由段为键</strong>存储已获取/预取的 RSC payload。生命周期是<strong>当前会话</strong>（刷新即清）。它支撑前进后退秒回与 <code>&lt;Link&gt;</code> 预取。概念形态：</p>
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">Router Cache（概念形态）</span></div><code class="language-typescript">// 以路由段路径为键，缓存对应的 RSC payload 与状态
+type RouterCache = Map&lt;
+  string,                       // segment key，如 '/dashboard/billing'
+  {
+    payload: RSCPayload         // 该段的渲染数据
+    prefetched: boolean         // 是否由 Link 预取
+    timestamp: number           // 用于判定新鲜度
+  }
+&gt;</code></pre>
+
+<h3>④ Build / Prerender 产物</h3>
+<p>构建期对静态路由生成的快照，存在 <code>.next</code> 里：每个可静态化路由一份 <strong>HTML</strong> + 一份 <strong>.rsc</strong>（RSC payload 快照）+ 元数据。运行时静态请求直接吐这些文件，ISR 再生时在后台更新它们。第 14 章细看。</p>
+
+<div class="tbl"><table>
+<thead><tr><th>数据结构</th><th>在哪</th><th>生命周期</th><th>一句话职责</th></tr></thead>
+<tbody>
+<tr><td>路由树 / Segment</td><td>服务端（构建/运行）</td><td>构建期确定</td><td>把文件约定变成可匹配的路由结构</td></tr>
+<tr><td><b>RSC Payload</b></td><td>服务端产出 → 传客户端</td><td>每次渲染</td><td>承载组件树+引用+props，是渲染与导航的血液</td></tr>
+<tr><td>Router Cache</td><td>客户端内存</td><td>会话内</td><td>缓存 payload，支撑秒回与预取</td></tr>
+<tr><td>Prerender 快照</td><td>.next 磁盘 / 缓存</td><td>构建→再生</td><td>静态路由的 HTML+rsc，秒开走 CDN</td></tr>
+<tr><td>缓存条目（tag/life）</td><td>服务端缓存</td><td>按 cacheLife</td><td>可复用的数据缓存，按 tag 失效</td></tr>
+</tbody>
+</table></div>
+</section>
+
+<section id="manifests">
+<h2><span class="h2n">14</span>构建产物与清单文件</h2>
+<hr class="section-rule">
+
+<p>这一节"很实在"——讲 <code>next build</code> 后磁盘上到底有什么。知道这些，部署、调试、自托管时才不慌，也是面试加分细节。</p>
+
+<h3>.next 目录结构（概念）</h3>
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">.next/（生产构建产物，简化）</span></div><code class="language-bash">.next/
+├─ server/                 # 服务端运行的产物
+│  ├─ app/                 #   各路由的服务端模块、预渲染 .html / .rsc
+│  ├─ chunks/              #   服务端代码分块
+│  └─ *-manifest.json      #   服务端用的各种清单
+├─ static/                 # 发给浏览器的静态资源
+│  ├─ chunks/              #   客户端 JS 分块（含 use client 组件）
+│  └─ css/                 #   样式
+├─ cache/                  # 构建/数据/图片等缓存
+└─ *-manifest.json         # 顶层清单（见下表）</code></pre>
+
+<h3>关键清单文件（Manifests）</h3>
+<p>清单是一堆 JSON，记录"路由↔文件↔chunk"的映射与元信息，让运行时能快速找到该加载什么。常见的：</p>
+
+<div class="tbl"><table>
+<thead><tr><th>清单</th><th>记录什么</th></tr></thead>
+<tbody>
+<tr><td><code>routes-manifest.json</code></td><td>所有路由的定义：静态/动态、rewrites、redirects、headers、动态路由的正则匹配规则</td></tr>
+<tr><td><code>app-paths-manifest.json</code></td><td>App Router 各路由对应的服务端入口模块</td></tr>
+<tr><td><code>build-manifest.json</code> / <code>app-build-manifest.json</code></td><td>每个页面/路由需要加载的<strong>客户端 JS/CSS 文件列表</strong>（决定首屏要拉哪些 chunk）</td></tr>
+<tr><td><code>prerender-manifest.json</code></td><td>哪些路由被预渲染、其 ISR 再验证配置、回退策略</td></tr>
+<tr><td><code>react-loadable-manifest.json</code></td><td>动态导入（<code>next/dynamic</code>）的模块映射，支撑按需加载</td></tr>
+<tr><td><code>middleware-manifest.json</code></td><td>中间件 / proxy 的匹配规则与入口</td></tr>
+<tr><td><code>next-font-manifest.json</code></td><td><code>next/font</code> 字体优化的产物映射</td></tr>
+</tbody>
+</table></div>
+
+<div class="box exam">
+<div class="tag">★ 面试加分</div>
+<p>被问"Next.js 怎么做<strong>代码分割</strong>的"时，可以落到清单层面：构建器按路由切 chunk，<code>build-manifest</code> 记录每个路由需要的 chunk 列表，运行时只下发当前路由所需的 JS；<code>next/dynamic</code> 的懒加载映射记在 <code>react-loadable-manifest</code>。这样回答比泛泛说"自动代码分割"更有深度。</p>
+</div>
+
+<div class="box note">
+<div class="tag">注 · 部署形态</div>
+<p>产物如何运行取决于部署目标：Vercel 会自动把静态壳放 CDN、动态部分跑在 Serverless/Edge；自托管常用 <code>next start</code>（Node 服务器）或 <code>output: 'standalone'</code>（产出自带依赖的精简包，便于打 Docker）；纯静态站点可用 <code>output: 'export'</code>（但放弃 SSR/ISR 等动态能力）。Next 16 还引入了稳定的 <strong>Adapter API</strong>，让不同托管平台能以统一方式适配。</p>
+</div>
+</section>
+<section id="proxy">
+<h2><span class="h2n">15</span>proxy.ts / 中间件</h2>
+<hr class="section-rule">
+
+<p>在请求进入路由渲染之前，有一道可编程的"关卡"。Next 16 把它从 <code>middleware.ts</code> 改名并改造为 <code>proxy.ts</code>。</p>
+
+<h3>它是什么、能干什么</h3>
+<p>这道关卡在<strong>请求抵达页面渲染之前</strong>运行，对所有匹配的请求生效。典型用途：<strong>鉴权拦截、重定向、URL 重写、A/B 分流、注入/改写请求与响应头、地理或语言路由</strong>。它不渲染 UI，只做"请求路由层"的决策。</p>
+
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">proxy.ts（项目根）</span></div><code class="language-typescript">import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+export function proxy(request: NextRequest) {
+  const token = request.cookies.get('session')?.value
+  // 未登录访问后台 → 重定向到登录页
+  if (!token &amp;&amp; request.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+  return NextResponse.next() // 放行
+}
+
+// 只对匹配的路径运行，避免拦截静态资源
+export const config = {
+  matcher: ['/dashboard/:path*', '/account/:path*'],
+}</code></pre>
+
+<div class="box trap">
+<div class="tag">▲ Next 16 变化</div>
+<p>① <code>middleware.ts</code> 已<strong>废弃</strong>，替代者是 <code>proxy.ts</code>；② 旧 <code>middleware</code> 运行在 <strong>Edge 运行时</strong>，新 <code>proxy</code> 运行在 <strong>Node.js 运行时</strong>（能力更全、更少限制）；③ 旧 <code>middleware.ts</code> 仍可用但不建议。面试问"Next 16 破坏性变更"，这是三大点之一。</p>
+</div>
+
+<div class="box trap">
+<div class="tag">▲ 安全提醒</div>
+<p>不要把它当作唯一的鉴权防线。它适合做"边缘快速拦截 / 重定向"，但敏感的授权校验仍应在数据访问层（Server Component / Server Action / Route Handler）再做一次。历史上出现过绕过 middleware 的安全公告，纵深防御是正解。</p>
+</div>
+</section>
+
+<section id="lifecycle">
+<h2><span class="h2n">16</span>完整请求生命周期（总装）</h2>
+<hr class="section-rule">
+
+<p>把所有零件按时间顺序装成一条线。这是面试"讲讲一个请求的完整过程"的标准答题脚本。</p>
+
+<div class="fig">
+<div class="flow"><div class="fnode"><div class="ft">URL/导航</div><div class="fd">浏览器发起</div></div><div class="farrow">→</div><div class="fnode" style="border-color:var(--accent)"><div class="ft">proxy.ts</div><div class="fd">拦截/重写/鉴权</div></div><div class="farrow">→</div><div class="fnode" style="border-color:var(--teal)"><div class="ft">路由匹配</div><div class="fd">定位 segments</div></div></div>
+<div class="flow" style="margin-top:10px"><div class="fnode" style="border-color:var(--teal)"><div class="ft">缓存检查</div><div class="fd">命中?→直出</div></div><div class="farrow">→</div><div class="fnode" style="border-color:var(--teal)"><div class="ft">RSC 渲染</div><div class="fd">await 数据→payload</div></div><div class="farrow">→</div><div class="fnode" style="border-color:var(--teal)"><div class="ft">SSR+Stream</div><div class="fd">HTML 分块发</div></div></div>
+<div class="flow" style="margin-top:10px"><div class="fnode"><div class="ft">首屏直出</div><div class="fd">壳先到</div></div><div class="farrow">→</div><div class="fnode"><div class="ft">下载 chunk</div><div class="fd">按引用拉 JS</div></div><div class="farrow">→</div><div class="fnode"><div class="ft">水合</div><div class="fd">接上交互</div></div><div class="farrow">→</div><div class="fnode"><div class="ft">可交互</div><div class="fd">SPA 模式</div></div></div>
+<div class="cap">图 9 · 端到端请求生命周期（首屏方向）</div>
+</div>
+
+<ol>
+<li><strong>发起</strong>：地址栏输入或应用内导航产生请求。</li>
+<li><strong>proxy.ts</strong>：边缘/Node 关卡先处理——可重定向（如未登录）、重写、改 header，或直接放行。</li>
+<li><strong>路由匹配</strong>：在路由树定位命中的 segments，组装 layout→…→page 的包裹树。</li>
+<li><strong>缓存检查</strong>：若该路由/片段有可用静态快照或缓存命中，直接复用，跳过重渲。</li>
+<li><strong>RSC 渲染</strong>：运行 Server Components，<code>await</code> 数据（受缓存层去重/复用），产出 RSC Payload；Client 组件以模块引用形式占位。</li>
+<li><strong>SSR + Streaming</strong>：payload 转 HTML，静态壳先发，Suspense 包裹的动态洞发 fallback、数据 ready 后补发。</li>
+<li><strong>浏览器首屏</strong>：边收边画，用户快速看到内容（不依赖 JS）。</li>
+<li><strong>下载与水合</strong>：按 payload 引用拉取客户端 chunk，水合激活交互。</li>
+<li><strong>进入 SPA</strong>：之后导航走客户端软导航，只取变化段 payload，命中 Router Cache 则秒回。</li>
+<li><strong>变更回流</strong>：用户操作触发 Server Action → 服务端写 + 失效缓存 → 回传新 payload → 局部更新。</li>
+</ol>
+</section>
+
+<section id="engineering">
+<h2><span class="h2n">17</span>项目工程化要点</h2>
+<hr class="section-rule">
+
+<p>实际项目里除了原理，还有一组"做对就省心"的工程实践，面试也常顺带问。</p>
+
+<h3>推荐项目结构</h3>
+<pre><div class="bar"><span class="dotr"></span><span class="dotr"></span><span class="fname">典型 App Router 工程布局</span></div><code class="language-bash">src/
+├─ app/                    # 路由与页面（约定式）
+│  ├─ layout.tsx           #   根布局
+│  ├─ page.tsx
+│  ├─ (marketing)/         #   路由组：组织而不入 URL
+│  ├─ dashboard/
+│  │  ├─ layout.tsx
+│  │  └─ page.tsx
+│  └─ api/                 #   Route Handlers（对外接口）
+├─ components/             # 共享组件（区分 server/client）
+├─ lib/                    # 数据访问、工具、db 客户端
+├─ actions/                # Server Actions（"use server"）
+└─ proxy.ts                # 请求关卡</code></pre>
+
+<h3>环境变量与密钥</h3>
+<ul>
+<li>仅 <code>NEXT_PUBLIC_</code> 前缀的变量会被打进客户端 bundle；<strong>密钥绝不要加该前缀</strong>。</li>
+<li>Server Component / Action 里可以直接读私有环境变量与 DB——因为它们不下发浏览器。这正是 RSC 的安全优势之一。</li>
+</ul>
+
+<h3>性能优化清单（高频问）</h3>
+<div class="tbl"><table>
+<thead><tr><th>手段</th><th>解决什么</th></tr></thead>
+<tbody>
+<tr><td>把 <code>"use client"</code> 推到叶子</td><td>减少客户端 JS，最大化 RSC 优势</td></tr>
+<tr><td><code>next/image</code></td><td>自动尺寸/格式优化、懒加载、防布局抖动（CLS）</td></tr>
+<tr><td><code>next/font</code></td><td>字体自托管、消除字体闪烁与外部请求</td></tr>
+<tr><td><code>&lt;Link&gt;</code> 预取 + 软导航</td><td>导航近乎瞬时</td></tr>
+<tr><td><code>&lt;Suspense&gt;</code> + Streaming</td><td>慢数据不阻塞首屏；配合 PPR</td></tr>
+<tr><td><code>use cache</code> + <code>cacheTag</code></td><td>精准缓存与失效，降低重复计算/查询</td></tr>
+<tr><td><code>next/dynamic</code></td><td>大组件按需懒加载，拆小首屏 bundle</td></tr>
+<tr><td>React Compiler</td><td>自动 memo 化，减少重渲</td></tr>
+</tbody>
+</table></div>
+
+<div class="box analogy">
+<div class="tag">◆ 一句话总览实践哲学</div>
+<p>Next.js 的工程心法可以浓缩成：<strong>"能在服务端做的就别推给客户端，能缓存复用的就别每次重算，能流式先给的就别让用户干等。"</strong> 这三句分别对应 RSC、Cache Components、Streaming/PPR——也正是本文的三条主线。</p>
+</div>
+</section>
+<section id="qa">
+<h2><span class="h2n">18</span>面试速记 Q&amp;A</h2>
+<hr class="section-rule">
+<p>把全文压缩成可以快速过的问答。点击问题看要点（也可直接通读）。这些覆盖了 Next.js 面试的绝大多数原理题。</p>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>App Router 和 Pages Router 的本质区别？</div><div class="a">App Router 内核是 RSC，渲染默认在服务端、组件默认零 JS、渲染粒度到组件级、支持嵌套布局/Streaming/PPR；Pages Router 所有组件都是客户端组件，渲染策略页面级，靠 <code>getServerSideProps</code>/<code>getStaticProps</code> 取数。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>什么是 React Server Components？解决什么问题？</div><div class="a">只在服务端运行、不打包进客户端的组件。优势：零客户端 JS、可直接访问后端资源与密钥、可 async 取数。解决"客户端 bundle 过大、数据获取要往返"的问题。产物是 RSC Payload 而非 HTML。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>Server 与 Client 组件如何组合？为何 Client 不能 import Server？</div><div class="a">Server 可渲染 Client；Client 不能直接 import Server（会把服务端代码打进浏览器），但可通过 children/props 把 Server 组件的"渲染结果"投影进 Client。因为 import 是构建期静态依赖，children 是运行期数据流。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>SSG / SSR / ISR / CSR / PPR 区别？</div><div class="a">构建时生成=SSG；每请求生成=SSR；构建生成+后台再生=ISR；浏览器生成=CSR；静态壳(构建)+动态洞(请求流式)=PPR。App Router 把粒度下沉到组件级并用 Cache Components 统一：默认动态，<code>use cache</code> 才静态。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>什么是 Hydration？常见 mismatch 原因？</div><div class="a">客户端复用服务端 HTML、附加事件与状态而不重绘的过程。mismatch 多因两端渲染输入不一致：<code>Date.now()</code>/<code>Math.random()</code>/<code>window</code> 等。解决：移进 <code>useEffect</code>、<code>suppressHydrationWarning</code>、保证输入一致。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>RSC Payload 是什么？是 JSON 吗？</div><div class="a">不是 JSON、不是 HTML，是 React 专有的流式序列化格式（Flight）。含已渲染的元素树、Client 组件的模块引用、序列化 props、Suspense 分块。用于生成 HTML + 客户端水合 + 导航复用。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>Streaming 是怎么工作的？</div><div class="a">HTML 边算边发：静态壳先发，<code>&lt;Suspense&gt;</code>/<code>loading.tsx</code> 包裹的慢内容先发 fallback，数据 ready 后把真实内容作为后续 chunk 补发，浏览器原地替换占位。降低 TTFB、首屏更快。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>Next.js 有哪几层缓存？</div><div class="a">Request Memoization（单次渲染去重）、Data Cache（跨请求数据缓存）、Full Route Cache（静态路由的 HTML+payload）、Router Cache（客户端会话内的 payload 缓存）。Next 16 用 Cache Components(<code>use cache</code>/<code>cacheLife</code>/<code>cacheTag</code>) 重塑了服务端持久缓存部分。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>Next 16 缓存模型最大变化？</div><div class="a">从"隐式默认缓存"翻转为"默认动态、<code>use cache</code> 才缓存"。心智从"如何退出缓存"变为"给什么加缓存"，更可预测；缓存粒度到组件/函数级，配合 PPR。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>如何让数据更新后页面立即反映？</div><div class="a">在 Server Action 里调 <code>revalidateTag</code>/<code>revalidatePath</code>（失效服务端 Data Cache 与客户端 Router Cache），或客户端 <code>router.refresh()</code>；需要本次渲染即时一致可用 <code>updateTag</code>。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>Server Action 是什么？和 Route Handler 怎么选？</div><div class="a">带 <code>"use server"</code> 的函数，编译为可从客户端安全调用的服务端 RPC，适合应用内变更、与缓存失效集成、支持渐进增强。对外的标准 HTTP 接口（REST/webhook/自定义响应）用 Route Handler。Action 是公开端点，必须自做鉴权与校验。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>客户端导航请求了什么？</div><div class="a">不请求整页 HTML，只请求变化段的 RSC Payload（命中 Router Cache 则直接用），与保留布局拼接局部更新。外层 layout 及状态原地保留。<code>&lt;Link&gt;</code> 会自动预取视口内目标。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>layout 和 template 区别？</div><div class="a">layout 导航中持久化、保留状态、不重挂载；template 每次导航重新挂载、状态清空、effect 重跑。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>Turbopack 和 SWC 分别是什么？</div><div class="a">Turbopack 是 Rust 写的打包器（取代 webpack），Next 16 默认；SWC 是 Rust 写的编译器（取代 Babel），做 TS/JSX 转译与 Next 专属转换。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>Next 15 → 16 的破坏性变更？</div><div class="a">① Turbopack 成默认打包器；② <code>middleware.ts</code> → <code>proxy.ts</code>（Edge→Node 运行时）；③ 请求 API 异步化（<code>cookies/headers/params/searchParams</code> 须 await，同步用法移除）；④ Cache Components 新缓存模型（<code>cacheComponents</code> 取代 <code>dynamicIO</code>/<code>ppr</code>/<code>unstable_cache</code>）。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>Next.js 如何做代码分割？</div><div class="a">构建器按路由切 chunk，<code>build-manifest</code> 记录每路由所需 chunk，运行时只下发当前路由 JS；<code>next/dynamic</code> 懒加载映射记在 <code>react-loadable-manifest</code>。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>怎么保护密钥不泄漏到客户端？</div><div class="a">只有 <code>NEXT_PUBLIC_</code> 前缀变量进客户端 bundle；密钥不加该前缀，仅在 Server Component/Action/Route Handler 中使用（这些代码不下发浏览器）。</div></div>
+
+<div class="qa"><div class="q"><span class="qm">Q</span>PPR 和 SSR/ISR 关系？</div><div class="a">SSR/ISR/SSG 是页面级时机选择；PPR 把它们融进同一页：壳走构建时静态(可 CDN)、洞走请求时动态，靠 Streaming 拼接。前提是 RSC+Suspense+流式渲染。</div></div>
+</section>
+
+<footer>
+<p><strong>一句话收尾：</strong>Next.js 的全部复杂度，最终都指向三件事——<em>把渲染尽量留在服务端（RSC）、把可复用的尽量缓存住（Cache Components）、把能先给的尽快流式给出（Streaming/PPR）。</em>抓住这三条主线，再具体的问题也能顺藤摸瓜答出来。</p>
+<p class="src">资料校准基于 Next.js 16.2 官方文档与发布说明（截至 2026-05）。版本相关的 API（如 Cache Components、proxy.ts）以你所用版本的官方文档为准。本文为学习/面试整理，非官方出品。</p>
+</footer>
+
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  // syntax highlight
+  if (window.hljs) { hljs.highlightAll(); }
+  // reading progress
+  const bar = document.getElementById('progress');
+  const onScroll = () => {
+    const h = document.documentElement;
+    const sc = h.scrollTop, max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (sc / max * 100) : 0) + '%';
+  };
+  document.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+  // active TOC highlight
+  const links = Array.from(document.querySelectorAll('#toc a'));
+  const map = {};
+  links.forEach(a => { const id = a.getAttribute('href').slice(1); map[id] = a; });
+  const secs = Array.from(document.querySelectorAll('main section[id]'));
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = map[e.target.id];
+        if (a) { a.classList.add('active'); a.scrollIntoView({ block: 'nearest' }); }
+      }
+    });
+  }, { rootMargin: '-15% 0px -75% 0px' });
+  secs.forEach(s => obs.observe(s));
+  // Q&A toggle (optional collapse)
+  document.querySelectorAll('.qa .q').forEach(q => {
+    const a = q.nextElementSibling;
+    q.addEventListener('click', () => {
+      a.style.display = (a.style.display === 'none') ? '' : 'none';
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vue 框架深度解析 · 面试通关手册</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&display=swap');
+
+  :root{
+    --bg:#0d1117;
+    --bg-soft:#161b22;
+    --bg-card:#11161d;
+    --ink:#e6edf3;
+    --ink-soft:#9aa7b4;
+    --ink-faint:#6b7681;
+    --vue:#42b883;
+    --vue-deep:#35495e;
+    --vue-glow:rgba(66,184,131,.18);
+    --amber:#f0b429;
+    --rose:#f47174;
+    --blue:#58a6ff;
+    --violet:#bc8cff;
+    --line:rgba(255,255,255,.08);
+    --line-strong:rgba(255,255,255,.16);
+    --mono:'Space Mono',monospace;
+    --serif:'Newsreader',Georgia,serif;
+    --sans:'Sora',system-ui,sans-serif;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:80px}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-weight:300;
+    line-height:1.75;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  /* ====== ATMOSPHERE ====== */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-2;
+    background:
+      radial-gradient(900px 600px at 85% -10%, var(--vue-glow), transparent 60%),
+      radial-gradient(700px 500px at 0% 100%, rgba(88,166,255,.10), transparent 55%),
+      var(--bg);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:-1;opacity:.025;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ====== LAYOUT ====== */
+  .shell{display:grid;grid-template-columns:280px 1fr;max-width:1500px;margin:0 auto;gap:0}
+  nav.toc{
+    position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;
+    padding:42px 26px 60px;border-right:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(22,27,34,.6),rgba(13,17,23,.2));
+  }
+  nav.toc::-webkit-scrollbar{width:6px}
+  nav.toc::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:3px}
+  main{padding:60px clamp(28px,5vw,90px) 140px;max-width:980px;min-width:0}
+
+  /* ====== TOC ====== */
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:34px}
+  .brand svg{width:34px;height:34px;flex-shrink:0}
+  .brand .t{font-family:var(--mono);font-size:13px;letter-spacing:.5px;color:var(--ink-soft);line-height:1.3}
+  .brand .t b{display:block;color:var(--vue);font-size:15px;letter-spacing:1px}
+  nav.toc a{
+    display:block;color:var(--ink-soft);text-decoration:none;font-size:13.5px;
+    padding:6px 12px;border-radius:7px;border-left:2px solid transparent;
+    transition:.18s;margin:1px 0;
+  }
+  nav.toc a:hover{color:var(--ink);background:rgba(255,255,255,.04)}
+  nav.toc a.section{margin-top:18px;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-faint);padding-left:12px;pointer-events:none}
+  nav.toc a.active{color:var(--vue);border-left-color:var(--vue);background:var(--vue-glow)}
+
+  /* ====== HERO ====== */
+  .hero{margin-bottom:80px;position:relative}
+  .hero .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--vue);margin-bottom:22px}
+  .hero h1{
+    font-family:var(--serif);font-weight:500;font-size:clamp(44px,7vw,78px);
+    line-height:1.02;letter-spacing:-.02em;margin-bottom:26px;
+  }
+  .hero h1 em{font-style:italic;color:var(--vue)}
+  .hero .lede{font-size:19px;color:var(--ink-soft);max-width:640px;line-height:1.7}
+  .hero .lede b{color:var(--ink);font-weight:600}
+  .hero-meta{display:flex;gap:30px;margin-top:40px;flex-wrap:wrap}
+  .hero-meta .m{font-family:var(--mono);font-size:12px;color:var(--ink-faint)}
+  .hero-meta .m b{display:block;color:var(--vue);font-size:26px;font-family:var(--sans);font-weight:700;margin-bottom:2px}
+
+  /* ====== TYPOGRAPHY ====== */
+  h2{
+    font-family:var(--serif);font-weight:500;font-size:clamp(30px,4vw,42px);
+    letter-spacing:-.015em;margin:96px 0 8px;padding-top:24px;line-height:1.1;
+    scroll-margin-top:70px;
+  }
+  h2 .num{font-family:var(--mono);font-size:14px;color:var(--vue);display:block;margin-bottom:12px;letter-spacing:2px;font-weight:400}
+  h2 + .sub{color:var(--ink-soft);font-size:17px;margin-bottom:34px;max-width:680px}
+  h3{font-family:var(--sans);font-weight:700;font-size:23px;margin:52px 0 14px;letter-spacing:-.01em;color:var(--ink)}
+  h3::before{content:"";display:inline-block;width:8px;height:8px;background:var(--vue);border-radius:2px;margin-right:12px;vertical-align:middle;transform:rotate(45deg)}
+  h4{font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--amber);margin:34px 0 12px}
+  p{margin:16px 0;color:var(--ink)}
+  p.note{color:var(--ink-soft);font-size:15px}
+  strong{font-weight:600;color:#fff}
+  em.term{font-style:normal;color:var(--vue);font-weight:600}
+  a.link{color:var(--blue);text-decoration:none;border-bottom:1px dotted var(--blue)}
+
+  ul,ol{margin:18px 0 18px 4px;padding-left:24px}
+  li{margin:9px 0;color:var(--ink)}
+  li::marker{color:var(--vue)}
+  ul.clean{list-style:none;padding-left:0}
+  ul.clean li{padding-left:26px;position:relative}
+  ul.clean li::before{content:"▸";position:absolute;left:0;color:var(--vue);font-weight:700}
+
+  /* ====== CODE ====== */
+  pre{
+    background:#0a0e14;border:1px solid var(--line);border-radius:12px;
+    padding:22px 24px;overflow-x:auto;margin:22px 0;position:relative;
+    font-family:var(--mono);font-size:13.5px;line-height:1.7;
+    box-shadow:0 8px 30px rgba(0,0,0,.3);
+  }
+  pre::before{
+    content:attr(data-lang);position:absolute;top:0;right:0;
+    font-size:10px;letter-spacing:1.5px;color:var(--ink-faint);
+    background:var(--bg-soft);padding:4px 12px;border-radius:0 11px 0 11px;
+    text-transform:uppercase;border-left:1px solid var(--line);border-bottom:1px solid var(--line);
+  }
+  code{font-family:var(--mono);font-size:.88em;color:var(--vue);background:rgba(66,184,131,.1);padding:2px 6px;border-radius:5px}
+  pre code{background:none;padding:0;color:var(--ink);font-size:13.5px}
+  .c-key{color:var(--violet)}
+  .c-str{color:var(--vue)}
+  .c-com{color:var(--ink-faint);font-style:italic}
+  .c-fn{color:var(--blue)}
+  .c-num{color:var(--amber)}
+  .c-tag{color:var(--rose)}
+  .c-attr{color:var(--amber)}
+
+  /* ====== CALLOUTS ====== */
+  .box{border-radius:12px;padding:22px 26px;margin:26px 0;border:1px solid var(--line);position:relative;overflow:hidden}
+  .box .lbl{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .box p{margin:8px 0;font-size:15px}
+  .box.tip{background:linear-gradient(135deg,rgba(66,184,131,.08),transparent);border-color:rgba(66,184,131,.3)}
+  .box.tip .lbl{color:var(--vue)}
+  .box.warn{background:linear-gradient(135deg,rgba(240,180,41,.08),transparent);border-color:rgba(240,180,41,.3)}
+  .box.warn .lbl{color:var(--amber)}
+  .box.danger{background:linear-gradient(135deg,rgba(244,113,116,.08),transparent);border-color:rgba(244,113,116,.3)}
+  .box.danger .lbl{color:var(--rose)}
+
+  /* interview Q box */
+  .qa{border:1px solid var(--line-strong);border-radius:12px;margin:20px 0;overflow:hidden;background:var(--bg-card)}
+  .qa .q{padding:16px 22px;font-weight:600;color:#fff;background:linear-gradient(90deg,rgba(53,73,94,.5),transparent);display:flex;gap:12px;align-items:flex-start;cursor:default}
+  .qa .q::before{content:"Q";font-family:var(--mono);color:var(--vue);font-weight:700;flex-shrink:0;border:1px solid var(--vue);border-radius:6px;width:24px;height:24px;display:grid;place-items:center;font-size:13px}
+  .qa .a{padding:4px 22px 20px 58px;color:var(--ink-soft);font-size:15px}
+  .qa .a strong{color:var(--ink)}
+
+  /* ====== TABLES ====== */
+  .tbl{margin:24px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px}
+  th{background:var(--bg-soft);text-align:left;padding:13px 18px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--vue);font-weight:700;border-bottom:1px solid var(--line-strong)}
+  td{padding:13px 18px;border-bottom:1px solid var(--line);color:var(--ink-soft);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td b{color:var(--ink)}
+  tr:hover td{background:rgba(255,255,255,.02)}
+
+  /* ====== DIAGRAM ====== */
+  .diagram{margin:30px 0;padding:30px;background:var(--bg-card);border:1px solid var(--line);border-radius:14px}
+  .diagram svg{width:100%;height:auto;display:block}
+  .diagram .cap{text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:14px;letter-spacing:1px}
+
+  /* flow chips */
+  .flow{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:24px 0}
+  .flow .chip{background:var(--bg-soft);border:1px solid var(--line-strong);border-radius:9px;padding:10px 16px;font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+  .flow .chip.hl{border-color:var(--vue);color:var(--vue);box-shadow:0 0 0 3px var(--vue-glow)}
+  .flow .arr{color:var(--vue);font-size:18px}
+
+  /* pill row */
+  .pills{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+  .pill{font-family:var(--mono);font-size:11.5px;padding:5px 12px;border-radius:20px;border:1px solid var(--line-strong);color:var(--ink-soft)}
+  .pill.on{background:var(--vue-glow);border-color:var(--vue);color:var(--vue)}
+
+  hr{border:none;border-top:1px solid var(--line);margin:60px 0}
+  .footer{margin-top:100px;padding-top:40px;border-top:1px solid var(--line);color:var(--ink-faint);font-family:var(--mono);font-size:12px;line-height:1.9}
+  ::selection{background:var(--vue);color:#0a0e14}
+
+  @media(max-width:920px){
+    .shell{grid-template-columns:1fr}
+    nav.toc{display:none}
+    main{padding:40px 22px 100px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ============ TOC ============ -->
+<nav class="toc">
+  <div class="brand">
+    <svg viewBox="0 0 256 221" xmlns="http://www.w3.org/2000/svg"><path d="M204.8 0H256L128 220.8 0 0h97.92L128 51.2 157.44 0z" fill="#41b883"/><path d="M0 0l128 220.8L256 0h-51.2L128 132.48 50.56 0z" fill="#41b883"/><path d="M50.56 0L128 133.12 204.8 0h-47.36L128 51.2 97.92 0z" fill="#35495e"/></svg>
+    <div class="t"><b>VUE 深度解析</b>面试通关手册 · v3</div>
+  </div>
+  <a class="section">基础认知</a>
+  <a href="#what">01 · Vue 是什么</a>
+  <a href="#arch">02 · 整体架构设计</a>
+  <a class="section">核心原理</a>
+  <a href="#reactivity">03 · 响应式系统</a>
+  <a href="#vdom">04 · 虚拟 DOM 与 Diff</a>
+  <a href="#compile">05 · 模板编译</a>
+  <a href="#lifecycle">06 · 组件与生命周期</a>
+  <a class="section">数据结构</a>
+  <a href="#structures">07 · 关键数据结构</a>
+  <a href="#dataflow">08 · 数据流串联</a>
+  <a class="section">工程实战</a>
+  <a href="#runtime">09 · 项目实际运行</a>
+  <a href="#ecosystem">10 · 生态：路由/状态</a>
+  <a href="#perf">11 · 性能优化</a>
+  <a class="section">面试冲刺</a>
+  <a href="#vs">12 · Vue2 vs Vue3 / React</a>
+  <a href="#questions">13 · 高频面试题</a>
+</nav>
+
+<main>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="eyebrow">A FULL ENGINEERING GUIDE</div>
+  <h1>把 <em>Vue</em> 拆开，<br>看清每一根<em>数据流</em>。</h1>
+  <p class="lede">这不是一份 API 速查表。它从<b>架构分层</b>讲到<b>响应式原理</b>，从<b>虚拟 DOM 的数据结构</b>讲到<b>一次完整渲染的全链路</b>。读完之后，面试官问到 Vue 的任何一层，你都能从原理答到实现。</p>
+  <div class="hero-meta">
+    <div class="m"><b>3.x</b>Composition API</div>
+    <div class="m"><b>Proxy</b>响应式内核</div>
+    <div class="m"><b>13</b>个核心章节</div>
+    <div class="m"><b>40+</b>道面试题</div>
+  </div>
+</header>
+
+<!-- ============ 01 ============ -->
+<h2 id="what"><span class="num">01 / FOUNDATION</span>Vue 是什么，解决什么问题</h2>
+<p class="sub">先建立心智模型：Vue 的本质是「一套把数据状态自动映射到 DOM 视图」的渐进式框架。</p>
+
+<p>Vue 是一个<strong>用于构建用户界面的渐进式 JavaScript 框架</strong>。它的核心目标只有一句话：<em class="term">让你只管修改数据，视图自动更新</em>。开发者不再手动操作 DOM（<code>document.getElementById</code> 那一套），而是声明「数据长什么样、视图就长什么样」，剩下的同步工作交给框架。</p>
+
+<p>「渐进式」的意思是：你可以只用它的核心库做一个页面交互，也可以叠加路由（Vue Router）、状态管理（Pinia）、构建工具（Vite）组成一个完整的单页应用（SPA）。每一层都是可选的、可渐进引入的。</p>
+
+<h3>三大设计支柱</h3>
+<div class="tbl">
+<table>
+<tr><th>支柱</th><th>含义</th><th>面试关键词</th></tr>
+<tr><td><b>声明式渲染</b></td><td>用模板描述「数据 → 视图」的映射关系，而非命令式地操作 DOM</td><td>declarative · template</td></tr>
+<tr><td><b>响应式</b></td><td>数据变化时，依赖它的视图自动重新渲染</td><td>reactivity · Proxy · 依赖收集</td></tr>
+<tr><td><b>组件化</b></td><td>UI 拆成可复用、可组合、自包含状态的组件树</td><td>component tree · 单向数据流</td></tr>
+</table>
+</div>
+
+<div class="box tip">
+  <div class="lbl">◆ 面试一句话定义</div>
+  <p>「Vue 是一个数据驱动 + 组件化的渐进式框架，核心是<strong>响应式系统</strong>负责追踪依赖、<strong>虚拟 DOM</strong>负责高效更新、<strong>编译器</strong>把模板转成渲染函数，三者协作完成『数据变 → 视图变』的闭环。」</p>
+</div>
+
+<!-- ============ 02 ============ -->
+<h2 id="arch"><span class="num">02 / ARCHITECTURE</span>整体架构是怎么设计的</h2>
+<p class="sub">Vue 3 采用 monorepo 分包设计。理解分层，是理解一切实现的前提。</p>
+
+<p>Vue 3 的源码是一个 <strong>monorepo</strong>（用 pnpm workspace 管理多个 package），按职责清晰分层。这种设计的好处是：每一层可以<strong>独立测试、独立发布、按需替换</strong>。比如响应式系统 <code>@vue/reactivity</code> 可以脱离 Vue 单独使用。</p>
+
+<div class="diagram">
+<svg viewBox="0 0 720 420" xmlns="http://www.w3.org/2000/svg" font-family="Space Mono, monospace">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#42b883" stop-opacity=".25"/><stop offset="1" stop-color="#42b883" stop-opacity=".05"/></linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#58a6ff" stop-opacity=".22"/><stop offset="1" stop-color="#58a6ff" stop-opacity=".04"/></linearGradient>
+    <linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0b429" stop-opacity=".2"/><stop offset="1" stop-color="#f0b429" stop-opacity=".04"/></linearGradient>
+  </defs>
+  <!-- compiler layer -->
+  <rect x="30" y="20" width="660" height="86" rx="12" fill="url(#g3)" stroke="#f0b429" stroke-opacity=".4"/>
+  <text x="50" y="48" fill="#f0b429" font-size="13" font-weight="700">编译层 · COMPILER</text>
+  <rect x="50" y="60" width="180" height="32" rx="7" fill="#161b22" stroke="#f0b429" stroke-opacity=".3"/><text x="140" y="81" fill="#e6edf3" font-size="11" text-anchor="middle">compiler-core</text>
+  <rect x="245" y="60" width="180" height="32" rx="7" fill="#161b22" stroke="#f0b429" stroke-opacity=".3"/><text x="335" y="81" fill="#e6edf3" font-size="11" text-anchor="middle">compiler-dom</text>
+  <rect x="440" y="60" width="225" height="32" rx="7" fill="#161b22" stroke="#f0b429" stroke-opacity=".3"/><text x="552" y="81" fill="#e6edf3" font-size="11" text-anchor="middle">compiler-sfc (.vue)</text>
+
+  <!-- runtime layer -->
+  <rect x="30" y="130" width="660" height="86" rx="12" fill="url(#g2)" stroke="#58a6ff" stroke-opacity=".4"/>
+  <text x="50" y="158" fill="#58a6ff" font-size="13" font-weight="700">运行时层 · RUNTIME</text>
+  <rect x="50" y="170" width="290" height="32" rx="7" fill="#161b22" stroke="#58a6ff" stroke-opacity=".3"/><text x="195" y="191" fill="#e6edf3" font-size="11" text-anchor="middle">runtime-core (平台无关)</text>
+  <rect x="355" y="170" width="310" height="32" rx="7" fill="#161b22" stroke="#58a6ff" stroke-opacity=".3"/><text x="510" y="191" fill="#e6edf3" font-size="11" text-anchor="middle">runtime-dom (浏览器渲染器)</text>
+
+  <!-- reactivity layer -->
+  <rect x="30" y="240" width="660" height="86" rx="12" fill="url(#g1)" stroke="#42b883" stroke-opacity=".4"/>
+  <text x="50" y="268" fill="#42b883" font-size="13" font-weight="700">响应式层 · REACTIVITY</text>
+  <rect x="50" y="280" width="615" height="32" rx="7" fill="#161b22" stroke="#42b883" stroke-opacity=".3"/><text x="357" y="301" fill="#e6edf3" font-size="11" text-anchor="middle">@vue/reactivity — reactive / ref / effect / computed (可独立使用)</text>
+
+  <!-- shared -->
+  <rect x="30" y="350" width="660" height="46" rx="12" fill="#11161d" stroke="rgba(255,255,255,.12)"/>
+  <text x="357" y="378" fill="#9aa7b4" font-size="11" text-anchor="middle">@vue/shared — 工具函数 / 常量 / 类型判断（所有层共享）</text>
+
+  <!-- arrows -->
+  <text x="357" y="123" fill="#6b7681" font-size="16" text-anchor="middle">↓ 编译产出 render 函数</text>
+  <text x="357" y="233" fill="#6b7681" font-size="16" text-anchor="middle">↓ 渲染时调用响应式</text>
+</svg>
+<div class="cap">FIG.1 — Vue 3 monorepo 分层架构</div>
+</div>
+
+<h3>各层职责拆解</h3>
+<div class="tbl">
+<table>
+<tr><th>Package</th><th>职责</th><th>核心导出</th></tr>
+<tr><td><b>@vue/reactivity</b></td><td>响应式内核：追踪数据读取、在数据变化时触发副作用。完全独立，不依赖任何渲染逻辑</td><td><code>reactive</code> <code>ref</code> <code>effect</code> <code>computed</code></td></tr>
+<tr><td><b>runtime-core</b></td><td>平台无关的运行时：组件实例管理、虚拟 DOM、diff 算法、生命周期调度</td><td><code>createRenderer</code> <code>h</code> <code>defineComponent</code></td></tr>
+<tr><td><b>runtime-dom</b></td><td>浏览器平台的具体实现：真实 DOM 的增删改、属性/事件处理</td><td><code>createApp</code> <code>render</code></td></tr>
+<tr><td><b>compiler-core</b></td><td>模板编译器内核：template → AST → transform → 渲染函数代码</td><td><code>baseCompile</code></td></tr>
+<tr><td><b>compiler-dom</b></td><td>DOM 平台特有的编译转换（如 <code>v-html</code>、事件修饰符）</td><td><code>compile</code></td></tr>
+<tr><td><b>compiler-sfc</b></td><td>单文件组件 <code>.vue</code> 的编译器，被 Vite/Webpack 插件调用</td><td><code>parse</code> <code>compileScript</code></td></tr>
+</table>
+</div>
+
+<div class="box tip">
+  <div class="lbl">◆ 为什么这样分层</div>
+  <p>1) <strong>关注点分离</strong>——响应式可被 SolidJS 等借鉴、可单独 npm 安装；2) <strong>跨平台</strong>——只要替换 runtime-dom 为 runtime-canvas/小程序渲染器，核心逻辑全复用（这就是 Weex、跨端框架的基础）；3) <strong>编译时优化</strong>——把能在编译期算好的事情（静态提升、PatchFlag）提前算好，运行时少干活。</p>
+</div>
+
+<h3>编译时 vs 运行时</h3>
+<p>这是 Vue 架构最重要的二分法。<em class="term">编译时</em>发生在打包阶段（开发者机器或构建服务器上），把 <code>.vue</code> 文件里的 <code>&lt;template&gt;</code> 转成 JavaScript 渲染函数；<em class="term">运行时</em>发生在浏览器里，执行渲染函数、跑响应式、操作真实 DOM。</p>
+
+<div class="flow">
+  <span class="chip">.vue 文件</span>
+  <span class="arr">→</span>
+  <span class="chip hl">编译时<br>compiler-sfc</span>
+  <span class="arr">→</span>
+  <span class="chip">render 函数<br>+ setup 代码</span>
+  <span class="arr">→</span>
+  <span class="chip hl">运行时<br>runtime-dom</span>
+  <span class="arr">→</span>
+  <span class="chip">真实 DOM</span>
+</div>
+
+<!-- ============ 03 ============ -->
+<h2 id="reactivity"><span class="num">03 / CORE</span>响应式系统：Vue 的心脏</h2>
+<p class="sub">这是面试被问最多、也最能区分水平的部分。彻底搞懂「依赖收集」与「派发更新」。</p>
+
+<p>响应式系统要解决的问题是：<strong>当我修改 <code>state.count</code> 时，框架怎么知道「哪些地方用到了它」，从而精确地去更新它们？</strong> 答案是两个动作的循环——<em class="term">依赖收集（track）</em>和<em class="term">派发更新（trigger）</em>。</p>
+
+<h3>Vue 3 用 Proxy 实现</h3>
+<p>Vue 2 用 <code>Object.defineProperty</code> 劫持每个属性的 getter/setter，Vue 3 改用 ES6 <strong>Proxy</strong> 代理整个对象。Proxy 能拦截 13 种操作（读、写、删除、in 判断、遍历……），从根本上解决了 Vue 2 的两大痛点：无法检测属性新增/删除、无法检测数组下标修改。</p>
+
+<pre data-lang="javascript"><code><span class="c-com">// reactive 的极简实现原理</span>
+<span class="c-key">function</span> <span class="c-fn">reactive</span>(target) {
+  <span class="c-key">return</span> <span class="c-key">new</span> <span class="c-fn">Proxy</span>(target, {
+    <span class="c-fn">get</span>(obj, key, receiver) {
+      <span class="c-fn">track</span>(obj, key)              <span class="c-com">// ① 依赖收集：记录"谁在读我"</span>
+      <span class="c-key">const</span> res = <span class="c-fn">Reflect</span>.<span class="c-fn">get</span>(obj, key, receiver)
+      <span class="c-com">// 嵌套对象懒代理：只有访问到才递归 reactive</span>
+      <span class="c-key">return</span> <span class="c-key">typeof</span> res === <span class="c-str">'object'</span> ? <span class="c-fn">reactive</span>(res) : res
+    },
+    <span class="c-fn">set</span>(obj, key, value, receiver) {
+      <span class="c-key">const</span> ok = <span class="c-fn">Reflect</span>.<span class="c-fn">set</span>(obj, key, value, receiver)
+      <span class="c-fn">trigger</span>(obj, key)            <span class="c-com">// ② 派发更新：通知所有依赖重新执行</span>
+      <span class="c-key">return</span> ok
+    }
+  })
+}</code></pre>
+
+<h3>effect：副作用与依赖的纽带</h3>
+<p>「依赖」到底是什么？是一个 <em class="term">effect</em>（副作用函数）。组件的渲染过程本身就被包裹成一个 effect。当 effect 运行时读取了某个响应式数据，这个 effect 就被收集为该数据的依赖。</p>
+
+<pre data-lang="javascript"><code><span class="c-key">let</span> activeEffect = <span class="c-key">null</span>          <span class="c-com">// 全局指针：当前正在运行的 effect</span>
+
+<span class="c-key">function</span> <span class="c-fn">effect</span>(fn) {
+  <span class="c-key">const</span> e = () => {
+    activeEffect = e            <span class="c-com">// 运行前把自己挂上去</span>
+    fn()                        <span class="c-com">// 运行 fn → 触发 get → track 收集到 e</span>
+    activeEffect = <span class="c-key">null</span>
+  }
+  <span class="c-fn">e</span>()
+}
+
+<span class="c-com">// 依赖存储结构：WeakMap → Map → Set</span>
+<span class="c-key">const</span> targetMap = <span class="c-key">new</span> <span class="c-fn">WeakMap</span>()
+
+<span class="c-key">function</span> <span class="c-fn">track</span>(target, key) {
+  <span class="c-key">if</span> (!activeEffect) <span class="c-key">return</span>
+  <span class="c-key">let</span> depsMap = targetMap.<span class="c-fn">get</span>(target)
+  <span class="c-key">if</span> (!depsMap) targetMap.<span class="c-fn">set</span>(target, depsMap = <span class="c-key">new</span> <span class="c-fn">Map</span>())
+  <span class="c-key">let</span> dep = depsMap.<span class="c-fn">get</span>(key)
+  <span class="c-key">if</span> (!dep) depsMap.<span class="c-fn">set</span>(key, dep = <span class="c-key">new</span> <span class="c-fn">Set</span>())
+  dep.<span class="c-fn">add</span>(activeEffect)          <span class="c-com">// key → 依赖它的 effect 集合</span>
+}
+
+<span class="c-key">function</span> <span class="c-fn">trigger</span>(target, key) {
+  <span class="c-key">const</span> dep = targetMap.<span class="c-fn">get</span>(target)?.<span class="c-fn">get</span>(key)
+  dep?.<span class="c-fn">forEach</span>(e => <span class="c-fn">e</span>())     <span class="c-com">// 重新运行所有依赖</span>
+}</code></pre>
+
+<div class="box tip">
+  <div class="lbl">◆ 记住这个三层结构</div>
+  <p>依赖存储是面试必考的数据结构：<code>WeakMap&lt;target, Map&lt;key, Set&lt;effect&gt;&gt;&gt;</code>。用 <strong>WeakMap</strong> 是为了对象被回收时依赖能自动 GC；用 <strong>Set</strong> 是为了天然去重。一句话：<em>对象 → 属性 → 依赖该属性的 effect 集合</em>。</p>
+</div>
+
+<h3>ref vs reactive</h3>
+<div class="tbl">
+<table>
+<tr><th></th><th>reactive</th><th>ref</th></tr>
+<tr><td><b>适用</b></td><td>对象 / 数组</td><td>基本类型，也可包对象</td></tr>
+<tr><td><b>实现</b></td><td>Proxy 代理整个对象</td><td>对象 <code>{ value }</code> + getter/setter 拦截 <code>.value</code></td></tr>
+<tr><td><b>访问</b></td><td>直接 <code>state.count</code></td><td>需 <code>.value</code>（模板里自动解包）</td></tr>
+<tr><td><b>解构</b></td><td>会丢失响应性（需 <code>toRefs</code>）</td><td>解构后仍保持响应</td></tr>
+</table>
+</div>
+
+<pre data-lang="javascript"><code><span class="c-com">// ref 为什么需要 .value？因为基本类型无法被 Proxy 代理</span>
+<span class="c-key">function</span> <span class="c-fn">ref</span>(raw) {
+  <span class="c-key">const</span> r = {
+    <span class="c-fn">get</span> <span class="c-fn">value</span>() { <span class="c-fn">track</span>(r, <span class="c-str">'value'</span>); <span class="c-key">return</span> raw },
+    <span class="c-fn">set</span> <span class="c-fn">value</span>(v) { raw = v; <span class="c-fn">trigger</span>(r, <span class="c-str">'value'</span>) }
+  }
+  <span class="c-key">return</span> r
+}</code></pre>
+
+<h3>computed 与 watch</h3>
+<p><em class="term">computed</em> 是一个带<strong>缓存的 effect</strong>：依赖不变时直接返回缓存值（靠一个 <code>dirty</code> 标志位实现懒计算）。<em class="term">watch</em> 则是显式监听某个数据源，在变化时执行回调，适合做异步、副作用操作。</p>
+
+<div class="qa">
+  <div class="q">computed 和 methods 都能返回计算结果，区别是什么？</div>
+  <div class="a"><strong>computed 有缓存</strong>：只要依赖没变，多次访问只计算一次；methods 每次调用都重新执行。computed 适合「依赖响应式数据的派生值」，methods 适合「需要传参或每次都要重算」的场景。</div>
+</div>
+
+<!-- ============ 04 ============ -->
+<h2 id="vdom"><span class="num">04 / CORE</span>虚拟 DOM 与 Diff 算法</h2>
+<p class="sub">响应式负责「知道要更新」，虚拟 DOM 负责「高效地更新」。</p>
+
+<p>直接操作真实 DOM 很慢，频繁操作更慢。<em class="term">虚拟 DOM（VNode）</em>是用普通 JS 对象描述真实 DOM 结构。数据变化时，先生成新的 VNode 树，与旧树做 <em class="term">diff（比对）</em>，算出最小变更集，再一次性 <em class="term">patch（打补丁）</em>到真实 DOM。</p>
+
+<h3>VNode 的数据结构</h3>
+<pre data-lang="javascript"><code><span class="c-com">// 一个 VNode 大致长这样</span>
+<span class="c-key">const</span> vnode = {
+  type: <span class="c-str">'div'</span>,            <span class="c-com">// 标签名 / 组件对象 / Fragment / Text</span>
+  props: { id: <span class="c-str">'app'</span>, onClick: fn },
+  children: [ ... ],        <span class="c-com">// 子 VNode 数组，或字符串文本</span>
+  key: <span class="c-key">null</span>,              <span class="c-com">// diff 时复用节点的身份标识 ★</span>
+  el: <span class="c-key">null</span>,               <span class="c-com">// 对应的真实 DOM 引用（patch 后回填）</span>
+  shapeFlag: <span class="c-num">9</span>,            <span class="c-com">// 位运算标记：是元素?组件?文本子节点?</span>
+  patchFlag: <span class="c-num">1</span>,            <span class="c-com">// ★ Vue3 编译期优化：标记哪部分是动态的</span>
+}</code></pre>
+
+<h3>Diff 算法：双端比较 + 最长递增子序列</h3>
+<p>Vue 3 的 diff 核心思想：<strong>同层比较</strong>（不跨层级）、<strong>靠 key 识别节点身份</strong>。对子节点数组，先做<em class="term">头头、尾尾</em>预处理快速命中，剩下乱序的中间部分，用 <strong>最长递增子序列（LIS）</strong>算法求出「无需移动的最大节点集合」，最小化 DOM 移动次数。</p>
+
+<div class="diagram">
+<svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" font-family="Space Mono, monospace">
+  <text x="20" y="30" fill="#9aa7b4" font-size="12">旧子节点</text>
+  <text x="20" y="150" fill="#9aa7b4" font-size="12">新子节点</text>
+  <!-- old -->
+  <g>
+    <rect x="100" y="14" width="60" height="40" rx="6" fill="#161b22" stroke="#42b883"/><text x="130" y="39" fill="#42b883" font-size="14" text-anchor="middle">A</text>
+    <rect x="170" y="14" width="60" height="40" rx="6" fill="#161b22" stroke="#6b7681"/><text x="200" y="39" fill="#e6edf3" font-size="14" text-anchor="middle">B</text>
+    <rect x="240" y="14" width="60" height="40" rx="6" fill="#161b22" stroke="#6b7681"/><text x="270" y="39" fill="#e6edf3" font-size="14" text-anchor="middle">C</text>
+    <rect x="310" y="14" width="60" height="40" rx="6" fill="#161b22" stroke="#6b7681"/><text x="340" y="39" fill="#e6edf3" font-size="14" text-anchor="middle">D</text>
+    <rect x="380" y="14" width="60" height="40" rx="6" fill="#161b22" stroke="#f47174"/><text x="410" y="39" fill="#f47174" font-size="14" text-anchor="middle">E</text>
+  </g>
+  <!-- new -->
+  <g>
+    <rect x="100" y="134" width="60" height="40" rx="6" fill="#161b22" stroke="#42b883"/><text x="130" y="159" fill="#42b883" font-size="14" text-anchor="middle">A</text>
+    <rect x="170" y="134" width="60" height="40" rx="6" fill="#161b22" stroke="#6b7681"/><text x="200" y="159" fill="#e6edf3" font-size="14" text-anchor="middle">C</text>
+    <rect x="240" y="134" width="60" height="40" rx="6" fill="#161b22" stroke="#6b7681"/><text x="270" y="159" fill="#e6edf3" font-size="14" text-anchor="middle">D</text>
+    <rect x="310" y="134" width="60" height="40" rx="6" fill="#161b22" stroke="#6b7681"/><text x="340" y="159" fill="#e6edf3" font-size="14" text-anchor="middle">B</text>
+    <rect x="380" y="134" width="60" height="40" rx="6" fill="#161b22" stroke="#f0b429"/><text x="410" y="159" fill="#f0b429" font-size="14" text-anchor="middle">F</text>
+  </g>
+  <!-- mapping lines -->
+  <line x1="130" y1="54" x2="130" y2="134" stroke="#42b883" stroke-width="2"/>
+  <line x1="270" y1="54" x2="200" y2="134" stroke="#6b7681" stroke-dasharray="3"/>
+  <line x1="340" y1="54" x2="270" y2="134" stroke="#6b7681" stroke-dasharray="3"/>
+  <line x1="200" y1="54" x2="340" y2="134" stroke="#6b7681" stroke-dasharray="3"/>
+  <text x="500" y="40" fill="#42b883" font-size="11">A: 头部命中, 复用不动</text>
+  <text x="500" y="62" fill="#f47174" font-size="11">E: 旧有新无 → 卸载</text>
+  <text x="500" y="84" fill="#f0b429" font-size="11">F: 新有旧无 → 挂载</text>
+  <text x="500" y="106" fill="#9aa7b4" font-size="11">C/D: 在 LIS 中 → 不移动</text>
+  <text x="500" y="128" fill="#9aa7b4" font-size="11">B: 不在 LIS → 移动</text>
+</svg>
+<div class="cap">FIG.2 — 带 key 的子节点 diff，靠 LIS 最小化移动</div>
+</div>
+
+<div class="box danger">
+  <div class="lbl">◆ 为什么 v-for 必须加 key？</div>
+  <p>key 是 VNode 的「身份证」。没有 key（或用 index 当 key）时，diff 只能<strong>就地复用</strong>，导致：① 带状态的子组件/输入框错位；② 列表顺序变化时产生大量不必要的 DOM 更新。用<strong>稳定唯一的业务 id</strong> 当 key，diff 才能精确识别哪个节点真的移动了。</p>
+</div>
+
+<!-- ============ 05 ============ -->
+<h2 id="compile"><span class="num">05 / CORE</span>模板编译：从 template 到 render</h2>
+<p class="sub">Vue 的「魔法」很多发生在编译期。理解这一步，才懂 Vue3 性能为何碾压 Vue2。</p>
+
+<p>你写的 <code>&lt;template&gt;</code> 浏览器看不懂，必须先编译成 <strong>渲染函数</strong>（返回 VNode 的 JS 函数）。编译分三步：</p>
+
+<div class="flow">
+  <span class="chip hl">① parse<br>模板 → AST</span>
+  <span class="arr">→</span>
+  <span class="chip hl">② transform<br>优化 AST</span>
+  <span class="arr">→</span>
+  <span class="chip hl">③ generate<br>AST → 代码</span>
+</div>
+
+<ol>
+  <li><strong>解析（parse）</strong>：把模板字符串扫描成 <em class="term">AST</em>（抽象语法树），描述每个标签、属性、指令、插值表达式的结构。</li>
+  <li><strong>转换（transform）</strong>：遍历 AST，做编译期优化——<em class="term">静态提升</em>、<em class="term">PatchFlag 标记</em>、<em class="term">事件缓存</em>、处理 <code>v-if</code>/<code>v-for</code> 等指令。</li>
+  <li><strong>生成（generate）</strong>：把优化后的 AST 拼成 <code>render</code> 函数源码字符串。</li>
+</ol>
+
+<h3>编译期三大优化（Vue3 性能关键）</h3>
+<div class="tbl">
+<table>
+<tr><th>优化</th><th>做什么</th><th>收益</th></tr>
+<tr><td><b>静态提升</b><br>(hoistStatic)</td><td>把永远不变的 VNode 提到 render 函数外，只创建一次</td><td>避免每次渲染重复创建静态节点</td></tr>
+<tr><td><b>PatchFlag</b></td><td>给动态节点打标记（如「只有 class 是动态的」），diff 时只比对标记的部分</td><td>diff 从「全量比对」变「靶向更新」</td></tr>
+<tr><td><b>Block Tree</b></td><td>用 block 收集所有动态子节点到扁平数组，跳过静态节点的递归</td><td>diff 复杂度与「动态节点数」相关，而非「总节点数」</td></tr>
+</table>
+</div>
+
+<pre data-lang="javascript"><code><span class="c-com">// 模板:  &lt;div class="static"&gt;{{ msg }}&lt;/div&gt;</span>
+<span class="c-com">// 编译后（简化）:</span>
+<span class="c-key">const</span> _hoisted = <span class="c-fn">createVNode</span>(<span class="c-str">"div"</span>, { class: <span class="c-str">"static"</span> })  <span class="c-com">// 静态部分提升</span>
+
+<span class="c-key">function</span> <span class="c-fn">render</span>(_ctx) {
+  <span class="c-key">return</span> <span class="c-fn">createVNode</span>(<span class="c-str">"div"</span>, <span class="c-key">null</span>, 
+    <span class="c-fn">toDisplayString</span>(_ctx.msg),
+    <span class="c-num">1</span> <span class="c-com">/* TEXT — PatchFlag: 只有文本动态 */</span>
+  )
+}</code></pre>
+
+<!-- ============ 06 ============ -->
+<h2 id="lifecycle"><span class="num">06 / CORE</span>组件实例与生命周期</h2>
+<p class="sub">组件是 Vue 应用的基本单元。理解实例的诞生到销毁全过程。</p>
+
+<p>每个组件在运行时都会创建一个<em class="term">组件实例</em>（internal instance），它持有该组件的所有状态：props、setup 返回值、渲染函数、生命周期钩子、依赖的 effect 等。父子组件实例构成一棵<strong>组件树</strong>。</p>
+
+<h3>生命周期全景</h3>
+<div class="tbl">
+<table>
+<tr><th>Composition API</th><th>Options API</th><th>时机</th></tr>
+<tr><td><code>setup()</code></td><td><code>beforeCreate</code>/<code>created</code></td><td>实例创建，响应式数据初始化</td></tr>
+<tr><td><code>onBeforeMount</code></td><td><code>beforeMount</code></td><td>挂载前，render 即将首次调用</td></tr>
+<tr><td><code>onMounted</code></td><td><code>mounted</code></td><td>已挂载，真实 DOM 可访问 ★发请求/操作 DOM</td></tr>
+<tr><td><code>onBeforeUpdate</code></td><td><code>beforeUpdate</code></td><td>数据变了，DOM 还没更新</td></tr>
+<tr><td><code>onUpdated</code></td><td><code>updated</code></td><td>DOM 已更新</td></tr>
+<tr><td><code>onBeforeUnmount</code></td><td><code>beforeDestroy</code></td><td>卸载前 ★清理定时器/事件</td></tr>
+<tr><td><code>onUnmounted</code></td><td><code>destroyed</code></td><td>已卸载</td></tr>
+</table>
+</div>
+
+<div class="box warn">
+  <div class="lbl">◆ 高频陷阱</div>
+  <p>① <code>setup</code> 里没有 <code>this</code>；② 在 <code>onMounted</code> 才能拿到真实 DOM，<code>setup</code> 里拿不到；③ 定时器、addEventListener、WebSocket 一定要在 <code>onBeforeUnmount</code> 里清理，否则内存泄漏。</p>
+</div>
+
+<h3>setup 与 Composition API</h3>
+<pre data-lang="javascript"><code><span class="c-com">// &lt;script setup&gt; 是 setup 的语法糖，编译时自动 return</span>
+<span class="c-key">import</span> { ref, computed, onMounted } <span class="c-key">from</span> <span class="c-str">'vue'</span>
+
+<span class="c-key">const</span> count = <span class="c-fn">ref</span>(<span class="c-num">0</span>)
+<span class="c-key">const</span> double = <span class="c-fn">computed</span>(() => count.value * <span class="c-num">2</span>)
+<span class="c-key">function</span> <span class="c-fn">inc</span>() { count.value++ }
+<span class="c-fn">onMounted</span>(() => <span class="c-fn">console</span>.<span class="c-fn">log</span>(<span class="c-str">'mounted'</span>))</code></pre>
+
+<p>Composition API 解决了 Options API 的两个核心痛点：<strong>逻辑复用</strong>（用组合函数 composable 替代 mixin，无命名冲突）和<strong>逻辑组织</strong>（同一功能的代码聚在一起，而非分散在 data/methods/computed 里）。</p>
+
+<!-- ============ 07 ============ -->
+<h2 id="structures"><span class="num">07 / DATA STRUCTURES</span>重要的数据结构盘点</h2>
+<p class="sub">面试问「Vue 里有哪些核心数据结构」，答这几个就够拉满。</p>
+
+<div class="tbl">
+<table>
+<tr><th>结构</th><th>形态</th><th>作用</th></tr>
+<tr><td><b>依赖映射</b></td><td><code>WeakMap&lt;obj, Map&lt;key, Set&lt;effect&gt;&gt;&gt;</code></td><td>响应式追踪：哪个属性被哪些 effect 依赖</td></tr>
+<tr><td><b>VNode</b></td><td>含 type/props/children/key/el/patchFlag 的对象</td><td>虚拟 DOM 的节点描述</td></tr>
+<tr><td><b>VNode 树</b></td><td>VNode 通过 children 嵌套形成的树</td><td>一次渲染的整体快照</td></tr>
+<tr><td><b>Block Tree</b></td><td>VNode + <code>dynamicChildren</code> 扁平数组</td><td>diff 时跳过静态节点</td></tr>
+<tr><td><b>组件实例</b></td><td>含 props/setupState/render/effect/钩子的对象</td><td>组件运行时状态容器</td></tr>
+<tr><td><b>AST</b></td><td>嵌套节点树（element/text/interpolation）</td><td>编译期模板的结构表示</td></tr>
+<tr><td><b>调度队列</b></td><td>去重的 effect 数组 + Promise microtask</td><td>异步批量更新，避免重复渲染</td></tr>
+</table>
+</div>
+
+<div class="box tip">
+  <div class="lbl">◆ 异步更新队列</div>
+  <p>当你在一个事件里连续改 10 次数据，Vue 不会渲染 10 次。它把触发的渲染 effect 推入一个<strong>去重队列</strong>，在当前同步代码跑完后、通过 <code>Promise.then</code> 创建的 <em>microtask</em> 里<strong>一次性 flush</strong>。这就是 <code>nextTick</code> 的原理——它本质是「在 DOM 更新后执行回调」。</p>
+</div>
+
+<!-- ============ 08 ============ -->
+<h2 id="dataflow"><span class="num">08 / DATA FLOW</span>数据流是怎么串起来的</h2>
+<p class="sub">把前面所有零件拼成一条完整的链路——这是面试的「升华题」。</p>
+
+<h3>一次完整渲染的全链路</h3>
+<div class="diagram">
+<svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg" font-family="Space Mono, monospace" font-size="11">
+  <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#42b883"/></marker></defs>
+  <g fill="#161b22">
+    <rect x="40" y="20" width="180" height="46" rx="9" stroke="#f0b429"/>
+    <rect x="270" y="20" width="180" height="46" rx="9" stroke="#42b883"/>
+    <rect x="500" y="20" width="180" height="46" rx="9" stroke="#42b883"/>
+    <rect x="500" y="150" width="180" height="46" rx="9" stroke="#58a6ff"/>
+    <rect x="270" y="150" width="180" height="46" rx="9" stroke="#58a6ff"/>
+    <rect x="40" y="150" width="180" height="46" rx="9" stroke="#bc8cff"/>
+    <rect x="40" y="280" width="180" height="46" rx="9" stroke="#f47174"/>
+    <rect x="270" y="280" width="410" height="46" rx="9" stroke="#42b883"/>
+  </g>
+  <g fill="#e6edf3" text-anchor="middle">
+    <text x="130" y="48">① 模板编译为 render</text>
+    <text x="360" y="42">② setup 创建响应式</text><text x="360" y="56" fill="#9aa7b4">reactive / ref</text>
+    <text x="590" y="42">③ 首次 render()</text><text x="590" y="56" fill="#9aa7b4">读数据→依赖收集</text>
+    <text x="590" y="178">④ 生成 VNode 树</text>
+    <text x="360" y="172">⑤ patch 挂载</text><text x="360" y="186" fill="#9aa7b4">VNode→真实DOM</text>
+    <text x="130" y="178">⑥ onMounted</text>
+    <text x="130" y="308">⑦ 数据变化</text><text x="130" y="322" fill="#9aa7b4" font-size="10">trigger 派发</text>
+    <text x="475" y="302">⑧ 渲染effect入队→nextTick flush→新VNode→diff→patch更新DOM</text>
+  </g>
+  <path d="M220,43 H270" stroke="#42b883" marker-end="url(#ar)"/>
+  <path d="M450,43 H500" stroke="#42b883" marker-end="url(#ar)"/>
+  <path d="M590,66 V150" stroke="#42b883" marker-end="url(#ar)"/>
+  <path d="M500,173 H450" stroke="#58a6ff" marker-end="url(#ar)"/>
+  <path d="M270,173 H220" stroke="#58a6ff" marker-end="url(#ar)"/>
+  <path d="M130,196 V280" stroke="#bc8cff" marker-end="url(#ar)"/>
+  <path d="M220,303 H270" stroke="#f47174" marker-end="url(#ar)"/>
+</svg>
+<div class="cap">FIG.3 — 从模板到屏幕，再到更新的完整数据流闭环</div>
+</div>
+
+<p>把链路用语言串起来（<strong>这段建议背下来</strong>）：</p>
+<div class="box tip">
+  <div class="lbl">◆ 完整数据流叙述</div>
+  <p>编译器把模板转成 <strong>render 函数</strong>。组件初始化时，<code>setup</code> 创建<strong>响应式数据</strong>。框架把「render 函数」包装成一个<strong>渲染 effect</strong> 并执行它——执行过程中读取响应式数据，触发 getter，把这个渲染 effect <strong>收集为依赖</strong>。render 产出 <strong>VNode 树</strong>，经 <strong>patch</strong> 转成真实 DOM 挂载，触发 <code>onMounted</code>。</p>
+  <p>之后用户操作修改数据，触发 setter 的 <strong>trigger</strong>，找到依赖该数据的渲染 effect，推入<strong>异步队列</strong>。当前同步任务结束后在 microtask 里 flush，重新执行渲染 effect → 生成<strong>新 VNode 树</strong> → 与旧树 <strong>diff</strong> → 计算最小变更 → <strong>patch 更新</strong>真实 DOM。闭环完成。</p>
+</div>
+
+<h3>组件间的数据流向</h3>
+<p>Vue 强调<em class="term">单向数据流</em>：父组件通过 <code>props</code> 把数据传给子组件（向下），子组件通过 <code>emit</code> 触发事件通知父组件（向上），父组件再修改数据。子组件<strong>不能直接修改 props</strong>。</p>
+
+<div class="flow">
+  <span class="chip hl">父组件</span>
+  <span class="arr">— props →</span>
+  <span class="chip hl">子组件</span>
+  <span class="arr">— emit →</span>
+  <span class="chip hl">父组件</span>
+</div>
+
+<ul class="clean">
+  <li><strong>props / emit</strong>：父子通信，最标准</li>
+  <li><strong>v-model</strong>：props + emit 的语法糖，实现双向绑定</li>
+  <li><strong>provide / inject</strong>：跨层级（祖→孙）依赖注入</li>
+  <li><strong>Pinia / Vuex</strong>：全局状态，任意组件共享</li>
+  <li><strong>ref / expose</strong>：父访问子组件实例方法</li>
+</ul>
+
+<!-- ============ 09 ============ -->
+<h2 id="runtime"><span class="num">09 / IN PRODUCTION</span>实际项目里是怎么运行的</h2>
+<p class="sub">从 npm create 到浏览器渲染，一个真实 Vue 项目的完整运转。</p>
+
+<h3>项目结构与构建</h3>
+<p>现代 Vue 项目用 <strong>Vite</strong> 构建。开发时 Vite 利用浏览器原生 ESM 做<strong>免打包</strong>的按需编译（启动极快）；生产时用 Rollup 打包。<code>.vue</code> 单文件组件由 <code>@vitejs/plugin-vue</code> 调用 compiler-sfc 编译成 JS。</p>
+
+<pre data-lang="text"><code>my-app/
+├─ index.html          <span class="c-com"># 入口 HTML，挂载点 &lt;div id="app"&gt;</span>
+├─ vite.config.js      <span class="c-com"># 构建配置</span>
+├─ src/
+│  ├─ main.js          <span class="c-com"># 应用入口：createApp</span>
+│  ├─ App.vue          <span class="c-com"># 根组件</span>
+│  ├─ router/          <span class="c-com"># Vue Router 路由表</span>
+│  ├─ stores/          <span class="c-com"># Pinia 状态</span>
+│  ├─ components/      <span class="c-com"># 可复用组件</span>
+│  ├─ views/           <span class="c-com"># 页面级组件</span>
+│  └─ composables/     <span class="c-com"># 组合式逻辑复用函数</span>
+└─ package.json</code></pre>
+
+<pre data-lang="javascript"><code><span class="c-com">// src/main.js — 应用如何启动</span>
+<span class="c-key">import</span> { createApp } <span class="c-key">from</span> <span class="c-str">'vue'</span>
+<span class="c-key">import</span> { createPinia } <span class="c-key">from</span> <span class="c-str">'pinia'</span>
+<span class="c-key">import</span> router <span class="c-key">from</span> <span class="c-str">'./router'</span>
+<span class="c-key">import</span> App <span class="c-key">from</span> <span class="c-str">'./App.vue'</span>
+
+<span class="c-fn">createApp</span>(App)         <span class="c-com">// 创建应用实例</span>
+  .<span class="c-fn">use</span>(<span class="c-fn">createPinia</span>())  <span class="c-com">// 装载状态管理插件</span>
+  .<span class="c-fn">use</span>(router)         <span class="c-com">// 装载路由插件</span>
+  .<span class="c-fn">mount</span>(<span class="c-str">'#app'</span>)       <span class="c-com">// 挂载到 DOM，触发首次渲染</span></code></pre>
+
+<h3>一个真实组件长什么样</h3>
+<pre data-lang="html"><code><span class="c-tag">&lt;template&gt;</span>
+  <span class="c-tag">&lt;div</span> <span class="c-attr">class</span>=<span class="c-str">"todo"</span><span class="c-tag">&gt;</span>
+    <span class="c-tag">&lt;input</span> <span class="c-attr">v-model</span>=<span class="c-str">"text"</span> <span class="c-attr">@keyup.enter</span>=<span class="c-str">"add"</span> <span class="c-tag">/&gt;</span>
+    <span class="c-tag">&lt;ul&gt;</span>
+      <span class="c-tag">&lt;li</span> <span class="c-attr">v-for</span>=<span class="c-str">"t in list"</span> <span class="c-attr">:key</span>=<span class="c-str">"t.id"</span><span class="c-tag">&gt;</span>{{ t.name }}<span class="c-tag">&lt;/li&gt;</span>
+    <span class="c-tag">&lt;/ul&gt;</span>
+    <span class="c-tag">&lt;p&gt;</span>共 {{ count }} 项<span class="c-tag">&lt;/p&gt;</span>
+  <span class="c-tag">&lt;/div&gt;</span>
+<span class="c-tag">&lt;/template&gt;</span>
+
+<span class="c-tag">&lt;script setup&gt;</span>
+<span class="c-key">import</span> { ref, computed } <span class="c-key">from</span> <span class="c-str">'vue'</span>
+<span class="c-key">const</span> text = <span class="c-fn">ref</span>(<span class="c-str">''</span>)
+<span class="c-key">const</span> list = <span class="c-fn">ref</span>([])
+<span class="c-key">const</span> count = <span class="c-fn">computed</span>(() => list.value.length)
+<span class="c-key">function</span> <span class="c-fn">add</span>() {
+  list.value.<span class="c-fn">push</span>({ id: <span class="c-fn">Date</span>.<span class="c-fn">now</span>(), name: text.value })
+  text.value = <span class="c-str">''</span>
+}
+<span class="c-tag">&lt;/script&gt;</span></code></pre>
+
+<!-- ============ 10 ============ -->
+<h2 id="ecosystem"><span class="num">10 / ECOSYSTEM</span>生态：路由与状态管理</h2>
+<p class="sub">真实项目离不开这两块。面试也常问。</p>
+
+<h3>Vue Router</h3>
+<p>SPA 的核心：URL 变化时切换组件而<strong>不刷新页面</strong>。两种模式：<em class="term">history</em>（干净 URL，需服务端配合）和 <em class="term">hash</em>（带 #，无需服务端）。核心概念：路由表、<code>&lt;router-view&gt;</code> 出口、<code>&lt;router-link&gt;</code>、动态路由、嵌套路由、<strong>导航守卫</strong>（权限拦截）。</p>
+
+<h3>Pinia（Vue 3 官方状态管理）</h3>
+<p>Pinia 取代了 Vuex，更简洁、TS 友好、无 mutations。核心三件套：<code>state</code>（状态）、<code>getters</code>（派生，类似 computed）、<code>actions</code>（修改状态的方法，可异步）。</p>
+
+<pre data-lang="javascript"><code><span class="c-key">import</span> { defineStore } <span class="c-key">from</span> <span class="c-str">'pinia'</span>
+<span class="c-key">export</span> <span class="c-key">const</span> useCounter = <span class="c-fn">defineStore</span>(<span class="c-str">'counter'</span>, () => {
+  <span class="c-key">const</span> count = <span class="c-fn">ref</span>(<span class="c-num">0</span>)
+  <span class="c-key">const</span> double = <span class="c-fn">computed</span>(() => count.value * <span class="c-num">2</span>)
+  <span class="c-key">function</span> <span class="c-fn">inc</span>() { count.value++ }
+  <span class="c-key">return</span> { count, double, inc }
+})</code></pre>
+
+<div class="box warn">
+  <div class="lbl">◆ Vuex vs Pinia</div>
+  <p>Vuex 改 state 必须走 mutation（同步）+ action（异步）两层；Pinia 直接在 action 里改，去掉了 mutation，API 更扁平，且对 TypeScript 类型推导更好。Vue 3 新项目一律推荐 Pinia。</p>
+</div>
+
+<!-- ============ 11 ============ -->
+<h2 id="perf"><span class="num">11 / PERFORMANCE</span>性能优化清单</h2>
+<p class="sub">面试问「你做过哪些 Vue 性能优化」，这些点能答满。</p>
+
+<ul class="clean">
+  <li><strong>v-for 加稳定 key</strong>——让 diff 精确复用</li>
+  <li><strong>v-if vs v-show</strong>——频繁切换用 v-show（只切 display），条件少变用 v-if（销毁重建）</li>
+  <li><strong>路由懒加载</strong>——<code>() => import('./View.vue')</code>，按需加载，减小首屏包体积</li>
+  <li><strong>组件懒加载 + Suspense</strong>——<code>defineAsyncComponent</code></li>
+  <li><strong>v-memo / shallowRef</strong>——跳过不必要的 diff / 浅层响应减少代理开销</li>
+  <li><strong>大列表虚拟滚动</strong>——只渲染可视区节点</li>
+  <li><strong>computed 缓存</strong>——避免模板里写复杂表达式</li>
+  <li><strong>合理的组件拆分</strong>——更新粒度更细，diff 范围更小</li>
+  <li><strong>keep-alive</strong>——缓存组件实例，避免重复渲染</li>
+  <li><strong>事件解绑、定时器清理</strong>——防内存泄漏</li>
+</ul>
+
+<!-- ============ 12 ============ -->
+<h2 id="vs"><span class="num">12 / COMPARISON</span>Vue2 vs Vue3 vs React</h2>
+<p class="sub">对比题几乎必考。把差异点条理化记住。</p>
+
+<h3>Vue 2 → Vue 3 的关键升级</h3>
+<div class="tbl">
+<table>
+<tr><th>维度</th><th>Vue 2</th><th>Vue 3</th></tr>
+<tr><td><b>响应式</b></td><td>Object.defineProperty</td><td>Proxy（解决数组/新增属性检测）</td></tr>
+<tr><td><b>API 风格</b></td><td>Options API</td><td>Composition API（+ Options）</td></tr>
+<tr><td><b>根节点</b></td><td>模板必须单根</td><td>支持多根（Fragment）</td></tr>
+<tr><td><b>性能</b></td><td>全量 diff</td><td>静态提升 + PatchFlag + Block Tree</td></tr>
+<tr><td><b>体积/TS</b></td><td>较大、TS 支持弱</td><td>Tree-shaking 友好、TS 重写</td></tr>
+<tr><td><b>新特性</b></td><td>—</td><td>Teleport、Suspense、多 v-model</td></tr>
+</table>
+</div>
+
+<h3>Vue vs React</h3>
+<div class="tbl">
+<table>
+<tr><th>维度</th><th>Vue</th><th>React</th></tr>
+<tr><td><b>更新机制</b></td><td>响应式自动追踪，靶向更新</td><td>setState 触发，默认重渲染整棵子树（靠 memo 优化）</td></tr>
+<tr><td><b>模板</b></td><td>template（可编译期优化）</td><td>JSX（更灵活，运行时为主）</td></tr>
+<tr><td><b>双向绑定</b></td><td>v-model 内置</td><td>需手动 value + onChange</td></tr>
+<tr><td><b>心智</b></td><td>框架帮你做更多（约定优于配置）</td><td>更接近 JS，自由度高</td></tr>
+</table>
+</div>
+
+<!-- ============ 13 ============ -->
+<h2 id="questions"><span class="num">13 / INTERVIEW</span>高频面试题速答</h2>
+<p class="sub">浓缩版问答。能流畅复述这些，90% 的 Vue 面试问题都能接住。</p>
+
+<div class="qa"><div class="q">Vue 的响应式原理是什么？</div><div class="a">Vue3 用 <strong>Proxy</strong> 代理对象，在 getter 里 <strong>track 依赖收集</strong>（把当前运行的 effect 存进 <code>WeakMap→Map→Set</code> 结构），在 setter 里 <strong>trigger 派发更新</strong>（取出依赖的 effect 重新执行）。组件渲染本身就是一个 effect。</div></div>
+
+<div class="qa"><div class="q">为什么 Vue3 用 Proxy 替代 defineProperty？</div><div class="a">defineProperty 只能劫持<strong>已有属性</strong>的 get/set，无法检测<strong>属性新增/删除</strong>和<strong>数组下标/length 变化</strong>，需要 <code>Vue.set</code> 等 hack。Proxy 代理整个对象、拦截 13 种操作，从根本上解决，且<strong>懒代理</strong>嵌套对象，性能更好。</div></div>
+
+<div class="qa"><div class="q">虚拟 DOM 一定比真实 DOM 快吗？</div><div class="a">不一定。虚拟 DOM 的价值是<strong>批量化、跨平台、可声明式编程</strong>，它用「计算 diff 的开销」换「减少直接 DOM 操作」。对极简单的页面，直接操作 DOM 可能更快；但在复杂应用、大量更新场景下，虚拟 DOM 的最小化更新优势明显。</div></div>
+
+<div class="qa"><div class="q">nextTick 是什么原理？</div><div class="a">Vue 把数据变化触发的渲染 effect 放进<strong>异步去重队列</strong>，在当前同步代码执行完后，通过 <code>Promise.then</code> 的 <strong>microtask</strong> 一次性 flush。<code>nextTick(cb)</code> 就是把 cb 也放到这个 microtask 队尾，从而保证 cb 执行时 DOM 已更新。</div></div>
+
+<div class="qa"><div class="q">v-if 和 v-show 的区别？</div><div class="a">v-if 是<strong>真正的条件渲染</strong>，false 时组件不创建/销毁（有更高切换开销）；v-show 只是切换 CSS <code>display</code>（始终渲染，切换开销低）。频繁切换用 v-show，运行时很少变用 v-if。</div></div>
+
+<div class="qa"><div class="q">key 的作用？为什么不能用 index？</div><div class="a">key 是 diff 时识别 VNode <strong>身份</strong>的依据。用 index 当 key，列表顺序变化时 index 不变，diff 会错误复用节点，导致带状态的子元素（如输入框、勾选框）错位，以及不必要的更新。应使用<strong>稳定唯一的业务 id</strong>。</div></div>
+
+<div class="qa"><div class="q">computed 和 watch 怎么选？</div><div class="a">computed 用于<strong>同步派生一个值</strong>且需要缓存；watch 用于<strong>侦听数据变化后执行副作用</strong>（异步请求、操作 DOM、复杂逻辑）。一句话：有返回值的派生用 computed，要做事情用 watch。</div></div>
+
+<div class="qa"><div class="q">Composition API 解决了什么问题？</div><div class="a">解决 Options API 的两大痛点：① <strong>逻辑复用</strong>——用 composable 函数替代 mixin，避免命名冲突和来源不清；② <strong>逻辑组织</strong>——同一功能的 data/方法/侦听聚在一起，大组件不再「反复横跳」。</div></div>
+
+<div class="qa"><div class="q">props 为什么不能直接修改？</div><div class="a">为了维护<strong>单向数据流</strong>，数据源唯一、变化可追溯。子组件直接改 props 会让数据来源混乱、难以调试。需要本地修改就用 computed 派生，或 emit 通知父组件改，或 v-model。</div></div>
+
+<div class="qa"><div class="q">说说 Vue3 的编译期优化？</div><div class="a">① <strong>静态提升</strong>：不变的 VNode 提到 render 外只创建一次；② <strong>PatchFlag</strong>：标记节点哪部分动态，diff 时靶向比对；③ <strong>Block Tree</strong>：用扁平 <code>dynamicChildren</code> 收集动态节点，diff 跳过静态部分。让运行时开销与「动态节点数」相关而非总节点数。</div></div>
+
+<div class="qa"><div class="q">keep-alive 原理？</div><div class="a">keep-alive 是抽象组件，<strong>缓存组件实例和 VNode</strong>（用 LRU 策略），切换时不销毁而是停用，再回来时复用，避免重复创建和数据重新请求。会触发 <code>activated</code>/<code>deactivated</code> 钩子而非 mounted/unmounted。</div></div>
+
+<div class="qa"><div class="q">SSR 是什么，解决什么？</div><div class="a">服务端渲染：在服务器把组件渲染成 HTML 字符串直接返回，解决 SPA 的<strong>首屏白屏慢</strong>和<strong>SEO 不友好</strong>问题。客户端再「激活（hydration）」接管交互。Nuxt 是 Vue 的 SSR 框架。</div></div>
+
+<div class="qa"><div class="q">如何排查 Vue 应用性能问题？</div><div class="a">用 Vue DevTools 看组件渲染次数和耗时，用 Performance 面板录制；常见手段：减少不必要渲染（合理拆分组件、shallowRef、v-memo）、路由/组件懒加载减小首屏、虚拟滚动处理大列表、computed 缓存重计算、避免在模板写重逻辑。</div></div>
+
+<hr>
+
+<div class="box tip">
+  <div class="lbl">◆ 临考前 30 秒自检</div>
+  <p>能讲清这五条，基本稳了：<strong>1)</strong> 响应式 = Proxy + track/trigger + WeakMap三层依赖；<strong>2)</strong> 渲染 = 模板编译成 render → 包成 effect → 产 VNode → patch；<strong>3)</strong> 更新 = trigger → 异步队列 → diff（双端+LIS）→ patch；<strong>4)</strong> 架构 = 编译层/运行时层/响应式层分包；<strong>5)</strong> Vue3 优势 = Proxy + Composition API + 编译期三大优化。</p>
+</div>
+
+<div class="footer">
+  VUE DEEP-DIVE · 面试通关手册<br>
+  覆盖 Vue 3.x 核心原理 · 架构 · 数据结构 · 数据流 · 工程实战 · 40+ 面试题<br>
+  建议配合官方文档 vuejs.org 与 Vue DevTools 实操验证 · 把每段「面试一句话」朗读到能脱口而出
+</div>
+
+</main>
+</div>
+
+<script>
+  // active TOC highlight
+  const links = [...document.querySelectorAll('nav.toc a[href^="#"]')];
+  const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        map.get(e.target.id)?.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+  document.querySelectorAll('h2[id]').forEach(h => obs.observe(h));
+</script>
+</body>
+</html>

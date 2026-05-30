@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<!-- saved from url=(0101)file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>React 框架系统学习：架构、运行机制、核心数据结构与面试资料</title>
+  <style>
+    :root {
+      --bg: #f7f7f4;
+      --paper: #ffffff;
+      --ink: #202124;
+      --muted: #5f6368;
+      --line: #d8d9d2;
+      --brand: #0b6b75;
+      --brand-soft: #e5f3f4;
+      --accent: #8a5a14;
+      --accent-soft: #fff2da;
+      --code-bg: #171a21;
+      --code-ink: #e8eef7;
+      --good: #1d6f42;
+      --warn: #9d5b00;
+      --bad: #a33a2b;
+      --shadow: 0 18px 50px rgba(28, 33, 36, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.72;
+    }
+
+    a {
+      color: var(--brand);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100vh;
+      overflow: auto;
+      padding: 28px 20px 36px;
+      border-right: 1px solid var(--line);
+      background: #fbfbf8;
+    }
+
+    aside h2 {
+      margin: 0 0 16px;
+      font-size: 18px;
+      line-height: 1.3;
+    }
+
+    aside .meta {
+      margin-bottom: 20px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    nav ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    nav li {
+      margin: 7px 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    .hero {
+      padding: 64px min(7vw, 84px) 42px;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(120deg, rgba(11, 107, 117, 0.12), transparent 38%),
+        linear-gradient(0deg, rgba(255,255,255,0.78), rgba(255,255,255,0.78)),
+        var(--bg);
+    }
+
+    .hero h1 {
+      max-width: 980px;
+      margin: 0 0 18px;
+      font-size: clamp(34px, 5vw, 62px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 900px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .content {
+      max-width: 1120px;
+      padding: 42px min(7vw, 84px) 80px;
+    }
+
+    section {
+      margin: 0 0 54px;
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      padding-top: 8px;
+      font-size: 30px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 30px 0 12px;
+      font-size: 22px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    h4 {
+      margin: 22px 0 8px;
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    ul, ol {
+      margin-top: 8px;
+      margin-bottom: 16px;
+    }
+
+    li {
+      margin: 7px 0;
+    }
+
+    code {
+      padding: 0.14em 0.35em;
+      border-radius: 4px;
+      background: #eceee8;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow: auto;
+      margin: 16px 0 22px;
+      padding: 18px 20px;
+      border-radius: 8px;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      box-shadow: var(--shadow);
+      line-height: 1.55;
+    }
+
+    pre code {
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+      color: inherit;
+      font-size: 13.5px;
+    }
+
+    table {
+      width: 100%;
+      margin: 18px 0 28px;
+      border-collapse: collapse;
+      background: var(--paper);
+      box-shadow: 0 1px 0 var(--line);
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #eef3ef;
+      font-weight: 700;
+    }
+
+    .note, .warn, .answer, .diagram, .checklist {
+      margin: 18px 0 24px;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--brand);
+      border-radius: 8px;
+      background: var(--paper);
+      box-shadow: 0 8px 28px rgba(28, 33, 36, 0.05);
+    }
+
+    .warn {
+      border-left-color: var(--warn);
+      background: var(--accent-soft);
+    }
+
+    .answer {
+      border-left-color: var(--good);
+      background: #f1f8f4;
+    }
+
+    .diagram {
+      border-left-color: var(--accent);
+      background: #fffdf8;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      white-space: pre-wrap;
+      line-height: 1.55;
+    }
+
+    .pillrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 18px 0;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 4px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--paper);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .mini-card {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+    }
+
+    .mini-card h4 {
+      margin-top: 0;
+    }
+
+    .kbd {
+      padding: 2px 6px;
+      border: 1px solid #c9cbc4;
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      background: #fff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.88em;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .source-list li {
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 920px) {
+      .layout {
+        display: block;
+      }
+
+      aside {
+        position: static;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .hero {
+        padding: 42px 22px 30px;
+      }
+
+      .content {
+        padding: 32px 22px 64px;
+      }
+
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <h2>React 深度学习资料</h2>
+      <div class="meta">面向架构理解、源码阅读、项目落地与面试表达。基于现代 React，包括 React 18 并发能力与 React 19/19.2 的重要变化。</div>
+      <nav aria-label="目录">
+        <ol>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#reading-map">阅读地图</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#big-picture">React 到底是什么</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#evolution">架构演进</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#packages">包与分层</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#runtime">项目里怎么跑起来</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#core-loop">核心工作循环</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#data-structures">核心数据结构总览</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#fiber">Fiber 架构</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#reconciliation">协调算法</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#scheduler">调度、优先级与 Lane</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#commit">提交阶段与 Effects</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#state-hooks">Hooks 与状态</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#data-flow">数据流怎么串起来</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#events">事件系统</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#context">Context 与外部 Store</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#suspense">Suspense 与异步</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#server">SSR、Hydration、RSC</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#performance">性能优化</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#compiler">React Compiler</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#source-reading">源码阅读路线</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#interview">面试高频问答</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#cheatsheet">速记清单</a></li>
+          <li><a href="file:///Users/chenmeili/Documents/Codex/2026-05-28/react-html-token-90/react-framework-deep-dive.html#sources">参考资料</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main>
+      <header class="hero">
+        <h1>React 框架系统学习：架构、运行机制、核心数据结构与面试资料</h1>
+        <p>这份文档的目标不是教你“会写几个组件”，而是让你能把 React 从 JSX、组件、状态更新、Fiber、调度、协调、提交、Hooks、SSR、Server Components 一直串成一条完整链路。读完后，你应该能回答大部分中高级 React 面试题，也能在真实项目里判断问题发生在什么层。</p>
+      </header>
+
+      <div class="content">
+        <section id="reading-map">
+          <h2>1. 阅读地图</h2>
+          <p>如果把 React 当成一台机器，它大致由四个层次组成：</p>
+          <div class="diagram">用户代码层：JSX、组件、props、state、hooks、context
+        ↓
+React 核心层：element、fiber、update、lane、effect、hook queue
+        ↓
+渲染器层：react-dom、react-native 等，负责把抽象变成具体平台操作
+        ↓
+宿主环境：浏览器 DOM、原生 UI、服务端流、构建工具、网络和事件循环</div>
+          <p>初学 React 时，最容易把“组件函数执行”“DOM 更新”“状态变化”混在一起。更准确的理解是：</p>
+          <ul>
+            <li><strong>JSX 不是 DOM。</strong>JSX 会编译成 React element，element 是普通 JS 对象，用来描述你想要的 UI。</li>
+            <li><strong>组件不是实例。</strong>函数组件每次渲染就是一次函数调用，组件的状态保存在对应 Fiber 的 Hook 链表里，而不是保存在函数本身。</li>
+            <li><strong>更新不是立刻改 DOM。</strong>setState 会创建 update，打上优先级，进入调度，之后 React 在 render 阶段计算新树，在 commit 阶段一次性提交副作用。</li>
+            <li><strong>render 阶段可以被打断。</strong>现代 React 的并发能力来自 Fiber 可中断、可恢复、可分片的工作单元模型。</li>
+            <li><strong>commit 阶段不可被打断。</strong>因为它要真实修改宿主环境，必须保证一致性。</li>
+          </ul>
+          <div class="note">
+            <strong>面试时最重要的一句话：</strong>React 的核心是“声明式 UI + 组件模型 + Fiber 架构 + 优先级调度 + 协调与提交分离”。用户声明 UI，React 把状态更新转成带优先级的任务，通过 Fiber 树增量计算 UI 差异，最后由渲染器提交到具体平台。
+          </div>
+        </section>
+
+        <section id="big-picture">
+          <h2>2. React 到底是什么</h2>
+          <p>React 通常被称为 UI library，而不是完整 framework。这个叫法有历史原因：React 核心只关心如何把状态映射成 UI，以及如何在状态变化后高效更新 UI。路由、数据请求、构建、服务端渲染、文件约定、接口层通常由 Next.js、Remix、React Router、Vite、TanStack Query 等生态承担。</p>
+
+          <h3>2.1 React 的三个基本承诺</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>承诺</th>
+                <th>含义</th>
+                <th>带来的架构结果</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>声明式</td>
+                <td>你描述某个状态下 UI 应该长什么样，而不是手动一步步操作 DOM。</td>
+                <td>React 必须保存上一次 UI 描述，并在下一次描述出现时计算差异。</td>
+              </tr>
+              <tr>
+                <td>组件化</td>
+                <td>UI 被拆成可组合的组件，组件接收 props，拥有或派生 state。</td>
+                <td>React 必须建立一棵和组件嵌套关系对应的工作树，用来保存状态、依赖和副作用。</td>
+              </tr>
+              <tr>
+                <td>跨平台渲染</td>
+                <td>React 核心不绑定 DOM，同一个思想可以渲染到浏览器、原生、服务端流。</td>
+                <td>React 分成 reconciler 和 renderer：前者算“要做什么”，后者执行“怎么做”。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>2.2 React 不是模板引擎，也不是虚拟 DOM 库这么简单</h3>
+          <p>“虚拟 DOM”是 React 的一个历史标签，但它并不足以描述现代 React。React 的真正价值在于把 UI 更新抽象成可调度的计算：</p>
+          <ul>
+            <li>它能在不同优先级之间切换，比如输入框更新优先于列表过滤结果。</li>
+            <li>它能在渲染过程中暂停、继续或丢弃某次计算，避免长任务阻塞主线程。</li>
+            <li>它能通过 Suspense 把异步资源、加载状态、流式服务端渲染接入同一套 UI 模型。</li>
+            <li>它能通过 Server Components 让部分组件只在服务端执行，减少客户端 JS 和数据瀑布流。</li>
+          </ul>
+
+          <h3>2.3 现代 React 的心智模型</h3>
+          <p>现代 React 更像一个 UI 操作系统：</p>
+          <ul>
+            <li><strong>Element</strong> 是 UI 描述对象，像程序的输入。</li>
+            <li><strong>Fiber</strong> 是运行时工作单元，像进程控制块，保存组件状态、更新队列、子节点、兄弟节点、优先级、副作用。</li>
+            <li><strong>Scheduler</strong> 像任务调度器，决定什么时候做哪类更新。</li>
+            <li><strong>Reconciler</strong> 像 diff 和执行计划生成器，计算树的变化。</li>
+            <li><strong>Renderer</strong> 像设备驱动，把变更落实到 DOM、Native View 或服务端流。</li>
+          </ul>
+        </section>
+
+        <section id="evolution">
+          <h2>3. 架构演进</h2>
+          <h3>3.1 Stack Reconciler 时代</h3>
+          <p>早期 React 使用递归调用栈进行协调。组件树越深，递归越长。如果某次更新涉及大量节点，React 会一直占用主线程，直到整棵树计算完成。浏览器在这期间无法及时响应输入、动画和绘制，用户感知就是卡顿。</p>
+          <p>这种架构的问题不是“diff 不够快”，而是“不可调度”：一旦开始递归，就很难暂停、保存进度、切换到更高优先级任务。</p>
+
+          <h3>3.2 Fiber 时代</h3>
+          <p>Fiber 的核心动机是把一次大递归拆成很多小工作单元。每个 Fiber 节点既代表一个组件或宿主节点，也代表一段可执行、可暂停、可恢复的工作。React 可以在处理一个 Fiber 后检查是否应该让出主线程。</p>
+          <div class="diagram">旧模型：render(root) 递归到底，中途很难暂停
+
+新模型：
+performUnitOfWork(fiber A)
+performUnitOfWork(fiber B)
+performUnitOfWork(fiber C)
+检查时间片：需要让出吗？
+  是：暂停，稍后继续
+  否：继续处理下一个 Fiber</div>
+          <p>Fiber 不是为了让每次更新都更少，而是为了让更新更可控。它让 React 能做并发渲染、时间切片、优先级调度、Suspense、Transitions 等能力。</p>
+
+          <h3>3.3 React 18 的关键变化</h3>
+          <p>React 18 把并发渲染能力正式带入稳定版，并引入了新的 root API：<code>createRoot</code>。这不是一个普通 API 替换，它代表应用进入 concurrent-capable root。常见能力包括：</p>
+          <ul>
+            <li>自动批处理：更多场景下多个状态更新会合并成一次渲染。</li>
+            <li><code>startTransition</code> / <code>useTransition</code>：把非紧急更新标为 transition。</li>
+            <li><code>useDeferredValue</code>：延迟某个值驱动的低优先级 UI。</li>
+            <li>Suspense SSR：服务端可以流式发送 HTML，并让客户端分段 hydrate。</li>
+            <li><code>useSyncExternalStore</code>：为外部 store 在并发渲染下提供一致读取协议。</li>
+          </ul>
+
+          <h3>3.4 React 19/19.2 的关键变化</h3>
+          <p>React 19 强化了“异步交互”和“服务端组件模型”。官方发布说明中强调 Actions、<code>useActionState</code>、<code>useOptimistic</code>、<code>use</code>、Server Actions、<code>ref</code> 作为普通 prop、<code>&lt;Context&gt;</code> provider、资源预加载和更好的 hydration 错误信息。React 19.2 又加入了 React Performance Tracks、<code>cacheSignal</code>、局部预渲染相关 API、SSR Suspense reveal batching 等能力。</p>
+          <div class="warn">
+            <strong>面试表达要谨慎：</strong>Server Components 和 Server Actions 是 React 提供的模型和协议，但实际工程里通常需要框架和打包器支持，例如 Next.js、React Router/RSC 方案或其他兼容框架。不要说“React 单独运行 Vite SPA 就自动支持完整 RSC”。
+          </div>
+        </section>
+
+        <section id="packages">
+          <h2>4. React 包与分层</h2>
+          <p>真实项目里我们经常安装 <code>react</code> 和 <code>react-dom</code>，但源码和架构层次远不止这两个包。</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>层</th>
+                <th>典型包/模块</th>
+                <th>职责</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>公共 API</td>
+                <td><code>react</code></td>
+                <td>暴露 <code>createElement</code>、hooks、context、memo、lazy、Suspense 等用户 API。</td>
+              </tr>
+              <tr>
+                <td>协调器</td>
+                <td><code>react-reconciler</code></td>
+                <td>构建和更新 Fiber 树，计算更新、副作用、优先级，是 React 的核心。</td>
+              </tr>
+              <tr>
+                <td>调度器</td>
+                <td><code>scheduler</code></td>
+                <td>根据优先级安排任务，配合浏览器主线程空闲时间和消息通道执行 work loop。</td>
+              </tr>
+              <tr>
+                <td>DOM 渲染器</td>
+                <td><code>react-dom</code></td>
+                <td>把 Fiber 的 host 操作落实为 DOM 创建、属性更新、事件绑定、hydration、server rendering。</td>
+              </tr>
+              <tr>
+                <td>服务端渲染</td>
+                <td><code>react-dom/server</code>、<code>react-dom/static</code></td>
+                <td>生成 HTML 字符串或流，支持 Suspense streaming、prerender、resume 等。</td>
+              </tr>
+              <tr>
+                <td>开发工具</td>
+                <td>React DevTools</td>
+                <td>读取 Fiber 树、组件名、props/state、渲染原因、Profiler 数据。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>4.1 Reconciler 和 Renderer 的边界</h3>
+          <p>React 核心并不知道 DOM 节点怎么创建。它只知道“这里需要放一个 host component，类型是 div，props 是 {...}”。真正执行 <code>document.createElement</code>、<code>appendChild</code>、<code>removeChild</code> 的是 DOM renderer。</p>
+          <p>这也是 React 能支持 React Native 的原因：同一套 reconciler 可以把 host operation 委托给不同 renderer。DOM renderer 创建真实 DOM，Native renderer 创建原生视图，服务端 renderer 输出 HTML/流式 payload。</p>
+
+          <h3>4.2 为什么说 React Element 是跨平台描述</h3>
+          <pre><code class="language-jsx">const element = &lt;button className="primary"&gt;Save&lt;/button&gt;;
+
+// 编译后大致类似：
+const element = jsx("button", {
+  className: "primary",
+  children: "Save"
+});</code></pre>
+          <p>这个对象没有真实 DOM 方法，也没有事件监听器实例。它只是描述：类型是什么、props 是什么、key 是什么、ref 是什么。React 后续会根据 element 创建或更新 Fiber，再由 renderer 决定具体平台操作。</p>
+        </section>
+
+        <section id="runtime">
+          <h2>5. 实际项目里 React 怎么运行</h2>
+          <h3>5.1 最小 CSR 项目链路</h3>
+          <p>以 Vite + React SPA 为例，一次页面启动通常经历：</p>
+          <ol>
+            <li>浏览器加载 <code>index.html</code>。</li>
+            <li><code>index.html</code> 引入构建后的 JS bundle。</li>
+            <li>bundle 执行，导入 <code>react</code>、<code>react-dom/client</code> 和你的 <code>App</code>。</li>
+            <li><code>createRoot(document.getElementById('root'))</code> 创建 React root。</li>
+            <li><code>root.render(&lt;App /&gt;)</code> 触发初始更新。</li>
+            <li>React 创建 FiberRoot 和 HostRoot Fiber，进入 render 阶段构建 work-in-progress tree。</li>
+            <li>React 进入 commit 阶段，把 DOM 节点插入容器。</li>
+            <li>浏览器绘制页面，之后事件、状态更新继续驱动后续渲染。</li>
+          </ol>
+
+          <pre><code class="language-jsx">import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App";
+
+createRoot(document.getElementById("root")).render(
+  &lt;StrictMode&gt;
+    &lt;App /&gt;
+  &lt;/StrictMode&gt;
+);</code></pre>
+
+          <h3>5.2 真实工程的构建运行链路</h3>
+          <div class="diagram">开发时：
+源码 JSX/TSX → Vite/Webpack/Rspack dev server → Babel/SWC/ESBuild 转换
+→ ESM/HMR 注入 → 浏览器执行 → React runtime 调度和渲染
+
+生产构建：
+源码 → 编译 JSX/TS → tree shaking → code splitting → minify
+→ 输出 JS/CSS/assets → CDN/服务器 → 浏览器加载 → React hydrate 或 render</div>
+
+          <p>React 本身不负责模块打包、CSS 处理、路由分包、图片压缩、TypeScript 转换。它只在运行时接管 root 容器内的 UI 更新。框架和构建工具负责把你的模块变成浏览器可执行的资源。</p>
+
+          <h3>5.3 CSR、SSR、SSG、RSC 的启动差异</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>模式</th>
+                <th>首屏 HTML</th>
+                <th>客户端 React 做什么</th>
+                <th>适用场景</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>CSR</td>
+                <td>通常只有 root 空容器和 script</td>
+                <td>下载 JS 后从零创建 DOM</td>
+                <td>后台系统、强交互应用、SEO 压力小的应用</td>
+              </tr>
+              <tr>
+                <td>SSR</td>
+                <td>服务端即时生成完整或部分 HTML</td>
+                <td>hydrate 现有 HTML，绑定事件并恢复交互</td>
+                <td>内容页、SEO、首屏体验敏感场景</td>
+              </tr>
+              <tr>
+                <td>SSG</td>
+                <td>构建时生成静态 HTML</td>
+                <td>hydrate 或局部交互</td>
+                <td>文档、营销页、博客、变化不频繁内容</td>
+              </tr>
+              <tr>
+                <td>RSC</td>
+                <td>服务端组件输出可被客户端合并的 payload</td>
+                <td>只 hydrate client components，合并 server payload</td>
+                <td>数据密集、希望减少客户端 JS 的全栈 React 应用</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>5.4 一次点击到 UI 更新的完整路径</h3>
+          <div class="diagram">用户点击按钮
+  ↓
+浏览器派发 click
+  ↓
+React DOM 事件系统在 root 上捕获/委托
+  ↓
+调用你的 onClick
+  ↓
+setState / dispatch / external store update
+  ↓
+创建 Update 对象，计算 Lane，挂到 Fiber 的 updateQueue
+  ↓
+从当前 Fiber 向上找到 FiberRoot，标记 root 有待处理 lane
+  ↓
+Scheduler 安排任务
+  ↓
+render 阶段：beginWork / completeWork 生成 work-in-progress tree 和 effect flags
+  ↓
+commit 阶段：beforeMutation / mutation / layout
+  ↓
+浏览器绘制
+  ↓
+React 异步 flush passive effects，例如 useEffect</div>
+        </section>
+
+        <section id="core-loop">
+          <h2>6. React 核心工作循环</h2>
+          <p>React 更新可以粗略分为三段：触发更新、render 阶段、commit 阶段。官方文档也用 trigger、render、commit 来解释这个流程。</p>
+
+          <h3>6.1 Trigger：触发更新</h3>
+          <p>触发更新的来源包括：</p>
+          <ul>
+            <li>首次 <code>root.render(element)</code>。</li>
+            <li><code>setState</code> 或 Hook dispatcher。</li>
+            <li>父组件重新渲染导致子组件被访问。</li>
+            <li>Context value 变化。</li>
+            <li>外部 store 通知。</li>
+            <li>Suspense promise resolve。</li>
+            <li>服务端 payload 到达并合并。</li>
+          </ul>
+
+          <h3>6.2 Render：计算下一棵树</h3>
+          <p>render 阶段不是浏览器绘制，而是 React 调用组件函数，计算新的 React element，并把它们和当前 Fiber 树进行协调。这个阶段会产生 work-in-progress tree，也会收集需要在 commit 阶段执行的副作用标记。</p>
+          <p>render 阶段应该是纯的。组件函数不应该直接改 DOM、不应该发请求、不应该修改外部变量来影响世界。原因是 render 可能被打断、重试、丢弃、执行多次。开发环境 StrictMode 故意额外调用某些逻辑，就是为了暴露不纯的渲染逻辑。</p>
+
+          <h3>6.3 Commit：提交副作用</h3>
+          <p>commit 阶段会把 render 阶段算出的变化应用到宿主环境。对 DOM 来说，就是插入、删除、更新节点，设置属性，调用 ref，运行 layout effects，之后安排 passive effects。</p>
+          <p>commit 不可中断。React 不能把 DOM 改到一半就暂停，否则用户可能看到不一致 UI。</p>
+
+          <h3>6.4 伪代码版工作循环</h3>
+          <pre><code class="language-js">function scheduleUpdateOnFiber(fiber, lane) {
+  const root = markUpdateFromFiberToRoot(fiber, lane);
+  ensureRootIsScheduled(root);
+}
+
+function performConcurrentWorkOnRoot(root) {
+  renderRootConcurrent(root);
+
+  if (workInProgressRootExitStatus === RootCompleted) {
+    const finishedWork = root.current.alternate;
+    commitRoot(root, finishedWork);
+  }
+}
+
+function renderRootConcurrent(root) {
+  prepareFreshStack(root);
+
+  while (workInProgress !== null &amp;&amp; !shouldYield()) {
+    performUnitOfWork(workInProgress);
+  }
+}
+
+function performUnitOfWork(fiber) {
+  const next = beginWork(fiber);
+  fiber.memoizedProps = fiber.pendingProps;
+
+  if (next === null) {
+    completeUnitOfWork(fiber);
+  } else {
+    workInProgress = next;
+  }
+}</code></pre>
+          <p>实际源码远比这复杂，但面试时能讲出这条骨架已经很有含金量。</p>
+        </section>
+
+        <section id="data-structures">
+          <h2>7. 核心数据结构总览</h2>
+          <p>如果面试官问“React 内部有哪些重要数据结构”，不要只说 Virtual DOM。更完整的回答应该覆盖 element、Fiber、root、update、update queue、lane、hook、effect、context dependency 和 Suspense boundary。下面这张表可以当成速记。</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>数据结构</th>
+                <th>保存什么</th>
+                <th>在哪个流程中关键</th>
+                <th>面试关键词</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ReactElement</td>
+                <td><code>type</code>、<code>key</code>、<code>ref</code>、<code>props</code>。</td>
+                <td>JSX 编译后、组件 render 返回值、协调输入。</td>
+                <td>普通对象、UI 描述、不可变快照。</td>
+              </tr>
+              <tr>
+                <td>Fiber</td>
+                <td>组件运行时节点，保存 props/state、父子兄弟指针、alternate、flags、lanes。</td>
+                <td>render work loop、协调、提交。</td>
+                <td>工作单元、双缓存、可中断。</td>
+              </tr>
+              <tr>
+                <td>FiberRoot</td>
+                <td>root 容器、current tree、pending lanes、finishedWork、调度回调、缓存。</td>
+                <td>createRoot、调度入口、commitRoot。</td>
+                <td>根管理对象，不等同 HostRoot Fiber。</td>
+              </tr>
+              <tr>
+                <td>Update</td>
+                <td>一次状态变化，包含 lane、payload、callback、next。</td>
+                <td>setState、dispatch、root.render。</td>
+                <td>更新不是立即赋值，而是入队。</td>
+              </tr>
+              <tr>
+                <td>UpdateQueue</td>
+                <td>一组待处理 update，常见为环形链表或带 baseQueue 的结构。</td>
+                <td>计算新 state、跳过低优先级 update、批处理。</td>
+                <td>队列、函数式 updater、baseState。</td>
+              </tr>
+              <tr>
+                <td>Lane</td>
+                <td>用 bitmask 表示的更新优先级集合。</td>
+                <td>调度、选择 next lanes、bailout、并发渲染。</td>
+                <td>优先级、合并、跳过、重试。</td>
+              </tr>
+              <tr>
+                <td>Hook</td>
+                <td>函数组件 Hook 链表节点，保存 memoizedState、queue、next。</td>
+                <td>useState、useReducer、useEffect、useMemo 等。</td>
+                <td>顺序匹配、不能条件调用。</td>
+              </tr>
+              <tr>
+                <td>Effect</td>
+                <td>effect create、destroy、deps、tag。</td>
+                <td>commit 阶段 layout/passive effect 执行。</td>
+                <td>副作用、依赖数组、cleanup。</td>
+              </tr>
+              <tr>
+                <td>Context Dependency</td>
+                <td>组件读取过的 context 及其版本/值依赖。</td>
+                <td>context value 更新、消费者重新渲染。</td>
+                <td>跨层依赖、更新扩散。</td>
+              </tr>
+              <tr>
+                <td>Suspense Boundary</td>
+                <td>fallback、primary tree、retry lanes、pending promise 相关状态。</td>
+                <td>Suspense、streaming SSR、RSC、异步重试。</td>
+                <td>捕获 promise、显示 fallback、resolve 后重试。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>7.1 ReactElement：最容易被误解的数据</h3>
+          <p>ReactElement 常被叫作“虚拟 DOM”，但这个说法容易让人误以为它是 DOM 的完整模拟。实际上它更像一条轻量 UI 描述记录。</p>
+          <pre><code class="language-js">const element = {
+  $$typeof: Symbol.for("react.element"),
+  type: "button",
+  key: "save",
+  ref: null,
+  props: {
+    className: "primary",
+    children: "Save"
+  }
+};</code></pre>
+          <p>element 不保存上一次状态，也不保存更新队列。状态和调度信息在 Fiber 上。组件每次 render 返回的是新 element，React 用它作为协调输入。</p>
+
+          <h3>7.2 Update 与 UpdateQueue：状态更新如何排队</h3>
+          <p>Update 可以理解为一张“状态变更单”。它不一定立刻执行，而是进入队列，等待 React 根据 lane 和调度时机处理。</p>
+          <pre><code class="language-js">type Update = {
+  lane: Lane,
+  payload: any,       // 新值、updater function，或 root.render 的 element
+  callback: Function | null,
+  next: Update | null
+};</code></pre>
+          <p>在并发渲染中，一个 update 可能因为优先级不够被跳过。React 会保留 baseState 和 baseQueue，确保之后处理低优先级更新时能从正确基准继续计算。这就是为什么 Lane 和 UpdateQueue 必须一起理解。</p>
+
+          <h3>7.3 Effect 数据结构：不是所有副作用都一样</h3>
+          <p>Hook effect 会保存 create、destroy、deps 和 tag。tag 会区分 layout effect、passive effect、是否需要重新执行等。render 阶段只记录 effect，commit 阶段才执行。</p>
+          <pre><code class="language-js">type Effect = {
+  tag: HookFlags,
+  create: () =&gt; (() =&gt; void) | void,
+  destroy: (() =&gt; void) | void,
+  deps: Array&lt;unknown&gt; | null,
+  next: Effect
+};</code></pre>
+
+          <h3>7.4 数据结构之间怎么连起来</h3>
+          <div class="diagram">JSX → ReactElement
+          ↓ 作为协调输入
+Fiber 节点 ← alternate → 另一棵 Fiber 节点
+  ├─ memoizedState → Hook 链表
+  ├─ updateQueue   → UpdateQueue / Effect list
+  ├─ lanes         → 当前节点待处理优先级
+  ├─ flags         → 当前节点提交副作用
+  └─ stateNode     → DOM 节点 / class 实例 / FiberRoot
+
+FiberRoot
+  ├─ current       → 当前 Fiber 树
+  ├─ pendingLanes  → root 上待处理优先级集合
+  └─ finishedWork  → render 完成等待 commit 的树</div>
+        </section>
+
+        <section id="fiber">
+          <h2>8. Fiber 架构</h2>
+          <h3>7.1 Fiber 是什么</h3>
+          <p>Fiber 可以从三个角度理解：</p>
+          <ul>
+            <li><strong>数据结构：</strong>它是一个 JS 对象，保存节点类型、props、state、子节点、兄弟节点、父节点、副作用、优先级等。</li>
+            <li><strong>工作单元：</strong>React 每次处理一个 Fiber，处理完可以决定继续、暂停或切换优先级。</li>
+            <li><strong>组件实例的运行时承载：</strong>函数组件没有 class instance，它的 hooks、更新队列、依赖关系都挂在 Fiber 上。</li>
+          </ul>
+
+          <h3>7.2 Fiber 树的指针结构</h3>
+          <p>Fiber 树不是用数组保存 children，而是用链表式指针：</p>
+          <div class="diagram">parentFiber
+  ├─ child  → firstChildFiber
+  │            ├─ sibling → secondChildFiber
+  │            │             ├─ sibling → thirdChildFiber
+  │            │             └─ return  → parentFiber
+  │            └─ return  → parentFiber
+  └─ return → parentFiber 的父节点</div>
+          <p>关键字段：</p>
+          <table>
+            <thead>
+              <tr>
+                <th>字段</th>
+                <th>作用</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>tag</code></td>
+                <td>Fiber 类型，例如 FunctionComponent、ClassComponent、HostComponent、HostRoot、SuspenseComponent。</td>
+              </tr>
+              <tr>
+                <td><code>type</code></td>
+                <td>组件函数、class、DOM 标签名等。</td>
+              </tr>
+              <tr>
+                <td><code>key</code></td>
+                <td>协调列表时识别节点身份。</td>
+              </tr>
+              <tr>
+                <td><code>stateNode</code></td>
+                <td>关联的实例。HostComponent 对应 DOM 节点，ClassComponent 对应 class 实例，HostRoot 对应 FiberRoot。</td>
+              </tr>
+              <tr>
+                <td><code>return</code></td>
+                <td>父 Fiber。</td>
+              </tr>
+              <tr>
+                <td><code>child</code></td>
+                <td>第一个子 Fiber。</td>
+              </tr>
+              <tr>
+                <td><code>sibling</code></td>
+                <td>下一个兄弟 Fiber。</td>
+              </tr>
+              <tr>
+                <td><code>alternate</code></td>
+                <td>双缓存中另一棵树的对应 Fiber。</td>
+              </tr>
+              <tr>
+                <td><code>pendingProps</code></td>
+                <td>本次渲染接收到的新 props。</td>
+              </tr>
+              <tr>
+                <td><code>memoizedProps</code></td>
+                <td>上次完成渲染后保存的 props。</td>
+              </tr>
+              <tr>
+                <td><code>memoizedState</code></td>
+                <td>组件状态。函数组件中通常是 Hook 链表头。</td>
+              </tr>
+              <tr>
+                <td><code>updateQueue</code></td>
+                <td>待处理更新队列，class state、host root、effects 等都会用到。</td>
+              </tr>
+              <tr>
+                <td><code>flags</code> / <code>subtreeFlags</code></td>
+                <td>本节点或子树需要提交的副作用标记。</td>
+              </tr>
+              <tr>
+                <td><code>lanes</code> / <code>childLanes</code></td>
+                <td>本节点或子树待处理更新的优先级集合。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>7.3 双缓存：current tree 与 work-in-progress tree</h3>
+          <p>React 内部通常同时维护两棵 Fiber 树：</p>
+          <ul>
+            <li><strong>current tree：</strong>当前屏幕已经提交的 UI 对应的 Fiber 树。</li>
+            <li><strong>work-in-progress tree：</strong>正在计算中的下一棵树。</li>
+          </ul>
+          <p>两棵树上的对应节点通过 <code>alternate</code> 相互指向。更新完成后，React 把 root.current 指向 finishedWork，work-in-progress 变成新的 current。</p>
+          <div class="diagram">提交前：
+root.current ──→ current Fiber tree
+                  ↑ alternate ↓
+                work-in-progress Fiber tree
+
+提交后：
+root.current ──→ finished work-in-progress tree
+旧 current tree 变成下一次可复用的 alternate</div>
+          <p>双缓存让 React 可以在不破坏当前屏幕的情况下计算下一版 UI。如果并发渲染中途被丢弃，用户仍然看到旧的 current tree。</p>
+
+          <h3>7.4 FiberRoot 和 HostRoot Fiber</h3>
+          <p>这两个概念很容易混：</p>
+          <ul>
+            <li><strong>FiberRoot</strong> 是整个 React root 的管理对象，保存容器、pending lanes、finishedWork、callbackNode、缓存、hydration 信息等。</li>
+            <li><strong>HostRoot Fiber</strong> 是 Fiber 树的根节点，它的 <code>stateNode</code> 指向 FiberRoot。</li>
+          </ul>
+          <p>你调用 <code>createRoot(container)</code> 时，React 会创建 FiberRoot 和 HostRoot Fiber。之后 <code>root.render(&lt;App /&gt;)</code> 本质上是在 HostRoot 上入队一个 update，payload 是你的 element。</p>
+        </section>
+
+        <section id="reconciliation">
+          <h2>9. 协调算法</h2>
+          <h3>8.1 协调要解决什么问题</h3>
+          <p>每次组件返回新的 element 树，React 需要判断哪些节点可以复用，哪些节点要新建，哪些节点要删除，哪些 props 要更新。这个过程叫 reconciliation。协调的输出不是直接 DOM 操作，而是新的 Fiber 树和 effect flags。</p>
+
+          <h3>8.2 O(n) diff 的两个假设</h3>
+          <p>通用树 diff 的复杂度很高。React 使用启发式策略，把复杂度压到接近 O(n)：</p>
+          <ol>
+            <li>不同类型的元素会产生不同树。比如 <code>&lt;div&gt;</code> 变成 <code>&lt;section&gt;</code>，通常整棵子树重建。</li>
+            <li>开发者可以通过 <code>key</code> 告诉 React 哪些子节点在不同渲染之间是同一个身份。</li>
+          </ol>
+
+          <h3>8.3 单节点协调</h3>
+          <p>对于一个旧 Fiber 和一个新 element：</p>
+          <ul>
+            <li>如果 key 相同、type 相同：复用旧 Fiber，更新 props。</li>
+            <li>如果 key 不同或 type 不同：旧 Fiber 删除，新建 Fiber。</li>
+            <li>如果是文本节点：比较文本内容，必要时标记更新。</li>
+          </ul>
+          <pre><code class="language-jsx">// type 相同，Fiber 复用，DOM 节点也倾向复用
+&lt;Button color="red" /&gt;
+&lt;Button color="blue" /&gt;
+
+// type 不同，组件身份改变，状态重置
+&lt;Button /&gt;
+&lt;LinkButton /&gt;</code></pre>
+
+          <h3>8.4 列表协调与 key</h3>
+          <p>列表 diff 的重点是识别“同一个业务项”。key 不传时 React 使用位置作为身份，这在插入、删除、排序时容易导致状态错位。</p>
+          <pre><code class="language-jsx">// 不推荐：列表会变动时，index key 容易导致状态错位
+items.map((item, index) =&gt; &lt;Todo key={index} todo={item} /&gt;)
+
+// 推荐：使用稳定业务 id
+items.map(item =&gt; &lt;Todo key={item.id} todo={item} /&gt;)</code></pre>
+          <p>面试里常见问题：“为什么不能用 index 作为 key？”更完整的回答是：</p>
+          <div class="answer">
+            key 是 React 在同一父节点下判断子元素身份的依据。用 index 时，元素身份会和位置绑定。如果列表头部插入一项，后面所有 index 都变了，React 会把旧状态错误地复用到新的业务项上，可能造成输入框内容错位、动画异常、组件状态污染。只有列表完全静态、不排序、不插入删除时，index key 才相对安全。
+          </div>
+
+          <h3>8.5 状态保留与重置</h3>
+          <p>React 官方文档强调：state 和 JSX 标签本身无关，而是和组件在 UI 树中的位置相关。只要同一个组件类型在同一个父节点下的同一个身份位置继续出现，React 就倾向保留状态。改变 key 可以强制重置子树。</p>
+          <pre><code class="language-jsx">// contact 改变，但 Chat 在同一位置，状态会保留
+&lt;Chat contact={to} /&gt;
+
+// key 改变，React 认为是新身份，Chat 及其子树重建
+&lt;Chat key={to.id} contact={to} /&gt;</code></pre>
+          <p>这个原则能解释很多现象：为什么条件渲染切换组件会丢状态，为什么把组件定义嵌套在另一个组件内部会导致状态重置，为什么表单有时需要 key 来清空。</p>
+
+          <h3>8.6 beginWork 和 completeWork</h3>
+          <p>render 阶段对每个 Fiber 大致分两步：</p>
+          <ul>
+            <li><strong>beginWork：</strong>处理当前 Fiber，根据 props/state/context 计算子元素，并协调出子 Fiber。</li>
+            <li><strong>completeWork：</strong>在子树完成后回到当前 Fiber，创建或更新 host 实例、冒泡 flags 和 lanes。</li>
+          </ul>
+          <div class="diagram">深度优先遍历：
+begin A
+  begin B
+    begin D
+    complete D
+  complete B
+  begin C
+  complete C
+complete A</div>
+
+          <h3>8.7 bailout：跳过不必要工作</h3>
+          <p>如果一个 Fiber 的 props、state、context 和 lanes 都没有需要处理的变化，React 可以跳过它的子树。这叫 bailout。常见触发方式包括：</p>
+          <ul>
+            <li><code>React.memo</code> 判断 props 没变。</li>
+            <li>同一次 render 中某个子树没有对应 lane。</li>
+            <li>context 没变化。</li>
+            <li>组件返回相同引用的 element 并不等于必然跳过，但稳定引用有助于 memo 体系。</li>
+          </ul>
+        </section>
+
+        <section id="scheduler">
+          <h2>10. 调度、优先级与 Lane</h2>
+          <h3>9.1 为什么需要调度</h3>
+          <p>浏览器主线程同时负责 JS 执行、样式计算、布局、绘制、事件响应。如果 React 一次更新占用主线程太久，用户输入就会延迟。调度的目标是：紧急更新尽快完成，非紧急更新可以延后、打断、重试。</p>
+
+          <h3>9.2 典型优先级</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>更新类型</th>
+                <th>例子</th>
+                <th>倾向</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>同步/离散事件</td>
+                <td>点击按钮、输入框按键</td>
+                <td>用户马上期待反馈，优先级高。</td>
+              </tr>
+              <tr>
+                <td>连续事件</td>
+                <td>鼠标移动、滚动、拖拽</td>
+                <td>频繁发生，需要避免阻塞。</td>
+              </tr>
+              <tr>
+                <td>默认更新</td>
+                <td>普通 setState</td>
+                <td>常规优先级。</td>
+              </tr>
+              <tr>
+                <td>Transition</td>
+                <td>搜索结果列表、tab 内容切换、复杂筛选</td>
+                <td>可中断，优先保证当前交互流畅。</td>
+              </tr>
+              <tr>
+                <td>Idle</td>
+                <td>预渲染、低价值后台工作</td>
+                <td>空闲时再做。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>9.3 Lane 模型</h3>
+          <p>React 早期使用 expiration time 表示优先级，后来改成 Lane 模型。Lane 可以理解为位掩码表示的一组更新车道。一次更新会被分配到某个 lane，root 上保存 pending lanes，调度时选择优先级最高的一批 lanes 来渲染。</p>
+          <div class="diagram">pendingLanes: 0b00101100
+              ↑   ↑↑
+        不同 bit 代表不同优先级车道
+
+getNextLanes(root):
+  从 pendingLanes 中选择当前最应该处理的一组 lanes</div>
+          <p>Lane 的好处：</p>
+          <ul>
+            <li>可以表达多个更新同时存在。</li>
+            <li>可以合并相近优先级的更新。</li>
+            <li>可以在一棵树上标记子树是否包含某类待处理更新。</li>
+            <li>可以让被打断的 render 和后续更高优先级更新协作。</li>
+          </ul>
+
+          <h3>9.4 startTransition 到底做了什么</h3>
+          <pre><code class="language-jsx">const [isPending, startTransition] = useTransition();
+
+function onInput(e) {
+  const next = e.target.value;
+  setText(next); // 紧急：输入框立刻更新
+
+  startTransition(() =&gt; {
+    setQuery(next); // 非紧急：昂贵列表可以慢一点
+  });
+}</code></pre>
+          <p><code>startTransition</code> 不会让代码“异步执行”，而是把其中触发的 React 更新标记为 transition lane。这样当更紧急的输入继续发生时，React 可以暂停或丢弃旧的 transition 渲染，优先保持输入响应。</p>
+
+          <h3>9.5 自动批处理</h3>
+          <p>批处理是指多个 state update 合并到一次 render。React 18 后，Promise、setTimeout、原生事件等更多场景也会自动批处理。</p>
+          <pre><code class="language-jsx">setCount(c =&gt; c + 1);
+setFlag(f =&gt; !f);
+// 通常只触发一次渲染，而不是两次</code></pre>
+          <p>如果确实需要同步刷新 DOM，可以使用 <code>flushSync</code>，但它会降低并发调度空间，应该谨慎。</p>
+        </section>
+
+        <section id="commit">
+          <h2>11. 提交阶段与 Effects</h2>
+          <h3>10.1 flags 是什么</h3>
+          <p>render 阶段不会直接改 DOM，而是在 Fiber 上标记副作用。常见 flags 包括：</p>
+          <ul>
+            <li><code>Placement</code>：需要插入节点。</li>
+            <li><code>Update</code>：需要更新属性、文本或执行某些更新。</li>
+            <li><code>ChildDeletion</code>：需要删除子节点。</li>
+            <li><code>Ref</code>：需要 attach/detach ref。</li>
+            <li><code>Passive</code>：需要执行 passive effect，也就是 <code>useEffect</code>。</li>
+            <li><code>Layout</code>：需要执行 layout effect，也就是 <code>useLayoutEffect</code>。</li>
+          </ul>
+
+          <h3>10.2 commit 三个主要子阶段</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>阶段</th>
+                <th>做什么</th>
+                <th>对应 API/场景</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>before mutation</td>
+                <td>DOM 变化前读取快照。</td>
+                <td>class 的 <code>getSnapshotBeforeUpdate</code>。</td>
+              </tr>
+              <tr>
+                <td>mutation</td>
+                <td>真实执行 DOM 插入、删除、属性更新、文本更新、ref detach。</td>
+                <td>host operations。</td>
+              </tr>
+              <tr>
+                <td>layout</td>
+                <td>DOM 已更新但浏览器还未必绘制，执行 layout effects 和 ref attach。</td>
+                <td><code>useLayoutEffect</code>、<code>componentDidMount</code>、<code>componentDidUpdate</code>。</td>
+              </tr>
+            </tbody>
+          </table>
+          <p><code>useEffect</code> 的 passive effects 通常在 commit 后异步执行。它适合订阅、日志、网络请求、非布局相关副作用。<code>useLayoutEffect</code> 会在浏览器绘制前同步执行，适合读取布局并同步调整，但会阻塞绘制，不能滥用。</p>
+
+          <h3>10.3 effect cleanup 顺序</h3>
+          <p>当依赖变化或组件卸载时，React 会先执行上一次 effect 的 cleanup，再执行新的 effect。这个模型让订阅和资源释放可以跟组件生命周期对齐。</p>
+          <pre><code class="language-jsx">useEffect(() =&gt; {
+  const unsubscribe = store.subscribe(forceUpdate);
+  return () =&gt; unsubscribe();
+}, [store]);</code></pre>
+
+          <h3>10.4 StrictMode 为什么会让 effect 执行两次</h3>
+          <p>开发环境中，StrictMode 会模拟 mount → cleanup → mount，以帮助你发现 effect 没有正确清理的问题。生产环境不会这样重复执行。面试时不要简单说“React bug”或“严格模式渲染两次”，要说它是开发期检查机制。</p>
+        </section>
+
+        <section id="state-hooks">
+          <h2>12. Hooks 与状态</h2>
+          <h3>11.1 Hooks 为什么不能写在条件里</h3>
+          <p>函数组件的 Hooks 状态保存在 Fiber 的 <code>memoizedState</code> 链表中。React 按调用顺序把每个 Hook 和链表节点对应起来。条件调用会破坏顺序，导致后续 Hook 读到错误状态。</p>
+          <pre><code class="language-jsx">function Component({ visible }) {
+  const [a, setA] = useState(0);
+
+  if (visible) {
+    // 错误：visible 变化后 Hook 顺序改变
+    const [b, setB] = useState(0);
+  }
+
+  const [c, setC] = useState(0);
+}</code></pre>
+
+          <div class="diagram">第一次 visible=true：
+Hook 链表：useState(a) → useState(b) → useState(c)
+
+第二次 visible=false：
+调用顺序：useState(a) → useState(c)
+React 会把原来的 b 节点当成 c，状态错位</div>
+
+          <h3>11.2 Hook 数据结构</h3>
+          <p>简化后的 Hook 节点类似：</p>
+          <pre><code class="language-js">type Hook = {
+  memoizedState: any,       // 当前状态或 effect 信息
+  baseState: any,           // 跳过低优先级更新时的基准状态
+  baseQueue: Update | null, // 尚未处理完的基础队列
+  queue: UpdateQueue | null,
+  next: Hook | null
+};</code></pre>
+          <p>函数组件每次 render 时，React 设置当前 dispatcher。mount 时 dispatcher 创建 Hook 节点，update 时 dispatcher 按顺序复用旧 Hook 节点并计算新状态。</p>
+
+          <h3>11.3 useState 的更新队列</h3>
+          <p><code>setState</code> 并不是直接改变量，而是创建 update 放进 queue。update 可能是值，也可能是 updater function。</p>
+          <pre><code class="language-jsx">setCount(count + 1);      // 捕获当前 render 的 count
+setCount(c =&gt; c + 1);     // 基于队列中的前一个状态计算，更适合连续更新</code></pre>
+          <p>为什么连续三次 <code>setCount(count + 1)</code> 只加一？因为同一次 render 里 <code>count</code> 是固定快照。为什么三次 <code>setCount(c =&gt; c + 1)</code> 能加三？因为 updater function 会按队列顺序逐个应用。</p>
+
+          <h3>11.4 useReducer</h3>
+          <p><code>useReducer</code> 和 <code>useState</code> 底层很接近，都依赖 Hook update queue。区别是 reducer 把状态转移逻辑集中到一个函数中，更适合复杂状态机。</p>
+          <pre><code class="language-jsx">function reducer(state, action) {
+  switch (action.type) {
+    case "add":
+      return { ...state, items: [...state.items, action.item] };
+    case "clear":
+      return { ...state, items: [] };
+    default:
+      return state;
+  }
+}</code></pre>
+
+          <h3>11.5 useMemo 与 useCallback</h3>
+          <p><code>useMemo</code> 缓存计算结果，<code>useCallback</code> 缓存函数引用。它们不是性能银弹，真正价值通常在两个场景：</p>
+          <ul>
+            <li>计算本身昂贵，依赖没变时避免重复计算。</li>
+            <li>配合 <code>React.memo</code>、依赖数组、context value 等需要稳定引用的地方。</li>
+          </ul>
+          <p>过度使用会增加代码复杂度和依赖维护成本。面试里可以说：优化应该先定位瓶颈，再用 memoization 缩小渲染范围或计算成本。</p>
+
+          <h3>11.6 useRef</h3>
+          <p><code>useRef</code> 返回稳定对象，<code>ref.current</code> 改变不会触发渲染。它适合保存 DOM 引用、计时器 id、最新回调、可变但不参与渲染的数据。</p>
+
+          <h3>11.7 React 19 的 ref as prop</h3>
+          <p>React 19 支持函数组件把 <code>ref</code> 当作普通 prop 接收，未来 <code>forwardRef</code> 会逐步弱化。旧代码仍常见 <code>forwardRef</code>，面试或项目迁移时需要知道两种写法。</p>
+          <pre><code class="language-jsx">function MyInput({ ref, ...props }) {
+  return &lt;input ref={ref} {...props} /&gt;;
+}</code></pre>
+        </section>
+
+        <section id="data-flow">
+          <h2>13. 数据流怎么串起来</h2>
+          <h3>12.1 React 的默认数据流</h3>
+          <p>React 默认是单向数据流：</p>
+          <div class="diagram">父组件 state
+  ↓ props
+子组件渲染
+  ↓ event callback
+调用父组件传下来的 setState / dispatch
+  ↓
+父组件更新
+  ↓
+新的 props 再传给子组件</div>
+          <p>单向数据流的优点是可追踪。UI 是 state 的函数，事件是改变 state 的入口。</p>
+
+          <h3>12.2 props、state、derived state</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>数据类型</th>
+                <th>谁拥有</th>
+                <th>什么时候用</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>props</td>
+                <td>父组件</td>
+                <td>子组件只消费，不直接修改。</td>
+              </tr>
+              <tr>
+                <td>state</td>
+                <td>当前组件</td>
+                <td>组件需要记住随交互变化的数据。</td>
+              </tr>
+              <tr>
+                <td>derived state</td>
+                <td>可从 props/state 计算</td>
+                <td>优先在 render 中计算，不要重复存储。</td>
+              </tr>
+              <tr>
+                <td>server state</td>
+                <td>服务端/缓存层</td>
+                <td>远程数据、缓存、同步、失效重取，通常交给 Query 库或框架 loader。</td>
+              </tr>
+              <tr>
+                <td>external store</td>
+                <td>React 外部</td>
+                <td>Zustand、Redux、浏览器 API、协同状态等。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>12.3 不要滥用 useEffect 派生数据</h3>
+          <pre><code class="language-jsx">// 不推荐：fullName 可以从 props 直接算，不需要 state + effect
+const [fullName, setFullName] = useState("");
+useEffect(() =&gt; {
+  setFullName(firstName + " " + lastName);
+}, [firstName, lastName]);
+
+// 推荐
+const fullName = firstName + " " + lastName;</code></pre>
+          <p>Effect 是用来同步外部系统的，不是 render 数据流的默认工具。很多 React 项目变复杂，是因为把普通计算、事件逻辑、请求状态、DOM 同步都塞进 useEffect，导致数据流绕路。</p>
+
+          <h3>12.4 表单数据流</h3>
+          <p>受控组件把输入值放在 React state 中：</p>
+          <pre><code class="language-jsx">function Form() {
+  const [name, setName] = useState("");
+  return (
+    &lt;input
+      value={name}
+      onChange={e =&gt; setName(e.target.value)}
+    /&gt;
+  );
+}</code></pre>
+          <p>非受控组件把值留在 DOM 中，通过 ref 或表单提交读取。复杂表单库通常会混合使用非受控输入和订阅机制来减少每次输入导致的 React rerender。</p>
+
+          <h3>12.5 React 19 Actions 数据流</h3>
+          <p>Actions 让异步交互，尤其是表单提交，可以进入 React 的 pending、error、optimistic UI 模型。常见链路：</p>
+          <div class="diagram">用户提交 form
+  ↓
+form action / useActionState 包装的 action
+  ↓
+React 标记 pending
+  ↓
+可选 optimistic state 立即更新
+  ↓
+执行异步函数，本地或服务端
+  ↓
+成功：提交真实结果
+失败：回滚/显示错误
+  ↓
+pending 结束</div>
+          <pre><code class="language-jsx">const [error, submitAction, isPending] = useActionState(
+  async (previousError, formData) =&gt; {
+    const name = formData.get("name");
+    return await updateName(name);
+  },
+  null
+);
+
+return (
+  &lt;form action={submitAction}&gt;
+    &lt;input name="name" /&gt;
+    &lt;button disabled={isPending}&gt;Save&lt;/button&gt;
+    {error &amp;&amp; &lt;p&gt;{error}&lt;/p&gt;}
+  &lt;/form&gt;
+);</code></pre>
+
+          <h3>12.6 项目级数据流建议</h3>
+          <ul>
+            <li>局部 UI 状态放组件内，比如弹窗开关、当前 tab、输入草稿。</li>
+            <li>跨多个兄弟组件的状态提升到最近公共父组件。</li>
+            <li>主题、登录用户、语言等低频全局数据用 Context。</li>
+            <li>远程数据用框架 loader、RSC、TanStack Query、SWR 等，不要手写一堆 useEffect 管缓存。</li>
+            <li>高频外部状态用专门 store，并通过 <code>useSyncExternalStore</code> 或库封装保证并发一致性。</li>
+          </ul>
+        </section>
+
+        <section id="events">
+          <h2>14. 事件系统</h2>
+          <h3>13.1 为什么 React 有自己的事件系统</h3>
+          <p>React DOM 的事件系统提供跨浏览器一致性、事件委托、优先级分配和批处理入口。现代 React 通常把事件监听绑定在 root 容器附近，而不是给每个 DOM 节点都绑定真实监听器。</p>
+
+          <h3>13.2 事件到更新优先级</h3>
+          <p>事件系统不只是调用你的 handler。它还会根据事件类型设置当前更新优先级。例如 click、keydown 等离散事件通常对应更高优先级；mousemove、scroll 这种连续事件则需要更平滑处理。</p>
+          <div class="diagram">DOM click
+  ↓
+React synthetic event dispatch
+  ↓
+设置当前事件优先级
+  ↓
+执行 onClick
+  ↓
+setState 获得对应 lane
+  ↓
+调度 root 更新</div>
+
+          <h3>13.3 SyntheticEvent 现在还需要 persist 吗</h3>
+          <p>旧版 React 有事件池，异步访问事件对象时需要 <code>event.persist()</code>。现代 React 已经不再使用那种事件池机制，通常不需要 persist。面试时可以提到这是老版本知识点。</p>
+        </section>
+
+        <section id="context">
+          <h2>15. Context 与外部 Store</h2>
+          <h3>14.1 Context 适合什么</h3>
+          <p>Context 解决的是“跨层传递 props”的问题，适合低频变化、范围明确的依赖，例如主题、国际化、当前用户、权限上下文、表单上下文。</p>
+          <p>Context 不等于状态管理库。Context value 一变化，消费它的组件都可能重新渲染。高频更新的大型状态直接塞 Context，容易造成性能问题。</p>
+
+          <h3>14.2 React 19 的 Context provider 写法</h3>
+          <pre><code class="language-jsx">const ThemeContext = createContext("light");
+
+function App() {
+  return (
+    &lt;ThemeContext value="dark"&gt;
+      &lt;Page /&gt;
+    &lt;/ThemeContext&gt;
+  );
+}</code></pre>
+          <p>旧写法 <code>&lt;ThemeContext.Provider value="dark"&gt;</code> 仍然常见。</p>
+
+          <h3>14.3 useSyncExternalStore</h3>
+          <p>外部 store 最大的问题是并发渲染下可能出现 tearing：同一次渲染中不同组件读到不一致快照。<code>useSyncExternalStore</code> 提供了标准订阅协议：</p>
+          <pre><code class="language-js">const value = useSyncExternalStore(
+  store.subscribe,
+  store.getSnapshot,
+  store.getServerSnapshot
+);</code></pre>
+          <p>状态库可以基于它让 React 在并发模式下安全读取外部数据。</p>
+        </section>
+
+        <section id="suspense">
+          <h2>16. Suspense 与异步</h2>
+          <h3>15.1 Suspense 解决什么</h3>
+          <p>Suspense 的目标是让“某部分 UI 暂时还没准备好”成为 React 树的一部分。它可以用于代码分割、服务端流式渲染、RSC payload、支持 Suspense 的数据读取等。</p>
+          <pre><code class="language-jsx">&lt;Suspense fallback={&lt;Spinner /&gt;}&gt;
+  &lt;Profile /&gt;
+&lt;/Suspense&gt;</code></pre>
+
+          <h3>15.2 throw Promise 心智模型</h3>
+          <p>一个支持 Suspense 的读取函数，如果数据没准备好，可以抛出 promise。React 捕获到 promise 后，会找到最近的 Suspense boundary，显示 fallback，并在 promise resolve 后重试渲染。</p>
+          <div class="diagram">Component render
+  ↓
+read(resource)
+  ↓
+数据未就绪：throw promise
+  ↓
+React 捕获 promise
+  ↓
+显示最近 Suspense fallback
+  ↓
+promise resolve
+  ↓
+重试 boundary 下的渲染</div>
+
+          <h3>15.3 lazy 与代码分割</h3>
+          <pre><code class="language-jsx">const SettingsPage = lazy(() =&gt; import("./SettingsPage"));
+
+function App() {
+  return (
+    &lt;Suspense fallback={&lt;PageSkeleton /&gt;}&gt;
+      &lt;SettingsPage /&gt;
+    &lt;/Suspense&gt;
+  );
+}</code></pre>
+          <p><code>lazy</code> 本质上把动态 import 的 promise 接入 Suspense。模块没加载完时，boundary 显示 fallback。</p>
+
+          <h3>15.4 use API</h3>
+          <p>React 19 的 <code>use</code> API 可以在组件中读取 promise 或 context 等资源。它和普通 Hooks 不完全一样，可以在条件中使用，但仍然要遵守 React 对渲染纯度和资源稳定性的要求。实际项目里是否能用，还取决于框架、数据层和运行环境支持。</p>
+
+          <h3>15.5 Suspense 和 Error Boundary 的关系</h3>
+          <ul>
+            <li>Suspense 捕获 promise，表示“还没准备好”。</li>
+            <li>Error Boundary 捕获 error，表示“出错了”。</li>
+          </ul>
+          <p>真实应用里常把两者组合：加载时显示 skeleton，失败时显示错误恢复 UI。</p>
+        </section>
+
+        <section id="server">
+          <h2>17. SSR、Hydration、Server Components</h2>
+          <h3>16.1 SSR 的核心链路</h3>
+          <div class="diagram">请求到达服务器
+  ↓
+服务器执行 React renderToPipeableStream / renderToReadableStream
+  ↓
+输出 HTML，可能包含 Suspense 分块
+  ↓
+浏览器先显示 HTML
+  ↓
+客户端下载 JS
+  ↓
+hydrateRoot(container, &lt;App /&gt;)
+  ↓
+React 复用现有 DOM，绑定事件，恢复交互</div>
+
+          <h3>16.2 Hydration 是什么</h3>
+          <p>Hydration 不是重新创建 DOM，而是在已有服务端 HTML 上建立 React Fiber 与 DOM 的对应关系，并绑定事件、运行必要逻辑。如果服务端输出和客户端首次渲染不一致，就会出现 hydration mismatch。React 19 改善了 hydration 错误报告，会给出更清晰的 diff 和原因提示。</p>
+
+          <h3>16.3 常见 hydration mismatch 原因</h3>
+          <ul>
+            <li>服务端和客户端条件分支不同，例如 render 中使用 <code>typeof window</code> 改变内容。</li>
+            <li>使用 <code>Date.now()</code>、<code>Math.random()</code> 直接参与首屏渲染。</li>
+            <li>服务端和客户端 locale/timezone 格式化结果不同。</li>
+            <li>外部数据没有把同一份快照传给客户端。</li>
+            <li>无效 HTML 嵌套被浏览器自动修正。</li>
+          </ul>
+
+          <h3>16.4 Streaming SSR</h3>
+          <p>传统 SSR 要等整棵树渲染完再发 HTML。Streaming SSR 可以先发 shell，再随着 Suspense boundary 完成逐步发送内容。这样首字节和首屏可更快，慢数据不会阻塞整页。</p>
+
+          <h3>16.5 React Server Components</h3>
+          <p>Server Components 让组件在服务端执行，并把结果作为一种可合并的组件 payload 发给客户端。它的核心价值：</p>
+          <ul>
+            <li>减少客户端 JS：Server Component 本身不打进客户端 bundle。</li>
+            <li>直接访问服务端资源：数据库、文件系统、私有 API 可以留在服务端。</li>
+            <li>减少数据瀑布：数据读取靠近组件，服务端可以统一调度。</li>
+            <li>保留组件模型：服务端和客户端组件可以组合，但有边界限制。</li>
+          </ul>
+
+          <h3>16.6 Server Component 与 Client Component 边界</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>能力</th>
+                <th>Server Component</th>
+                <th>Client Component</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>运行位置</td>
+                <td>服务端/构建时/框架运行环境</td>
+                <td>浏览器，也可能先在服务端 SSR</td>
+              </tr>
+              <tr>
+                <td>useState/useEffect</td>
+                <td>不能使用</td>
+                <td>可以使用</td>
+              </tr>
+              <tr>
+                <td>访问数据库</td>
+                <td>可以，取决于运行环境</td>
+                <td>不能直接访问私有服务端资源</td>
+              </tr>
+              <tr>
+                <td>事件处理</td>
+                <td>不能直接写浏览器事件 handler</td>
+                <td>可以</td>
+              </tr>
+              <tr>
+                <td>bundle 影响</td>
+                <td>不进入客户端 JS</td>
+                <td>进入客户端 JS</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>注意：<code>"use client"</code> 是 Client Component 边界声明；<code>"use server"</code> 主要用于 Server Actions，并不是“标记 Server Component”的指令。React 官方也特别提示过这个误解。</p>
+
+          <h3>16.7 Server Actions</h3>
+          <p>Server Actions 允许 Client Component 调用在服务端执行的 async function。框架会把服务端函数变成客户端可引用的 reference。客户端调用时，React/框架发送请求到服务端执行，并把结果返回。</p>
+          <div class="diagram">Client Component
+  ↓ 调用 action reference
+框架发请求
+  ↓
+Server Action 在服务端执行
+  ↓
+返回结果 / revalidate / 更新 RSC payload
+  ↓
+客户端合并结果并更新 UI</div>
+
+          <h3>16.8 Partial Pre-rendering 与 resume</h3>
+          <p>React 19.2 提到的 Partial Pre-rendering 思路是：先预渲染静态 shell，把动态部分 postpone，之后在请求时 resume 继续生成流。这类能力离普通业务开发比较远，但面试高阶题可以知道它说明 React 的服务端渲染也在向“可中断、可恢复、可分块”的方向演进。</p>
+        </section>
+
+        <section id="performance">
+          <h2>18. 性能优化</h2>
+          <h3>17.1 先区分三类性能问题</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>类型</th>
+                <th>症状</th>
+                <th>解决方向</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>渲染太多</td>
+                <td>父组件一变，大量子组件跟着 render。</td>
+                <td>拆组件、局部状态、memo、稳定 props、context 分层。</td>
+              </tr>
+              <tr>
+                <td>渲染太慢</td>
+                <td>一次 render 里计算昂贵或列表巨大。</td>
+                <td>useMemo、虚拟列表、Web Worker、分页、降低同步计算。</td>
+              </tr>
+              <tr>
+                <td>提交太重</td>
+                <td>DOM 节点太多、布局抖动、layout effect 阻塞。</td>
+                <td>减少 DOM、避免同步布局读写、CSS 优化、分块显示。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>17.2 React.memo 的适用条件</h3>
+          <p><code>React.memo</code> 会在 props 浅比较相等时跳过函数组件重新渲染。适合：</p>
+          <ul>
+            <li>组件渲染成本明显。</li>
+            <li>props 大多稳定。</li>
+            <li>父组件频繁更新但子组件实际不受影响。</li>
+          </ul>
+          <p>不适合盲目给所有组件套 memo。如果每次都传新对象、新函数，memo 会失效，还增加比较成本。</p>
+
+          <h3>17.3 Context 性能</h3>
+          <pre><code class="language-jsx">// 不推荐：每次 App render 都创建新对象，消费者都可能更新
+&lt;AuthContext value={{ user, logout }}&gt;
+  {children}
+&lt;/AuthContext&gt;
+
+// 改进：稳定 value
+const authValue = useMemo(() =&gt; ({ user, logout }), [user, logout]);
+&lt;AuthContext value={authValue}&gt;{children}&lt;/AuthContext&gt;</code></pre>
+          <p>更进一步，可以拆分 Context：读用户信息的组件不应该因为 theme 改变而 rerender，读权限的组件不应该因为弹窗状态改变而 rerender。</p>
+
+          <h3>17.4 列表性能</h3>
+          <p>大列表优先考虑虚拟滚动。React diff 再快，也不应该让浏览器一次管理几万个 DOM 节点。</p>
+          <ul>
+            <li>使用稳定 key。</li>
+            <li>分页、无限滚动或虚拟列表。</li>
+            <li>避免列表 item 内创建大量闭包和对象，必要时 memo item。</li>
+            <li>避免在 render 中对超大数组做昂贵 filter/sort，可提前索引或 memo。</li>
+          </ul>
+
+          <h3>17.5 Profiler 和 React Performance Tracks</h3>
+          <p>React DevTools Profiler 可以查看组件为什么渲染、渲染耗时、提交耗时。React 19.2 的 Performance Tracks 则把 Scheduler 和 Components 信息放进浏览器性能面板，能看到不同优先级任务、transition、render、effect 等轨迹。高阶性能分析会越来越依赖这些工具，而不是凭感觉加 memo。</p>
+
+          <h3>17.6 常见反模式</h3>
+          <ul>
+            <li>用 effect 同步本可直接计算的派生 state。</li>
+            <li>把所有状态放全局 store，导致更新范围扩大。</li>
+            <li>Context value 每次 render 都是新对象。</li>
+            <li>把 key 写成随机数，导致每次都重建子树。</li>
+            <li>在 render 中执行副作用或修改外部可变对象。</li>
+            <li>把 transition 当 debounce 用。transition 解决优先级，不等于减少触发次数。</li>
+            <li>用 useMemo/useCallback 掩盖组件边界不合理。</li>
+          </ul>
+        </section>
+
+        <section id="compiler">
+          <h2>19. React Compiler</h2>
+          <h3>19.1 React Compiler 解决什么</h3>
+          <p>React Compiler 的目标是自动优化 React 应用中的 memoization，减少手写 <code>React.memo</code>、<code>useMemo</code>、<code>useCallback</code> 的需要。官方文档的说法是：编译器可以自动处理 memoization，让你用更接近普通 React 的写法表达 UI。</p>
+          <p>它不是传统意义上把 JSX 转成 JS 的编译器。Babel/SWC 处理语法转换，而 React Compiler 更像一个理解 React 语义和数据流的优化器。它会分析组件和 Hook 是否纯、依赖是否可追踪，然后插入更细粒度的缓存逻辑。</p>
+
+          <h3>19.2 它和 React.memo 有什么不同</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>能力</th>
+                <th>React.memo</th>
+                <th>React Compiler</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>使用方式</td>
+                <td>手动包组件。</td>
+                <td>构建时自动分析和优化。</td>
+              </tr>
+              <tr>
+                <td>粒度</td>
+                <td>组件级 props 浅比较。</td>
+                <td>可以更细粒度地复用 JSX、计算结果和中间值。</td>
+              </tr>
+              <tr>
+                <td>依赖</td>
+                <td>依赖开发者保持 props 引用稳定。</td>
+                <td>依赖代码符合 React 纯渲染和数据流规则。</td>
+              </tr>
+              <tr>
+                <td>风险</td>
+                <td>过度使用导致代码噪音和比较成本。</td>
+                <td>不符合规则的代码可能被跳过优化，需要 lint 和诊断。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>19.3 Compiler 对面试回答的影响</h3>
+          <p>过去面试常问“为什么要 useCallback”“是不是每个函数都要包 useCallback”。更现代的回答应该是：</p>
+          <div class="answer">
+            手写 memoization 是性能优化工具，不是默认写法。没有 Compiler 时，只有在组件渲染成本高、props 稳定、memo 能实际减少渲染时才使用 React.memo/useMemo/useCallback。有 React Compiler 时，很多常规 memoization 可以交给编译器，但仍要保持组件纯、数据流清晰，并保留少数语义性缓存或库边界需要的手动优化。
+          </div>
+
+          <h3>19.4 Compiler 不会替你解决的问题</h3>
+          <ul>
+            <li>不会自动修复不纯 render，例如 render 中修改外部对象。</li>
+            <li>不会让巨大 DOM 列表变小，虚拟列表仍然需要。</li>
+            <li>不会替你设计正确的状态归属和数据流。</li>
+            <li>不会消除服务端数据请求、网络延迟和缓存失效问题。</li>
+            <li>不会把 transition、Suspense、RSC 这些架构能力自动接进业务。</li>
+          </ul>
+
+          <h3>19.5 面试时怎么说</h3>
+          <p>可以这样概括：React 的运行时仍然是 Fiber、调度、协调、提交这套模型；React Compiler 是构建时优化层，帮助运行时少做不必要的重复渲染和计算。它改变的是“手动 memoization 的必要性”，不是 React 核心工作循环本身。</p>
+        </section>
+
+        <section id="source-reading">
+          <h2>20. 源码阅读路线</h2>
+          <p>React 源码很大，不建议从入口一头扎进去。更好的路线是按“用户 API 到内部流程”逐层读。</p>
+
+          <h3>18.1 推荐路线</h3>
+          <ol>
+            <li><strong>JSX 到 element：</strong>理解 <code>jsx</code> / <code>createElement</code> 产物。</li>
+            <li><strong>createRoot：</strong>理解 FiberRoot、HostRoot Fiber 的创建。</li>
+            <li><strong>root.render：</strong>理解 HostRoot update 如何入队。</li>
+            <li><strong>scheduleUpdateOnFiber：</strong>理解从 Fiber 到 root 的 lane 标记和任务安排。</li>
+            <li><strong>performConcurrentWorkOnRoot：</strong>理解 render work loop。</li>
+            <li><strong>beginWork/completeWork：</strong>理解协调和 Fiber 生成。</li>
+            <li><strong>commitRoot：</strong>理解 DOM mutation、layout/passive effects。</li>
+            <li><strong>Hooks dispatcher：</strong>理解 mount/update Hook 链表与队列。</li>
+            <li><strong>Suspense：</strong>理解 promise 捕获、boundary、retry lane。</li>
+          </ol>
+
+          <h3>18.2 关键源码文件概念</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>模块方向</th>
+                <th>你要关注的内容</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ReactElement</td>
+                <td>element 对象结构、key/ref 处理、JSX runtime。</td>
+              </tr>
+              <tr>
+                <td>ReactFiber</td>
+                <td>Fiber 节点创建、alternate、work-in-progress。</td>
+              </tr>
+              <tr>
+                <td>ReactFiberWorkLoop</td>
+                <td>调度入口、renderRoot、work loop、commitRoot。</td>
+              </tr>
+              <tr>
+                <td>ReactFiberBeginWork</td>
+                <td>不同 tag 的 beginWork 逻辑、bailout、reconcileChildren。</td>
+              </tr>
+              <tr>
+                <td>ReactChildFiber</td>
+                <td>单节点和列表协调、key diff、placement。</td>
+              </tr>
+              <tr>
+                <td>ReactFiberCompleteWork</td>
+                <td>host instance 创建、props 更新准备、flags 冒泡。</td>
+              </tr>
+              <tr>
+                <td>ReactFiberHooks</td>
+                <td>Hook 链表、dispatcher、update queue、effect 链。</td>
+              </tr>
+              <tr>
+                <td>ReactFiberLane</td>
+                <td>lane 位运算、优先级选择、合并与清理。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>18.3 源码阅读时的三个锚点</h3>
+          <ul>
+            <li>永远问：现在是在 render 阶段还是 commit 阶段？</li>
+            <li>永远问：当前处理的是 current tree 还是 work-in-progress tree？</li>
+            <li>永远问：这个更新属于哪个 lane，是否可能被跳过、打断或合并？</li>
+          </ul>
+        </section>
+
+        <section id="interview">
+          <h2>21. 面试高频问答</h2>
+
+          <h3>19.1 React Fiber 是什么？为什么要引入 Fiber？</h3>
+          <div class="answer">
+            Fiber 既是 React 内部的数据结构，也是可调度的工作单元。它保存组件类型、props、state、更新队列、父子兄弟指针、alternate、副作用标记和优先级信息。引入 Fiber 是为了解决旧递归协调不可中断的问题，把一次大渲染拆成多个小单元，使 React 能暂停、恢复、丢弃低优先级工作，并支持并发渲染、Suspense、Transitions 等能力。
+          </div>
+
+          <h3>19.2 React 的 render 和 commit 有什么区别？</h3>
+          <div class="answer">
+            render 阶段是计算阶段，React 调用组件、协调 element 和 Fiber，生成 work-in-progress tree，并标记副作用；这个阶段可以被打断、重试或丢弃，所以必须保持纯。commit 阶段是提交阶段，React 把副作用应用到宿主环境，例如 DOM 插入、删除、属性更新、ref 和 layout effect；这个阶段不可中断，因为要保证用户看到的 UI 一致。
+          </div>
+
+          <h3>19.3 setState 后发生了什么？</h3>
+          <div class="answer">
+            setState 会创建一个 update，分配 lane，并把 update 放入对应 Fiber 的 update queue。React 从该 Fiber 向上找到 FiberRoot，标记 root 上有待处理 lanes，然后通过 Scheduler 安排任务。之后在 render 阶段根据 update queue 计算新 state 和新 Fiber 树，在 commit 阶段把变化提交到 DOM，并在合适时机执行 effects。
+          </div>
+
+          <h3>19.4 为什么函数组件每次执行还能保留 state？</h3>
+          <div class="answer">
+            state 不保存在函数局部变量里，而保存在该组件对应 Fiber 的 Hook 链表中。函数组件重新执行时，React 按 Hook 调用顺序从链表中取出对应 Hook 节点，计算并返回当前状态。因此函数可以反复调用，但状态由 Fiber 保存。
+          </div>
+
+          <h3>19.5 为什么 Hooks 不能放在条件语句里？</h3>
+          <div class="answer">
+            Hooks 依赖调用顺序和 Fiber 上的 Hook 链表匹配。如果某次 render 因条件变化少调用或多调用一个 Hook，后续 Hook 的顺序就会错位，React 会把错误的 Hook 节点当成另一个 Hook 使用，导致状态混乱。因此 Hooks 必须在组件顶层稳定调用。
+          </div>
+
+          <h3>19.6 key 的作用是什么？</h3>
+          <div class="answer">
+            key 用来在同一父节点下标识子节点身份，帮助 React 在前后两次渲染之间判断哪些 Fiber 可以复用。稳定 key 可以避免列表插入、删除、排序时状态错位。key 变化会让 React 认为是不同身份，从而重建对应子树并重置状态。
+          </div>
+
+          <h3>19.7 React.memo、useMemo、useCallback 有什么区别？</h3>
+          <div class="answer">
+            React.memo 缓存组件渲染结果，当 props 浅比较相等时跳过重新渲染。useMemo 缓存一个计算结果，依赖不变时复用值。useCallback 缓存函数引用，本质上相当于 useMemo(() =&gt; fn, deps)。它们都用于减少不必要渲染或计算，但需要稳定依赖和明确瓶颈，不能盲目使用。
+          </div>
+
+          <h3>19.8 useEffect 和 useLayoutEffect 区别？</h3>
+          <div class="answer">
+            useLayoutEffect 在 DOM mutation 后、浏览器绘制前同步执行，适合读取布局并同步调整，但会阻塞绘制。useEffect 是 passive effect，通常在绘制后异步执行，适合订阅、请求、日志等不需要阻塞布局的副作用。默认优先用 useEffect，只有布局相关且必须同步时才用 useLayoutEffect。
+          </div>
+
+          <h3>19.9 React 18/19 的并发渲染是不是多线程？</h3>
+          <div class="answer">
+            不是。React 并发渲染主要是在浏览器主线程上把工作拆分、暂停、恢复和按优先级调度，并不等于自动开多线程。它改善的是调度和响应性，而不是把组件渲染并行到多个 CPU 核心。
+          </div>
+
+          <h3>19.10 startTransition 解决什么问题？</h3>
+          <div class="answer">
+            startTransition 把其中触发的更新标记为非紧急 transition。这样输入、点击等紧急更新可以优先完成，而复杂列表、搜索结果、tab 内容等可延迟 UI 可以被打断或重试。它解决的是更新优先级和交互响应问题，不是 debounce，也不是让代码自动更快。
+          </div>
+
+          <h3>19.11 Suspense 原理是什么？</h3>
+          <div class="answer">
+            Suspense 允许组件在渲染时表示“数据或代码还没准备好”。支持 Suspense 的资源在未就绪时抛出 promise，React 捕获 promise 后找到最近的 Suspense boundary，显示 fallback，并在 promise resolve 后重试渲染。它统一了代码分割、流式 SSR、RSC payload 和部分数据读取的加载状态模型。
+          </div>
+
+          <h3>19.12 SSR 和 Hydration 是什么关系？</h3>
+          <div class="answer">
+            SSR 是服务端先生成 HTML，让浏览器更快看到内容。Hydration 是客户端 React 在已有 HTML 上建立 Fiber 和 DOM 的对应关系，绑定事件并恢复交互。Hydration 要求服务端 HTML 和客户端首次渲染结果一致，否则会出现 mismatch，严重时 React 会丢弃服务端内容并重新客户端渲染。
+          </div>
+
+          <h3>19.13 Server Components 和 SSR 有什么区别？</h3>
+          <div class="answer">
+            SSR 是把组件渲染成 HTML，用来加速首屏和 SEO；客户端仍要下载对应组件 JS 并 hydrate。Server Components 是一种组件分层模型，Server Component 在服务端执行，不进入客户端 bundle，输出的是可与客户端树合并的 payload。SSR 解决“HTML 先到”，RSC 解决“哪些组件和数据逻辑不需要发到客户端”。
+          </div>
+
+          <h3>19.14 Context 为什么可能导致性能问题？</h3>
+          <div class="answer">
+            Context value 变化会让消费该 context 的组件重新渲染。如果把高频变化或巨大对象放进单一 Context，会扩大更新范围。优化方式包括拆分 Context、稳定 value 引用、把高频状态放到外部 store 或更局部的位置。
+          </div>
+
+          <h3>19.15 React 如何保证外部 store 在并发渲染下的一致性？</h3>
+          <div class="answer">
+            React 提供 useSyncExternalStore 作为外部 store 的订阅和快照读取协议。它要求提供 subscribe、getSnapshot 和可选 getServerSnapshot，让 React 能在渲染期间检查快照一致性，避免并发渲染中不同组件读到不一致数据。
+          </div>
+
+          <h3>19.16 为什么不要在 render 中做副作用？</h3>
+          <div class="answer">
+            render 阶段可能被打断、重试、丢弃，也可能在开发 StrictMode 下重复执行。如果在 render 中改 DOM、发请求、修改全局变量，就可能产生重复请求、状态污染或 UI 不一致。副作用应该放在事件处理器、effect、action 或框架的数据层中。
+          </div>
+
+          <h3>19.17 React 中状态更新是同步还是异步？</h3>
+          <div class="answer">
+            更准确地说，状态更新是“被调度的”。setState 会入队 update，而不是立刻修改当前 render 中的 state 变量。React 会根据事件优先级、批处理和 lane 来决定何时渲染。某些同步场景可以很快提交，transition 等更新可能延后或被打断。
+          </div>
+
+          <h3>19.18 为什么组件 state 是快照？</h3>
+          <div class="answer">
+            每次 render 都有自己的 props 和 state 快照。事件处理器闭包捕获的是创建它那次 render 的值，所以在同一个 handler 中多次读取 state，看到的是同一个快照。要基于最新队列状态连续更新，应使用函数式 updater。
+          </div>
+
+          <h3>19.19 class 组件和函数组件生命周期如何对应？</h3>
+          <div class="answer">
+            class 的 componentDidMount/componentDidUpdate/componentWillUnmount 可以用 useEffect 或 useLayoutEffect 的执行和 cleanup 表达。但函数组件不应该机械模拟生命周期，而应该按“这个 effect 同步了哪个外部系统”来拆分 effect。render 逻辑、事件逻辑、外部同步逻辑应分开。
+          </div>
+
+          <h3>19.20 如何排查 React 性能问题？</h3>
+          <div class="answer">
+            先用 React DevTools Profiler 或浏览器 Performance 确认瓶颈在 render、commit 还是浏览器布局绘制。再看是否存在不必要 rerender、昂贵计算、大 DOM 列表、Context 扩散、layout effect 阻塞等问题。优化顺序通常是缩小状态影响范围、拆分组件、稳定引用、memo、虚拟列表、并使用 transition 改善交互响应。
+          </div>
+        </section>
+
+        <section id="cheatsheet">
+          <h2>22. 速记清单</h2>
+          <div class="checklist">
+            <h3>一句话版</h3>
+            <ul>
+              <li>React 是声明式 UI 库，核心是把状态变化调度成 Fiber 树更新，并由 renderer 提交到宿主环境。</li>
+              <li>JSX 编译成 element，element 生成 Fiber，Fiber 保存运行时状态和工作进度。</li>
+              <li>更新从 setState 进入 updateQueue，被分配 lane，然后调度 root。</li>
+              <li>render 阶段可中断，负责计算；commit 阶段不可中断，负责提交。</li>
+              <li>Hooks 状态在 Fiber.memoizedState 链表中，靠调用顺序匹配。</li>
+              <li>key 决定同一父节点下的身份，影响复用和状态保留。</li>
+              <li>Suspense 捕获 promise，Error Boundary 捕获 error。</li>
+              <li>SSR 输出 HTML，hydration 恢复交互，RSC 减少客户端 JS 并把服务端数据逻辑留在服务端。</li>
+              <li>性能优化先测量，再缩小更新范围，最后使用 memo、虚拟列表和 transition 等工具。</li>
+            </ul>
+          </div>
+
+          <h3>面试回答模板</h3>
+          <p>遇到 React 原理题，可以按这个顺序回答：</p>
+          <ol>
+            <li>先说用户层现象：调用了什么 API，表现是什么。</li>
+            <li>再说内部数据结构：element、Fiber、Hook、update、lane、effect。</li>
+            <li>再说流程：触发更新 → 调度 → render → commit。</li>
+            <li>最后说边界和取舍：可中断/不可中断、优先级、性能影响、项目实践。</li>
+          </ol>
+
+          <h3>项目实践判断题</h3>
+          <ul>
+            <li>输入卡顿但结果列表复杂：用 transition、useDeferredValue、虚拟列表。</li>
+            <li>组件无故重渲染：查父组件 state、props 引用、Context value、memo 是否失效。</li>
+            <li>表单切换用户后草稿没清空：检查 key 或状态归属。</li>
+            <li>SSR hydration 报错：检查随机数、时间、locale、window 分支、服务端数据快照。</li>
+            <li>effect 无限循环：检查依赖数组里是否有每次 render 都新建的对象/函数，或者 effect 内是否无条件 setState。</li>
+            <li>全局状态更新导致整页动：拆分 store selector、Context、状态归属。</li>
+          </ul>
+        </section>
+
+        <section id="sources">
+          <h2>23. 参考资料</h2>
+          <p>这份资料结合 React 官方文档和发布说明整理，重点参考：</p>
+          <ul class="source-list">
+            <li><a href="https://react.dev/learn/render-and-commit">React Docs: Render and Commit</a></li>
+            <li><a href="https://react.dev/learn/preserving-and-resetting-state">React Docs: Preserving and Resetting State</a></li>
+            <li><a href="https://react.dev/blog/2024/12/05/react-19">React Blog: React 19</a></li>
+            <li><a href="https://react.dev/blog/2025/10/01/react-19-2">React Blog: React 19.2</a></li>
+            <li><a href="https://react.dev/reference/react">React API Reference</a></li>
+            <li><a href="https://react.dev/learn/react-compiler">React Docs: React Compiler</a></li>
+          </ul>
+          <p class="small">最后更新：2026-05-28。React 生态更新很快，面试准备时建议关注当前项目所用版本。React 18、19 和 19.2 的能力边界不完全相同，回答时最好带上版本上下文。</p>
+        </section>
+      </div>
+    </main>
+  </div>
+
+
+</body></html>

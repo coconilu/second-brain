@@ -32,6 +32,13 @@
 - [前端工程师的 AI 工具兵器谱：Skills、MCP、Agent、Plugin 全解析](ai-toolkit-for-frontend/index.md) — 面向 Claude Code/OpenCode 的深度工具指南，含完整配置示例。
 - [前端 AI 工具速查手册](ai-toolkit-for-frontend/cheatsheet.md) — 四层模型速查、MCP 安装命令表、场景工具映射、最小可用配置。
 
+## 前端框架学习
+
+- [React 框架系统学习：架构、运行机制、核心数据结构与面试资料](react-deep-dive/) `HTML`{target="_self"} — 系统梳理 React 架构、运行机制、核心数据结构和面试要点。
+- [Vue 框架深度解析 · 面试通关手册](vue-deep-dive/) `HTML`{target="_self"} — 面向 Vue 原理、响应式机制和面试复盘的深度学习资料。
+- [Next.js 系统精讲 · 架构 · 运行 · 数据结构 · 数据流](nextjs-complete-guide/) `HTML`{target="_self"} — 从架构、运行时、数据结构和数据流理解 Next.js。
+- [Nuxt 框架深度教学 · 架构 / 运行时 / 数据结构 / 数据流](nuxt-guide/) `HTML`{target="_self"} — 围绕 Nuxt 架构、运行时和数据流展开的系统讲义。
+
 ## 思考与趋势
 
 - [AI 时代，我们不要想好再做，而是边做边想边改](ai-era-think-by-doing/index.md) — 关于提示词焦虑、AI 协作和迭代式思考的感悟。
@@ -53,6 +60,10 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
+- [React 框架系统学习：架构、运行机制、核心数据结构与面试资料](react-deep-dive/) `HTML`{target="_self"}
+- [Vue 框架深度解析 · 面试通关手册](vue-deep-dive/) `HTML`{target="_self"}
+- [Next.js 系统精讲 · 架构 · 运行 · 数据结构 · 数据流](nextjs-complete-guide/) `HTML`{target="_self"}
+- [Nuxt 框架深度教学 · 架构 / 运行时 / 数据结构 / 数据流](nuxt-guide/) `HTML`{target="_self"}
 - [蒸馏人技术 · 教案 LP-2026-04](蒸馏人技术教案/) `HTML`{target="_self"}
 - [Harness Engineering 深度教案 · 从提示词到工程化](harness-engineering-lesson-plan/) `HTML`{target="_self"}
 - [Agent 设计模式教学文案](agent-design-patterns/) `HTML`{target="_self"}
