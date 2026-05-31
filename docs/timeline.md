@@ -4,6 +4,10 @@
 
 ## 2026-05
 
+- [LM Studio 开发者文档 · 教案](lmstudio-teaching/) `HTML`{target="_self"}
+- [大模型术语图鉴](llm-glossary/) `HTML`{target="_self"}
+- [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"}
+- [前端团队接入 Visual Regression Review：从一个最小流程开始](visual-regression-review/visual-regression-review-guide.md)
 - [2026 终端工具选型：Ghostty、cmux、tmux、Zellij、Warp 怎么选](terminal-tools-2026/index.md)
 - [CodeGraph：给 AI 编程助手的本地代码知识图谱](codegraph/index.md)
 - [Next.js 系统精讲 · 架构 · 运行 · 数据结构 · 数据流](nextjs-complete-guide/) `HTML`{target="_self"}

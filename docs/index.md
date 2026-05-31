@@ -4,6 +4,7 @@
 
 ## 工具操作指南
 
+- [LM Studio 开发者文档 · 教案](lmstudio-teaching/) `HTML`{target="_self"} — 面向开发者系统讲解本地模型加载、API 调用、结构化输出和工具调用等 LM Studio 工作流。
 - [2026 终端工具选型：Ghostty、cmux、tmux、Zellij、Warp 怎么选](terminal-tools-2026/index.md) — 按终端模拟器、复用器、AI agent 工作台和进程管理四层梳理终端工具组合。
 - [tmux：从一个例子开始](tmux/index.md) — 用会话、窗口、面板搭建稳定的终端工作台。
 - [Claude Code Hooks：从一个例子开始](claude-code-hooks/claude-code-hooks-use.md) — 从自动 lint 入门 hooks。
@@ -17,6 +18,7 @@
 
 ## Agent 架构与协作
 
+- [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"} — 讨论单 Agent 如何动态规划、委派、回收上下文，并协同一组专门化子 Agent 完成复杂任务。
 - [Agent 设计模式互动教学稿](agent-design-patterns/) `HTML`{target="_self"} — 用交互式单页讲解感知、记忆、推理、行动、反思、协作六类 Agent 模式。
 - [从 sub-agent 到 agent-team：三个台阶，三套心智模型](claude-sub-agent/sub-agent-and-agent-team.md) — 偏概念和心智模型。
 - [Sub-agent 和 Agent-team：从一个例子开始](claude-sub-agent/sub-agent-and-agent-team-guide.md) — 偏操作和落地模板。
@@ -31,6 +33,7 @@
 
 ## AI 工具生态
 
+- [大模型术语图鉴](llm-glossary/) `HTML`{target="_self"} — 以可检索图鉴形式解释大模型基础术语、训练推理概念和工程实践关键词。
 - [CodeGraph：给 AI 编程助手的本地代码知识图谱](codegraph/index.md) — 用本地知识图谱和 MCP 帮助 Agent 理解代码库、追踪调用链和分析影响范围。
 - [前端工程师的 AI 工具兵器谱：Skills、MCP、Agent、Plugin 全解析](ai-toolkit-for-frontend/index.md) — 面向 Claude Code/OpenCode 的深度工具指南，含完整配置示例。
 - [前端 AI 工具速查手册](ai-toolkit-for-frontend/cheatsheet.md) — 四层模型速查、MCP 安装命令表、场景工具映射、最小可用配置。
@@ -41,6 +44,10 @@
 - [Vue 框架深度解析 · 面试通关手册](vue-deep-dive/) `HTML`{target="_self"} — 面向 Vue 原理、响应式机制和面试复盘的深度学习资料。
 - [Next.js 系统精讲 · 架构 · 运行 · 数据结构 · 数据流](nextjs-complete-guide/) `HTML`{target="_self"} — 从架构、运行时、数据结构和数据流理解 Next.js。
 - [Nuxt 框架深度教学 · 架构 / 运行时 / 数据结构 / 数据流](nuxt-guide/) `HTML`{target="_self"} — 围绕 Nuxt 架构、运行时和数据流展开的系统讲义。
+
+## 前端工程实践
+
+- [前端团队接入 Visual Regression Review：从一个最小流程开始](visual-regression-review/visual-regression-review-guide.md) — 用 Playwright 截图、像素对比和 PR 评论搭建最小可落地的视觉回归审查流程。
 
 ## 思考与趋势
 
@@ -63,6 +70,9 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
+- [LM Studio 开发者文档 · 教案](lmstudio-teaching/) `HTML`{target="_self"}
+- [大模型术语图鉴](llm-glossary/) `HTML`{target="_self"}
+- [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"}
 - [Next.js 系统精讲 · 架构 · 运行 · 数据结构 · 数据流](nextjs-complete-guide/) `HTML`{target="_self"}
 - [Nuxt 框架深度教学 · 架构 / 运行时 / 数据结构 / 数据流](nuxt-guide/) `HTML`{target="_self"}
 - [React 框架系统学习：架构、运行机制、核心数据结构与面试资料](react-deep-dive/) `HTML`{target="_self"}

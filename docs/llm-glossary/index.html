@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大模型术语图鉴</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e0d0b;
+    --bg-soft:#16140f;
+    --card:#1c1a14;
+    --card-hover:#221f17;
+    --ink:#f2ebd9;
+    --ink-soft:#b3aa92;
+    --ink-faint:#7a7460;
+    --accent:#e8a33d;
+    --accent-2:#6fae8f;
+    --accent-3:#d2664a;
+    --line:#2e2a20;
+    --code-bg:#000;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans SC',sans-serif;
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(232,163,61,.08), transparent 40%),
+      radial-gradient(circle at 88% 92%, rgba(111,174,143,.06), transparent 45%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:980px;margin:0 auto;padding:0 24px;}
+
+  /* HEADER */
+  header{padding:90px 0 50px;border-bottom:1px solid var(--line);}
+  .kicker{
+    font-family:'JetBrains Mono',monospace;
+    font-size:.7rem;letter-spacing:.32em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:22px;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:900;
+    font-size:clamp(2.6rem,7vw,5rem);
+    line-height:.98;
+    letter-spacing:-.02em;
+    margin-bottom:26px;
+  }
+  h1 em{color:var(--accent);font-style:italic;}
+  .lede{
+    font-size:1.12rem;color:var(--ink-soft);max-width:60ch;font-weight:300;
+  }
+
+  /* SEARCH */
+  .search-bar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(14,13,11,.86);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+    padding:14px 0;
+    margin-bottom:14px;
+  }
+  .search-inner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+  #search{
+    flex:1;min-width:220px;
+    background:var(--card);
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:12px 16px;border-radius:10px;
+    font-family:'Noto Sans SC',sans-serif;font-size:.95rem;
+    outline:none;transition:border-color .2s;
+  }
+  #search:focus{border-color:var(--accent);}
+  #search::placeholder{color:var(--ink-faint);}
+  .count{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--ink-faint);white-space:nowrap;}
+
+  /* CATEGORY NAV */
+  .catnav{display:flex;gap:8px;flex-wrap:wrap;margin:26px 0 10px;}
+  .catnav button{
+    background:transparent;border:1px solid var(--line);color:var(--ink-soft);
+    padding:7px 15px;border-radius:30px;cursor:pointer;font-size:.82rem;
+    font-family:'Noto Sans SC',sans-serif;transition:all .18s;
+  }
+  .catnav button:hover{border-color:var(--accent);color:var(--ink);}
+  .catnav button.active{background:var(--accent);border-color:var(--accent);color:#1a1100;font-weight:500;}
+
+  /* SECTION */
+  section{padding:46px 0 10px;scroll-margin-top:80px;}
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:30px;}
+  .sec-num{
+    font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--accent);
+    border:1px solid var(--accent);border-radius:6px;padding:3px 9px;
+  }
+  .sec-head h2{
+    font-family:'Fraunces',serif;font-weight:600;font-size:clamp(1.6rem,3.5vw,2.3rem);
+    letter-spacing:-.01em;
+  }
+
+  /* TERM CARD */
+  .term{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:3px solid var(--accent);
+    border-radius:12px;
+    padding:24px 26px;
+    margin-bottom:16px;
+    transition:transform .2s,border-color .2s,background .2s;
+  }
+  .term:hover{transform:translateX(4px);background:var(--card-hover);border-left-color:var(--accent-2);}
+  .term-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
+  .term-name{font-family:'Fraunces',serif;font-weight:600;font-size:1.35rem;color:var(--ink);}
+  .term-en{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--accent);letter-spacing:.02em;}
+  .term-body{color:var(--ink-soft);font-size:.98rem;}
+  .term-body strong{color:var(--ink);font-weight:500;}
+  .analogy{
+    margin-top:14px;padding:12px 16px;
+    background:var(--bg-soft);border-radius:8px;
+    border-left:2px solid var(--accent-2);
+    font-size:.92rem;color:var(--ink-soft);
+  }
+  .analogy::before{content:"🔑 打个比方 ";color:var(--accent-2);font-weight:500;font-size:.82rem;}
+  code{
+    font-family:'JetBrains Mono',monospace;
+    background:var(--code-bg);color:var(--accent);
+    padding:2px 7px;border-radius:5px;font-size:.85em;
+    border:1px solid var(--line);
+  }
+
+  /* TABLE */
+  .qtable{width:100%;border-collapse:collapse;margin-top:14px;font-size:.88rem;}
+  .qtable th,.qtable td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);}
+  .qtable th{color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:600;}
+  .qtable td{color:var(--ink-soft);}
+  .qtable code{font-size:.82em;}
+
+  /* ANATOMY */
+  .anatomy{margin-top:16px;}
+  code.big{
+    display:block;font-family:'JetBrains Mono',monospace;
+    font-size:clamp(.85rem,2.2vw,1.05rem);
+    color:var(--accent);background:var(--code-bg);
+    border:1px solid var(--line);border-radius:8px;
+    padding:14px 16px;margin-bottom:16px;word-break:break-all;line-height:1.5;
+  }
+  .anatomy-list{list-style:none;display:grid;gap:8px;}
+  .anatomy-list li{display:flex;gap:12px;align-items:baseline;color:var(--ink-soft);font-size:.92rem;flex-wrap:wrap;}
+  .anatomy-list .seg{
+    font-family:'JetBrains Mono',monospace;font-size:.82rem;
+    color:var(--accent-3);background:rgba(210,102,74,.12);
+    border:1px solid rgba(210,102,74,.3);border-radius:5px;
+    padding:2px 8px;min-width:80px;text-align:center;flex-shrink:0;
+  }
+  .name-table code{font-size:.78em;margin-right:3px;}
+  .name-table td:first-child{min-width:130px;}
+
+  .no-result{text-align:center;color:var(--ink-faint);padding:60px 0;font-style:italic;display:none;}
+
+  footer{
+    margin-top:70px;padding:40px 0 80px;border-top:1px solid var(--line);
+    color:var(--ink-faint);font-size:.82rem;text-align:center;
+  }
+  footer span{color:var(--accent);}
+  .hidden{display:none!important;}
+
+  ::selection{background:var(--accent);color:#1a1100;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="kicker">从零开始 · LLM 词典</div>
+    <h1>大模型术语<br><em>图鉴</em></h1>
+    <p class="lede">玩本地模型、刷 AI 新闻、逛 Hugging Face 时总会撞见一堆缩写和黑话。这里把它们按主题拢在一起，用大白话讲明白，再配个生活里的比方。看不懂某个词的时候，回来搜一下就行。</p>
+  </div>
+</header>
+
+<div class="search-bar">
+  <div class="wrap search-inner">
+    <input id="search" type="text" placeholder="🔍 搜术语，比如「量化」「GGUF」「MoE」「上下文」…">
+    <span class="count" id="count"></span>
+  </div>
+  <div class="wrap">
+    <div class="catnav" id="catnav"></div>
+  </div>
+</div>
+
+<main class="wrap" id="content">
+
+  <!-- 1 模型基础 -->
+  <section data-cat="模型基础" id="cat-1">
+    <div class="sec-head"><span class="sec-num">01</span><h2>模型基础概念</h2></div>
+
+    <div class="term" data-terms="大语言模型 LLM 大模型 language model">
+      <div class="term-head"><span class="term-name">大语言模型</span><span class="term-en">LLM · Large Language Model</span></div>
+      <div class="term-body">用海量文本训练出来的 AI 模型，核心本事是<strong>预测下一个词</strong>。把这个本事用到极致，就能聊天、写代码、翻译、总结。我们平时说的「大模型」基本都指它。</div>
+      <div class="analogy">像一个读遍了全网文章的人，你说半句，他能自然地把后半句接下去——只不过他接得又快又广。</div>
+    </div>
+
+    <div class="term" data-terms="参数 parameters 参数量 7B 70B billion">
+      <div class="term-head"><span class="term-name">参数 / 参数量</span><span class="term-en">Parameters</span></div>
+      <div class="term-body">模型内部可调的「旋钮」数量，决定了模型有多大、多聪明。常用 <code>B</code>(Billion，十亿) 标记，比如 <code>7B</code> = 70 亿参数、<code>70B</code> = 700 亿。参数越多通常越强，但也越吃内存、跑得越慢。</div>
+      <div class="analogy">就像大脑里的神经连接数。连接越多，能记住和处理的东西越复杂，但「养」起来也越费劲。</div>
+    </div>
+
+    <div class="term" data-terms="权重 weights safetensors 模型文件">
+      <div class="term-head"><span class="term-name">权重</span><span class="term-en">Weights</span></div>
+      <div class="term-body">就是那些参数训练完之后存下来的<strong>具体数值</strong>，是模型的「本体」。下载一个模型，本质上就是在下它的权重文件（常见格式 <code>.safetensors</code>）。<strong>开源权重 (open-weights)</strong> 指厂商把这些文件公开放出来让你下。</div>
+      <div class="analogy">如果模型结构是「菜谱」，权重就是「调好的精确用量」。拿到用量，你在自家厨房也能复刻这道菜。</div>
+    </div>
+
+    <div class="term" data-terms="预训练 pretraining 微调 fine-tuning SFT 训练">
+      <div class="term-head"><span class="term-name">预训练 / 微调</span><span class="term-en">Pretraining · Fine-tuning</span></div>
+      <div class="term-body"><strong>预训练</strong>：用全网海量数据从头培养出一个「通才」，成本极高。<strong>微调</strong>：在通才基础上用小批专门数据「补课」，让它擅长某个具体任务（比如客服、医疗）。<code>SFT</code>（监督微调）是最常见的一种微调方式。</div>
+      <div class="analogy">预训练 = 读完十二年义务教育的通识；微调 = 毕业后进某个行业岗前培训。</div>
+    </div>
+
+    <div class="term" data-terms="基座模型 base instruct chat 指令模型 对话模型">
+      <div class="term-head"><span class="term-name">基座模型 vs 指令模型</span><span class="term-en">Base · Instruct / Chat</span></div>
+      <div class="term-body">下载时常看到同名模型有 <code>base</code> 和 <code>instruct</code>(或 <code>chat</code>) 两个版本。<strong>Base</strong> 只会续写、不懂「听指令」；<strong>Instruct/Chat</strong> 经过对齐训练，能听懂你的要求并对话。日常聊天选 Instruct 版准没错。</div>
+    </div>
+  </section>
+
+  <!-- 2 架构 -->
+  <section data-cat="模型架构" id="cat-2">
+    <div class="sec-head"><span class="sec-num">02</span><h2>架构与原理</h2></div>
+
+    <div class="term" data-terms="Transformer 注意力 attention 架构">
+      <div class="term-head"><span class="term-name">Transformer</span><span class="term-en">变换器架构</span></div>
+      <div class="term-body">几乎所有现代大模型的底层架构（GPT 里的 T 就是它）。核心是<strong>注意力机制 (Attention)</strong>：处理一句话时，让模型自动判断每个词该「重点关注」哪些其他词。</div>
+      <div class="analogy">读「它跳上了沙发」时，你会自动把「它」和前文的「猫」联系起来——注意力机制干的就是这件事。</div>
+    </div>
+
+    <div class="term" data-terms="MoE 混合专家 mixture of experts 激活参数 active">
+      <div class="term-head"><span class="term-name">混合专家</span><span class="term-en">MoE · Mixture of Experts</span></div>
+      <div class="term-body">一种省力的架构：模型里养着很多个「专家」子网络，但每次回答<strong>只唤醒其中一小部分</strong>。所以你会看到「总参数 196B、激活 11B」这种说法——块头大、实际干活时却很省。</div>
+      <div class="analogy">像一家大医院有很多科室专家，你来看病只挂相关的两三个号，不用惊动全院所有医生。</div>
+    </div>
+
+    <div class="term" data-terms="token 词元 分词 tokenizer 上下文窗口 context window 256k">
+      <div class="term-head"><span class="term-name">Token / 上下文窗口</span><span class="term-en">Token · Context Window</span></div>
+      <div class="term-body"><strong>Token（词元）</strong>是模型处理文本的最小单位，大致是「一个词或半个词」。<strong>上下文窗口</strong>指模型一次能「记住」的 token 上限，比如 <code>256k</code> 表示约 25 万 token。窗口越大，能塞进去的资料、对话越多，超出就会「忘掉」开头。</div>
+      <div class="analogy">上下文窗口像桌面大小：桌子越大，能同时摊开的文件越多；摆满了，旧文件就得先收走。</div>
+    </div>
+
+    <div class="term" data-terms="多模态 multimodal 视觉 vision 图像 音频">
+      <div class="term-head"><span class="term-name">多模态</span><span class="term-en">Multimodal</span></div>
+      <div class="term-body">指模型不止能处理文字，还能「看懂」图片、「听懂」音频甚至视频。比如能描述一张照片、识别语音情绪的模型，就是多模态的。</div>
+    </div>
+
+    <div class="term" data-terms="推理模型 reasoning 思维链 CoT chain of thought 思考">
+      <div class="term-head"><span class="term-name">推理模型 / 思维链</span><span class="term-en">Reasoning · CoT (Chain of Thought)</span></div>
+      <div class="term-body"><strong>思维链</strong>指模型在给答案前，先一步步「想」出推理过程，复杂问题更不容易答错。专门强化了这种能力的模型叫<strong>推理模型</strong>（常见名字带 <code>R1</code>、<code>o</code> 系列等）。</div>
+      <div class="analogy">解数学题时先写草稿再写答案，而不是张口就报结果。</div>
+    </div>
+  </section>
+
+  <!-- 3 本地部署 -->
+  <section data-cat="本地运行" id="cat-3">
+    <div class="sec-head"><span class="sec-num">03</span><h2>本地运行 & 文件格式</h2></div>
+
+    <div class="term" data-terms="GGUF 格式 llama.cpp ollama lm studio">
+      <div class="term-head"><span class="term-name">GGUF</span><span class="term-en">模型文件格式</span></div>
+      <div class="term-body">专为<strong>在个人电脑上跑大模型</strong>设计的打包格式，由 <code>llama.cpp</code> 项目推出。它把权重和必要信息装进一个文件，<strong>LM Studio、Ollama</strong> 这类工具拿来就能直接加载。它们只认 GGUF——没做成 GGUF 的模型，这些工具就用不了。</div>
+      <div class="analogy">像把家具拆装好打包成一个「宜家箱」，普通人在家就能轻松组起来，不用专业工具。</div>
+    </div>
+
+    <div class="term" data-terms="量化 quantization Q4 Q8 Q5_K_M 精度">
+      <div class="term-head"><span class="term-name">量化</span><span class="term-en">Quantization</span></div>
+      <div class="term-body">把模型权重从高精度数字（如 16 位）压缩成低精度（如 4/5/8 位），<strong>大幅减小体积和内存占用</strong>，代价是精度略降（通常感知不强）。这是大模型能在家用电脑跑起来的关键。</div>
+      <table class="qtable">
+        <tr><th>标记</th><th>含义</th><th>取舍</th></tr>
+        <tr><td><code>Q4_K_M</code></td><td>4 位量化</td><td>最常用，体积小、质量均衡</td></tr>
+        <tr><td><code>Q5_K_M</code></td><td>5 位量化</td><td>质量更好，文件稍大</td></tr>
+        <tr><td><code>Q8_0</code></td><td>8 位量化</td><td>接近原版，文件最大</td></tr>
+      </table>
+      <div class="analogy">像把无损音乐压成 MP3：文件小了一大圈，大多数人听不出区别，发烧友才在意那点损失。</div>
+    </div>
+
+    <div class="term" data-terms="imatrix importance matrix 重要性矩阵 IQ4 IQ3 校准 i1">
+      <div class="term-head"><span class="term-name">imatrix 重要性矩阵</span><span class="term-en">Importance Matrix</span></div>
+      <div class="term-body">一种<strong>免费提升量化质量</strong>的技术。普通量化把所有权重一视同仁地压缩，而 imatrix 先用一批校准数据算出「哪些权重更关键」，量化时<strong>给关键权重多留精度、把损失集中到不重要的地方</strong>。它<strong>不增加文件体积</strong>，越是低位量化(Q2/Q3/Q4)效果越明显。文件名带 <code>IQ4_XS</code>、<code>imatrix</code> 或 <code>-i1-</code> 的就是它（I = importance）。</div>
+      <div class="analogy">同样的预算装修房子：与其每个房间都刷一样档次的漆，不如把好材料集中用在客厅这种最显眼的地方。</div>
+    </div>
+
+    <div class="term" data-terms="精度 precision FP32 FP16 BF16 全精度 半精度 浮点 bit 位" style="border-left-color:var(--accent-3);">
+      <div class="term-head"><span class="term-name">精度 / FP32 · FP16 · BF16</span><span class="term-en">Precision</span></div>
+      <div class="term-body">指模型里每个数字用<strong>多少个比特(bit)来表示</strong>。位数越多越精确，但越占空间。<code>FP32</code>(32位)是最完整的「全精度」；<code>FP16</code>/<code>BF16</code>(16位)是常见的「半精度」，质量几乎无损但体积减半，<strong>是大多数模型的原始发布精度</strong>，也是后续各种量化的起点。下载到带 <code>BF16</code> 的版本，意味着它没被压缩、最大最准、最吃内存。</div>
+      <div class="analogy">像照片分辨率：4000 万像素清晰但占空间，压到 1000 万像素肉眼几乎看不出差，文件却小很多。</div>
+    </div>
+
+    <div class="term" data-terms="FP8 8位 浮点 量化 精度 显卡">
+      <div class="term-head"><span class="term-name">FP8</span><span class="term-en">8 位浮点</span></div>
+      <div class="term-body">把数字压到 <strong>8 位浮点</strong>，体积约为 BF16 的一半，<strong>质量损失通常很小</strong>，是目前数据中心/高端显卡上很流行的高效格式。和前面 GGUF 里的 <code>Q8</code> 思路类似（都是 8 位左右），但 FP8 是浮点方案、主要面向 NVIDIA 较新的显卡硬件加速，常见于服务器和 API 部署。</div>
+    </div>
+
+    <div class="term" data-terms="NVFP4 FP4 4位 NVIDIA Blackwell 浮点 量化 微缩放">
+      <div class="term-head"><span class="term-name">NVFP4</span><span class="term-en">NVIDIA 4 位浮点</span></div>
+      <div class="term-body">NVIDIA 推出的 4 位浮点格式，专为现代 GPU 上的高性能推理设计。它把数字压到约 4 位，相比 FP16 内存占用约缩小 3.5 倍、相比 FP8 约省 1.8 倍，难得的是在较大模型上仍能保持接近 BF16 的精度。诀窍是<strong>分组+多级缩放</strong>(每 16 个数一组、配独立缩放因子)来减少误差。它随 NVIDIA Blackwell 架构 GPU 引入，主要在这类新显卡上才能发挥硬件加速。</div>
+      <div class="analogy">同样是把行李压缩进小箱子，普通 4 位方案是硬塞容易压坏，NVFP4 像分门别类、每格单独抽真空，又小又不伤东西。</div>
+    </div>
+
+    <div class="term" data-terms="精度格式 对比 总览 一图流 GGUF FP8 NVFP4 BF16 选哪个 区别">
+      <div class="term-head"><span class="term-name">这些格式怎么选</span><span class="term-en">一图看懂</span></div>
+      <div class="term-body">你在一个模型页面常会看到 BF16 / FP8 / NVFP4 / GGUF 几个下载版本并列(就像 Step-3.7-Flash 那样)。它们是<strong>同一个模型的不同精度/格式打包</strong>，按你的硬件和工具挑一个即可：</div>
+      <table class="qtable name-table">
+        <tr><th>版本</th><th>大致位数</th><th>体积</th><th>适合</th></tr>
+        <tr><td><code>BF16</code>/<code>FP16</code></td><td>16 位</td><td>最大</td><td>原始全量版，多卡/做微调或再量化</td></tr>
+        <tr><td><code>FP8</code></td><td>8 位</td><td>约一半</td><td>较新 N 卡，质量几乎无损</td></tr>
+        <tr><td><code>NVFP4</code></td><td>约 4 位</td><td>很小</td><td>Blackwell 新卡，省显存还保精度</td></tr>
+        <tr><td><code>GGUF</code></td><td>2~8 位可选</td><td>可大可小</td><td>个人电脑，配 LM Studio / Ollama</td></tr>
+      </table>
+      <div class="term-body" style="margin-top:14px;"><strong>一句话：</strong>家里普通电脑想跑 → 选 <code>GGUF</code>；有高端 N 卡或在服务器上 → 看显卡支持选 <code>FP8</code> 或 <code>NVFP4</code>；要做二次开发/微调 → 拿 <code>BF16</code> 原版。</div>
+    </div>
+
+    <div class="term" data-terms="LM Studio Ollama 本地工具 推理引擎">
+      <div class="term-head"><span class="term-name">LM Studio / Ollama</span><span class="term-en">本地运行工具</span></div>
+      <div class="term-body">让你在自己电脑上下载、运行大模型的桌面/命令行工具，底层多用 <code>llama.cpp</code>。好处是<strong>免费、隐私（数据不出本机）、可离线</strong>；门槛是吃内存/显存，大模型对硬件要求高。</div>
+    </div>
+
+    <div class="term" data-terms="显存 VRAM 内存 RAM GPU 硬件要求">
+      <div class="term-head"><span class="term-name">显存 / 内存</span><span class="term-en">VRAM · RAM</span></div>
+      <div class="term-body">能不能本地跑某模型，主要看<strong>显存(VRAM，显卡上的内存)或内存(RAM)够不够装下它</strong>。粗略经验：模型量化后文件多大，就大致需要多少 + 一点余量。装不下就会很慢甚至跑不动。</div>
+      <div class="analogy">显存像工作台面积，模型像要摊开的图纸。台子不够大，图纸就铺不开。</div>
+    </div>
+
+    <div class="term" data-terms="Hugging Face HF 模型库 仓库 repo">
+      <div class="term-head"><span class="term-name">Hugging Face</span><span class="term-en">模型托管平台</span></div>
+      <div class="term-body">业内最大的开源模型「应用商店」，绝大多数开源模型权重（含 GGUF 版本）都放在这里下载。找模型、看说明、对比量化版本，第一站通常就是它。</div>
+    </div>
+  </section>
+
+  <!-- 4 llama.cpp 生态 -->
+  <section data-cat="llama.cpp" id="cat-llamacpp">
+    <div class="sec-head"><span class="sec-num">04</span><h2>认识 llama.cpp</h2></div>
+
+    <div class="term" data-terms="llama.cpp 推理引擎 ggerganov C++ 开源 底层" style="border-left-color:var(--accent-3);">
+      <div class="term-head"><span class="term-name">llama.cpp 是什么</span><span class="term-en">本地推理引擎</span></div>
+      <div class="term-body">一个用 <code>C/C++</code> 写的<strong>开源推理引擎</strong>，目标是让大模型<strong>在普通设备上跑起来</strong>——不用昂贵显卡，纯 CPU 也行，手机、树莓派都能跑。它是整个本地大模型生态的「发动机」：<strong>GGUF 格式、量化方案、imatrix</strong> 这些前面讲过的东西，几乎都源自这个项目。</div>
+      <div class="analogy">它就像汽车的发动机。你平时开的是 LM Studio、Ollama 这些「整车」，但盖子掀开，里面装的多半是 llama.cpp 这台引擎。</div>
+    </div>
+
+    <div class="term" data-terms="为什么重要 生态 上游 GGUF 量化 来源">
+      <div class="term-head"><span class="term-name">为什么到处都提到它</span><span class="term-en">Why it matters</span></div>
+      <div class="term-body">因为你接触的很多东西都是它定义的标准：<strong>GGUF</strong> 是它的模型格式、<strong>Q4_K_M / IQ4_XS</strong> 这些量化等级是它实现的、<strong>imatrix</strong> 也是它的功能。所以一个模型「能不能本地跑」，常常就等价于「有没有人把它适配进 llama.cpp / 做成 GGUF」。新架构的模型刚出时，往往要等 llama.cpp 支持后，本地工具才能用。</div>
+      <div class="analogy">像 USB 标准——你未必直接和它打交道，但你买的充电器、U 盘能互通，全靠大家都遵守这个底层标准。</div>
+    </div>
+
+    <div class="term" data-terms="工具 llama-cli llama-server llama-quantize llama-imatrix 命令">
+      <div class="term-head"><span class="term-name">它自带的几个工具</span><span class="term-en">The CLI tools</span></div>
+      <div class="term-body">llama.cpp 不止能跑模型，还附带一套命令行工具，名字你在教程里会经常撞见：</div>
+      <table class="qtable name-table">
+        <tr><th>工具</th><th>作用</th></tr>
+        <tr><td><code>llama-cli</code></td><td>命令行里直接和模型对话</td></tr>
+        <tr><td><code>llama-server</code></td><td>开一个本地 API 服务，供别的程序调用</td></tr>
+        <tr><td><code>llama-quantize</code></td><td>把模型量化成 Q4、Q5 等小体积版本</td></tr>
+        <tr><td><code>llama-imatrix</code></td><td>计算 imatrix 重要性矩阵，提升量化质量</td></tr>
+      </table>
+      <div class="term-body" style="margin-top:14px;">普通使用者一般用不到这些命令——LM Studio 这类带界面的工具已经把它们包好了。但如果你想<strong>自己动手量化模型</strong>，打交道的就是它们。</div>
+    </div>
+
+    <div class="term" data-terms="llama.cpp Ollama LM Studio 区别 关系 对比">
+      <div class="term-head"><span class="term-name">它和 LM Studio / Ollama 的关系</span><span class="term-en">谁是谁</span></div>
+      <div class="term-body">三者不是竞争关系，而是<strong>上下游</strong>：<code>llama.cpp</code> 是底层引擎，<strong>Ollama</strong> 和 <strong>LM Studio</strong> 在它之上套了更友好的外壳（图形界面、一键下载、模型管理）。直接用 llama.cpp 要敲命令、门槛高；用上层工具则开箱即用，代价是灵活度稍低。</div>
+      <table class="qtable name-table">
+        <tr><th></th><th>定位</th><th>适合谁</th></tr>
+        <tr><td><code>llama.cpp</code></td><td>底层引擎，命令行</td><td>开发者、想折腾的人</td></tr>
+        <tr><td><code>Ollama</code></td><td>命令行包装，简洁</td><td>懂点命令、求省事</td></tr>
+        <tr><td><code>LM Studio</code></td><td>图形界面，最友好</td><td>纯小白、点点鼠标</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 5 读懂模型名字 -->
+  <section data-cat="读懂模型名" id="cat-name">
+    <div class="sec-head"><span class="sec-num">05</span><h2>读懂模型的名字</h2></div>
+
+    <div class="term" data-terms="模型命名 文件名 拆解 命名规则" style="border-left-color:var(--accent-3);">
+      <div class="term-head"><span class="term-name">先拆一个给你看</span><span class="term-en">Anatomy of a model name</span></div>
+      <div class="term-body">模型名/文件名里其实塞满了信息。把下面这串逐段读懂，以后看任何模型名都不慌：</div>
+      <div class="anatomy">
+        <code class="big">Qwen3-8B-Instruct-IQ4_XS-imatrix.gguf</code>
+        <ul class="anatomy-list">
+          <li><span class="seg">Qwen</span> 系列/厂商 —— 通义千问家族</li>
+          <li><span class="seg">3</span> 版本号 —— 第 3 代</li>
+          <li><span class="seg">8B</span> 参数量 —— 80 亿参数</li>
+          <li><span class="seg">Instruct</span> 用途 —— 能听指令、可对话</li>
+          <li><span class="seg">IQ4_XS</span> 量化等级 —— 约 4 位、带 imatrix</li>
+          <li><span class="seg">imatrix</span> 量化技术 —— 用了重要性矩阵校准</li>
+          <li><span class="seg">.gguf</span> 文件格式 —— 给 LM Studio / Ollama 用</li>
+        </ul>
+      </div>
+      <div class="analogy">就像看汽车型号「Model 3 Long Range AWD」——每段分别告诉你车系、版本、续航、驱动方式。模型名同理。</div>
+    </div>
+
+    <div class="term" data-terms="速查表 命名 片段 对照表 B A3B VL Coder R1 Distill F16 GPTQ AWQ uncensored 日期戳">
+      <div class="term-head"><span class="term-name">命名片段速查表</span><span class="term-en">Cheat Sheet</span></div>
+      <div class="term-body">按出现位置分组，遇到不认识的片段回来查：</div>
+
+      <table class="qtable name-table">
+        <tr><th>片段</th><th>类别</th><th>含义</th></tr>
+        <tr><td><code>Llama</code> <code>Qwen</code> <code>Mistral</code> <code>DeepSeek</code></td><td>系列/厂商</td><td>模型家族名，代表谁家、哪个系列</td></tr>
+        <tr><td><code>3</code> <code>3.5</code> <code>2.5</code></td><td>版本号</td><td>第几代，数字越大越新</td></tr>
+        <tr><td><code>8B</code> <code>70B</code> <code>0.5B</code></td><td>参数量</td><td>B=十亿，块头大小</td></tr>
+        <tr><td><code>A3B</code> <code>A22B</code></td><td>激活参数</td><td>MoE 模型实际干活的参数量，A=Active</td></tr>
+        <tr><td><code>Instruct</code> <code>Chat</code> <code>IT</code></td><td>用途版本</td><td>调过教、能听指令对话</td></tr>
+        <tr><td><code>Base</code></td><td>用途版本</td><td>只会续写的原始版</td></tr>
+        <tr><td><code>Coder</code> <code>Math</code> <code>VL</code> <code>Vision</code></td><td>专长</td><td>强化了编程/数学/看图，VL=Vision-Language</td></tr>
+        <tr><td><code>R1</code> <code>Thinking</code> <code>Reasoning</code></td><td>推理型</td><td>带思维链的推理模型</td></tr>
+        <tr><td><code>Distill</code></td><td>训练方式</td><td>蒸馏出来的版本</td></tr>
+        <tr><td><code>MoE</code></td><td>架构</td><td>混合专家架构</td></tr>
+        <tr><td><code>Q4_K_M</code> <code>Q5_K_M</code> <code>Q8_0</code></td><td>量化等级</td><td>压缩精度，数字越大越接近原版</td></tr>
+        <tr><td><code>IQ4_XS</code> <code>IQ3_M</code></td><td>imatrix 量化</td><td>带重要性矩阵的量化，I=importance</td></tr>
+        <tr><td><code>imatrix</code> <code>-i1-</code></td><td>量化技术</td><td>用了 imatrix 校准</td></tr>
+        <tr><td><code>F16</code> <code>FP16</code> <code>BF16</code> <code>F32</code></td><td>全/半精度</td><td>没量化的原始版，最大最准</td></tr>
+        <tr><td><code>FP8</code> <code>NVFP4</code></td><td>浮点量化</td><td>压缩版精度格式，多需较新 N 卡</td></tr>
+        <tr><td><code>GGUF</code> <code>GPTQ</code> <code>AWQ</code> <code>EXL2</code></td><td>文件格式</td><td>不同量化/打包格式，对应不同运行工具</td></tr>
+        <tr><td><code>Uncensored</code> <code>abliterated</code></td><td>内容调整</td><td>去除了部分内容限制的版本</td></tr>
+        <tr><td><code>-2507</code> 这类数字</td><td>日期戳</td><td>发布/快照日期（如 2025 年 07 月）</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 6 使用与交互 -->
+  <section data-cat="使用交互" id="cat-4">
+    <div class="sec-head"><span class="sec-num">06</span><h2>使用 & 交互</h2></div>
+
+    <div class="term" data-terms="提示词 prompt 系统提示 system prompt 提示工程">
+      <div class="term-head"><span class="term-name">提示词 / 系统提示</span><span class="term-en">Prompt · System Prompt</span></div>
+      <div class="term-body"><strong>提示词</strong>就是你给模型的指令/问题。<strong>系统提示</strong>是藏在背后的「角色设定」，规定模型整体的身份和行为。把提示词写好让效果更佳，叫<strong>提示工程 (Prompt Engineering)</strong>。</div>
+      <div class="analogy">系统提示像演员拿到的角色剧本，提示词像导演现场喊的具体指令。</div>
+    </div>
+
+    <div class="term" data-terms="温度 temperature 随机性 采样 top-p">
+      <div class="term-head"><span class="term-name">温度</span><span class="term-en">Temperature</span></div>
+      <div class="term-body">控制回答「随机/发散程度」的旋钮。<strong>低温(如 0.2)</strong>更稳定、保守，适合写代码、做事实问答；<strong>高温(如 0.9)</strong>更有创意、爱发挥，适合写故事、头脑风暴。<code>top-p</code> 是另一个类似作用的采样参数。</div>
+    </div>
+
+    <div class="term" data-terms="幻觉 hallucination 编造 一本正经">
+      <div class="term-head"><span class="term-name">幻觉</span><span class="term-en">Hallucination</span></div>
+      <div class="term-body">模型<strong>一本正经地编造</strong>看似合理、实则错误或不存在的信息（假数据、假引用、假人名）。这是大模型的固有缺陷，重要信息一定要自己核实。</div>
+      <div class="analogy">像一个不肯说「我不知道」的人，宁可编一个听起来很顺的答案也要接话。</div>
+    </div>
+
+    <div class="term" data-terms="RAG 检索增强 retrieval 知识库 向量">
+      <div class="term-head"><span class="term-name">RAG 检索增强</span><span class="term-en">Retrieval-Augmented Generation</span></div>
+      <div class="term-body">让模型回答前<strong>先去外部资料库（文档、网页）里查一查</strong>，再基于查到的内容作答。能大幅减少幻觉、补上模型不知道的新知识，是企业知识库问答的主流做法。</div>
+      <div class="analogy">闭卷考试靠记忆容易出错；RAG 等于改成开卷，先翻书再答题。</div>
+    </div>
+
+    <div class="term" data-terms="Agent 智能体 工具调用 tool use function calling 自主">
+      <div class="term-head"><span class="term-name">智能体 / 工具调用</span><span class="term-en">Agent · Tool Use / Function Calling</span></div>
+      <div class="term-body"><strong>工具调用</strong>指模型能主动调用外部工具（搜索、计算器、代码、API）来完成它本身做不了的事。能自己规划、连续调用多个工具完成复杂任务的，就叫<strong>智能体 (Agent)</strong>。</div>
+      <div class="analogy">普通模型像只会动嘴的顾问；Agent 像能自己打电话、查资料、动手办事的助理。</div>
+    </div>
+
+    <div class="term" data-terms="API token 计费 上下文长度 输入输出">
+      <div class="term-head"><span class="term-name">API</span><span class="term-en">接口调用</span></div>
+      <div class="term-body">通过代码远程调用厂商托管的模型（无需本地硬件），按用量（通常按 token 数）<strong>计费</strong>。和本地运行相对：API 省硬件、更强，但数据要上传且要花钱。</div>
+    </div>
+  </section>
+
+  <!-- 7 训练与对齐 -->
+  <section data-cat="训练对齐" id="cat-5">
+    <div class="sec-head"><span class="sec-num">07</span><h2>训练 & 对齐</h2></div>
+
+    <div class="term" data-terms="RLHF 人类反馈 强化学习 对齐 alignment">
+      <div class="term-head"><span class="term-name">RLHF 人类反馈强化学习</span><span class="term-en">Reinforcement Learning from Human Feedback</span></div>
+      <div class="term-body">让人给模型的多个回答打分排序，再用这些偏好「调教」模型，使它的输出更<strong>有用、安全、符合人类期待</strong>。这一步统称<strong>对齐 (Alignment)</strong>，是把「会续写」变成「好用的助手」的关键。</div>
+      <div class="analogy">像训练宠物：做对了给奖励，做得越来越合心意。</div>
+    </div>
+
+    <div class="term" data-terms="蒸馏 distillation 小模型 教师 学生">
+      <div class="term-head"><span class="term-name">知识蒸馏</span><span class="term-en">Distillation</span></div>
+      <div class="term-body">用一个大而强的「教师模型」去教一个小模型，让小模型<strong>用更小的体积学到接近大模型的能力</strong>。很多又小又好用的模型就是这么来的。</div>
+      <div class="analogy">老师傅把多年经验提炼成口诀教给徒弟，徒弟不用重走一遍弯路。</div>
+    </div>
+
+    <div class="term" data-terms="开源 open source 闭源 开放权重 Apache MIT license 协议">
+      <div class="term-head"><span class="term-name">开源 / 开放权重 / 许可证</span><span class="term-en">Open Source · License</span></div>
+      <div class="term-body"><strong>开放权重</strong>指厂商公开模型文件供下载使用。但能不能商用、要不要署名，取决于<strong>许可证</strong>：<code>Apache 2.0</code>、<code>MIT</code> 较宽松（基本随便用、可商用），有些协议则限制商用或要求条件。下载前看一眼协议很重要。</div>
+    </div>
+
+    <div class="term" data-terms="benchmark 跑分 评测 排行榜 leaderboard SOTA">
+      <div class="term-head"><span class="term-name">跑分 / 评测榜</span><span class="term-en">Benchmark · Leaderboard · SOTA</span></div>
+      <div class="term-body">用标准化题库给模型打分、排名，方便横向比较能力。<code>SOTA</code>(State of the Art) 指「当前最强水平」。注意：跑分高 ≠ 实际好用，还可能存在「刷榜」，参考即可。</div>
+    </div>
+  </section>
+
+  <div class="no-result" id="noResult">没找到匹配的术语，换个关键词试试？</div>
+</main>
+
+<footer class="wrap">
+  这份手册随你接触到的新词可以继续扩充 · 用 <span>大白话 + 比方</span> 记术语最不容易忘<br>
+  Tip：直接用浏览器 <code>Ctrl/⌘ + F</code> 也能快速定位
+</footer>
+
+<script>
+  const terms = Array.from(document.querySelectorAll('.term'));
+  const sections = Array.from(document.querySelectorAll('section[data-cat]'));
+  const search = document.getElementById('search');
+  const count = document.getElementById('count');
+  const noResult = document.getElementById('noResult');
+  const catnav = document.getElementById('catnav');
+
+  // build category nav
+  const cats = ['全部', ...sections.map(s => s.dataset.cat)];
+  let activeCat = '全部';
+  cats.forEach(c => {
+    const b = document.createElement('button');
+    b.textContent = c;
+    if (c === '全部') b.classList.add('active');
+    b.onclick = () => {
+      activeCat = c;
+      document.querySelectorAll('.catnav button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      if (c !== '全部') {
+        const target = sections.find(s => s.dataset.cat === c);
+        target && target.scrollIntoView({behavior:'smooth', block:'start'});
+      }
+      applyFilter();
+    };
+    catnav.appendChild(b);
+  });
+
+  function applyFilter(){
+    const q = search.value.trim().toLowerCase();
+    let visible = 0;
+    terms.forEach(t => {
+      const haystack = (t.textContent + ' ' + (t.dataset.terms||'')).toLowerCase();
+      const matchText = !q || haystack.includes(q);
+      const inCat = activeCat === '全部' || t.closest('section').dataset.cat === activeCat;
+      const show = matchText && inCat;
+      t.classList.toggle('hidden', !show);
+      if (show) visible++;
+    });
+    // hide empty sections
+    sections.forEach(s => {
+      const anyVisible = s.querySelectorAll('.term:not(.hidden)').length > 0;
+      s.classList.toggle('hidden', !anyVisible);
+    });
+    noResult.style.display = visible === 0 ? 'block' : 'none';
+    count.textContent = q || activeCat !== '全部' ? `匹配 ${visible} 条` : `共 ${terms.length} 个术语`;
+  }
+
+  search.addEventListener('input', () => { 
+    if (search.value.trim()) {
+      activeCat = '全部';
+      document.querySelectorAll('.catnav button').forEach((x,i)=>x.classList.toggle('active', i===0));
+    }
+    applyFilter(); 
+  });
+  applyFilter();
+</script>
+</body>
+</html>

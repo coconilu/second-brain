@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LM Studio 开发者文档 · 教案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0f12;
+    --bg-soft:#15181d;
+    --panel:#191d24;
+    --panel-2:#1f242c;
+    --ink:#e8eaed;
+    --ink-soft:#a9b0ba;
+    --ink-faint:#6b7280;
+    --line:#2a2f38;
+    --accent:#ff5c38;        /* LM Studio 橙 */
+    --accent-2:#ffb13d;
+    --cyan:#36d6c3;
+    --violet:#8b7bff;
+    --green:#54d178;
+    --code-bg:#0a0c0f;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+    --sans:'Space Grotesk',system-ui,sans-serif;
+    --serif:'Noto Serif SC',serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(900px 500px at 85% -5%, rgba(255,92,56,.12), transparent 60%),
+      radial-gradient(700px 500px at 0% 10%, rgba(139,123,255,.10), transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px;}
+  a{color:var(--accent-2);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+
+  /* ---------- Hero ---------- */
+  header.hero{
+    position:relative;
+    padding:88px 0 64px;
+    border-bottom:1px solid var(--line);
+    overflow:hidden;
+  }
+  header.hero::before{
+    content:"";position:absolute;inset:0;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:44px 44px;
+    opacity:.20;mask-image:radial-gradient(circle at 70% 30%,#000,transparent 75%);
+  }
+  .hero .wrap{position:relative;}
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--accent);border:1px solid var(--accent);
+    padding:6px 12px;border-radius:999px;background:rgba(255,92,56,.06);
+  }
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);}
+  h1.title{
+    font-size:clamp(38px,6vw,72px);line-height:1.02;margin:22px 0 14px;font-weight:700;letter-spacing:-.02em;
+  }
+  h1.title em{font-style:normal;color:var(--accent);}
+  .subtitle{font-size:clamp(16px,2vw,21px);color:var(--ink-soft);max-width:720px;}
+  .meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px;}
+  .chip{
+    font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);
+    border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 12px;
+  }
+  .chip b{color:var(--cyan);}
+
+  /* ---------- Layout ---------- */
+  .layout{display:grid;grid-template-columns:240px 1fr;gap:48px;padding:56px 0 100px;}
+  nav.toc{position:sticky;top:24px;align-self:start;height:max-content;}
+  nav.toc .toc-title{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:14px;}
+  nav.toc ol{list-style:none;margin:0;padding:0;counter-reset:toc;}
+  nav.toc li{counter-increment:toc;margin:2px 0;}
+  nav.toc a{
+    display:flex;gap:10px;align-items:baseline;color:var(--ink-soft);font-size:14px;
+    padding:7px 10px;border-radius:8px;border-left:2px solid transparent;transition:.18s;
+  }
+  nav.toc a::before{content:counter(toc,decimal-leading-zero);font-family:var(--mono);font-size:11px;color:var(--ink-faint);}
+  nav.toc a:hover{background:var(--panel);color:var(--ink);text-decoration:none;border-left-color:var(--accent);}
+
+  main{min-width:0;}
+
+  /* ---------- Sections ---------- */
+  section{margin-bottom:64px;scroll-margin-top:24px;}
+  .sec-head{display:flex;align-items:center;gap:14px;margin-bottom:8px;}
+  .sec-num{
+    font-family:var(--mono);font-size:13px;font-weight:700;color:var(--bg);
+    background:var(--accent);border-radius:7px;padding:4px 9px;
+  }
+  h2{font-size:clamp(24px,3vw,33px);margin:0;font-weight:600;letter-spacing:-.01em;}
+  h3{font-size:20px;margin:34px 0 12px;font-weight:600;color:var(--ink);}
+  h4{font-size:15.5px;margin:22px 0 8px;font-weight:600;color:var(--accent-2);font-family:var(--mono);letter-spacing:.02em;}
+  .lead{color:var(--ink-soft);font-size:16.5px;margin:6px 0 22px;border-left:3px solid var(--line);padding-left:16px;}
+  p{color:var(--ink-soft);}
+  p strong, li strong{color:var(--ink);font-weight:600;}
+  ul,ol{color:var(--ink-soft);padding-left:22px;}
+  li{margin:7px 0;}
+  code.inline{font-family:var(--mono);font-size:.88em;background:var(--panel-2);color:var(--cyan);padding:2px 7px;border-radius:6px;border:1px solid var(--line);}
+
+  /* ---------- Cards ---------- */
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:22px 0;}
+  .card{
+    background:linear-gradient(180deg,var(--panel),var(--bg-soft));
+    border:1px solid var(--line);border-radius:14px;padding:20px;position:relative;overflow:hidden;
+    transition:.2s;
+  }
+  .card:hover{transform:translateY(-3px);border-color:var(--accent);}
+  .card .k{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;}
+  .card h5{margin:8px 0 6px;font-size:16px;color:var(--ink);font-weight:600;}
+  .card p{margin:0;font-size:13.5px;line-height:1.55;}
+
+  /* ---------- Code blocks ---------- */
+  .code{
+    background:var(--code-bg);border:1px solid var(--line);border-radius:12px;margin:16px 0;overflow:hidden;
+  }
+  .code .bar{
+    display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--panel);border-bottom:1px solid var(--line);
+    font-family:var(--mono);font-size:12px;color:var(--ink-faint);
+  }
+  .code .bar .lights{display:flex;gap:6px;margin-right:6px;}
+  .code .bar .lights i{width:10px;height:10px;border-radius:50%;display:block;}
+  .code .bar .lights i:nth-child(1){background:#ff5f56;}
+  .code .bar .lights i:nth-child(2){background:#ffbd2e;}
+  .code .bar .lights i:nth-child(3){background:#27c93f;}
+  .code .bar .lang{margin-left:auto;color:var(--accent-2);}
+  pre{margin:0;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.62;color:#d7dbe0;}
+  pre .c{color:#5b6270;font-style:italic;}    /* comment */
+  pre .s{color:var(--green);}                  /* string */
+  pre .k{color:var(--violet);}                 /* keyword */
+  pre .f{color:var(--accent-2);}               /* func / key */
+  pre .n{color:var(--cyan);}                   /* number / flag */
+  pre .p{color:var(--accent);}                 /* punctuation accent */
+
+  /* ---------- Callouts ---------- */
+  .note{
+    border-radius:12px;padding:16px 18px;margin:18px 0;border:1px solid var(--line);
+    display:flex;gap:14px;align-items:flex-start;background:var(--panel);
+  }
+  .note .ic{font-size:18px;line-height:1.4;flex-shrink:0;}
+  .note.info{border-left:3px solid var(--cyan);}
+  .note.warn{border-left:3px solid var(--accent-2);}
+  .note.tip{border-left:3px solid var(--green);}
+  .note p{margin:0;font-size:14px;color:var(--ink-soft);}
+  .note b{color:var(--ink);}
+
+  /* ---------- Table ---------- */
+  .tbl{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px;overflow:hidden;border-radius:12px;border:1px solid var(--line);}
+  .tbl th,.tbl td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);}
+  .tbl th{background:var(--panel);font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);font-weight:500;}
+  .tbl td{color:var(--ink-soft);}
+  .tbl tr:last-child td{border-bottom:none;}
+  .tbl td code{font-family:var(--mono);font-size:12.5px;color:var(--cyan);}
+  .method{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;}
+  .method.get{background:rgba(54,214,195,.14);color:var(--cyan);}
+  .method.post{background:rgba(84,209,120,.14);color:var(--green);}
+
+  /* ---------- Flow diagram ---------- */
+  .flow{display:flex;flex-direction:column;align-items:center;gap:0;margin:26px 0;}
+  .flow .step{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 20px;
+    font-size:14px;text-align:center;min-width:230px;color:var(--ink);position:relative;
+  }
+  .flow .step .tag{font-family:var(--mono);font-size:11px;color:var(--accent);display:block;margin-bottom:2px;letter-spacing:.06em;}
+  .flow .arrow{color:var(--ink-faint);font-size:18px;height:26px;display:flex;align-items:center;}
+  .flow .branch{display:flex;gap:30px;flex-wrap:wrap;justify-content:center;}
+  .flow .branch .step.yes{border-color:var(--green);}
+  .flow .branch .step.no{border-color:var(--cyan);}
+
+  /* ---------- Steps list ---------- */
+  .steps{counter-reset:s;list-style:none;padding:0;margin:20px 0;}
+  .steps>li{
+    counter-increment:s;position:relative;padding:0 0 22px 52px;
+    border-left:2px solid var(--line);margin-left:16px;
+  }
+  .steps>li:last-child{border-left-color:transparent;}
+  .steps>li::before{
+    content:counter(s);position:absolute;left:-17px;top:-2px;
+    width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--bg);
+    font-family:var(--mono);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px;
+  }
+  .steps>li h4{margin:0 0 4px;color:var(--ink);font-family:var(--sans);font-size:16px;letter-spacing:0;}
+  .steps>li p{margin:0;font-size:14px;}
+
+  footer{border-top:1px solid var(--line);padding:36px 0 70px;color:var(--ink-faint);font-size:13.5px;}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:center;}
+  footer a{color:var(--ink-soft);}
+
+  @media(max-width:880px){
+    .layout{grid-template-columns:1fr;gap:0;}
+    nav.toc{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="badge"><span class="dot"></span>开发者教案 · Developer Lesson</span>
+    <h1 class="title">LM Studio <em>本地 LLM</em><br>API 与 SDK 全景图</h1>
+    <p class="subtitle">把你的电脑变成一台私有的推理服务器。本教案系统梳理 LM Studio 官方开发者文档：从启动本地服务、REST API、OpenAI / Anthropic 兼容端点，到工具调用、结构化输出与 MCP 集成。</p>
+    <div class="meta-row">
+      <span class="chip">目标读者 · <b>全栈 / Agent 开发者</b></span>
+      <span class="chip">本地端口 · <b>localhost:1234</b></span>
+      <span class="chip">三种 SDK · <b>REST / Python / TypeScript</b></span>
+      <span class="chip">来源 · <b>lmstudio.ai/docs/developer</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <nav class="toc">
+    <div class="toc-title">课程目录</div>
+    <ol>
+      <li><a href="#s1">总览：技术栈全景</a></li>
+      <li><a href="#s2">启动本地服务器</a></li>
+      <li><a href="#s3">三分钟快速上手</a></li>
+      <li><a href="#s4">身份认证与 Token</a></li>
+      <li><a href="#s5">REST API：有状态对话</a></li>
+      <li><a href="#s6">chat 端点详解</a></li>
+      <li><a href="#s7">OpenAI 兼容端点</a></li>
+      <li><a href="#s8">结构化输出</a></li>
+      <li><a href="#s9">工具调用 Tool Use</a></li>
+      <li><a href="#s10">MCP 集成</a></li>
+      <li><a href="#s11">headless 部署</a></li>
+      <li><a href="#s12">速查与小结</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 1 -->
+    <section id="s1">
+      <div class="sec-head"><span class="sec-num">01</span><h2>总览：你能用 LM Studio 搭什么</h2></div>
+      <p class="lead">LM Studio 把本地下载的开源模型（GGUF / MLX）包装成一个跑在 <code class="inline">localhost</code> 上的推理服务器。任何能发 HTTP 请求的代码——或现成的 OpenAI / Anthropic 客户端——都能直接连上它，无需把数据发往云端。</p>
+
+      <h3>核心能力地图</h3>
+      <div class="card-grid">
+        <div class="card"><div class="k">Chat</div><h5>对话与文本生成</h5><p>支持 token 流式输出，构建本地聊天应用与生成流程。</p></div>
+        <div class="card"><div class="k">Agents</div><h5>工具调用 + MCP</h5><p>连接函数、MCP 服务器，完全在本机运行 Agent 工作流。</p></div>
+        <div class="card"><div class="k">JSON</div><h5>结构化输出</h5><p>用 JSON Schema 强约束模型输出，生成可校验的类型化结果。</p></div>
+        <div class="card"><div class="k">Vectors</div><h5>嵌入与分词</h5><p>生成 embeddings、检查 token，搭建检索 / 索引管线。</p></div>
+        <div class="card"><div class="k">Models</div><h5>模型管理</h5><p>加载、下载、列出模型，掌控内存中可用的实例。</p></div>
+      </div>
+
+      <h3>四种接入方式（同一个服务器，多种"门面"）</h3>
+      <table class="tbl">
+        <thead><tr><th>接入方式</th><th>适用场景</th><th>标识</th></tr></thead>
+        <tbody>
+          <tr><td><strong>LM Studio REST API</strong></td><td>原生能力：有状态对话、模型管理、MCP，附带丰富统计信息</td><td><code>/api/v1/*</code></td></tr>
+          <tr><td><strong>OpenAI 兼容端点</strong></td><td>复用现有 OpenAI 客户端，仅改 base URL 即可迁移</td><td><code>/v1/*</code></td></tr>
+          <tr><td><strong>Anthropic 兼容端点</strong></td><td>复用 Claude 风格 Messages API 流程</td><td><code>/v1/messages</code></td></tr>
+          <tr><td><strong>官方 SDK</strong></td><td><code>lmstudio-js</code>（TS）与 <code>lmstudio-python</code></td><td>npm / pip</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note tip"><span class="ic">💡</span><p><b>教学要点：</b>这四种方式访问的是<strong>同一个</strong>本地服务器。REST API 是"原生方言"（功能最全），OpenAI / Anthropic 端点是"兼容方言"（迁移最省事）。先理解这一点，后面所有章节就串起来了。</p></div>
+    </section>
+
+    <!-- 2 -->
+    <section id="s2">
+      <div class="sec-head"><span class="sec-num">02</span><h2>第一步：启动本地服务器</h2></div>
+      <p class="lead">所有 API 调用的前提，是先让 LM Studio 的服务器跑起来。两种方式任选其一。</p>
+
+      <h4>方式 A · 图形界面</h4>
+      <p>打开 LM Studio，进入左侧的 <strong>Developer（开发者）</strong> 标签页，把左上角的 <strong>"Start server"</strong> 开关打开即可。</p>
+
+      <h4>方式 B · 命令行 CLI（lms）</h4>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>terminal<span class="lang">bash</span></div>
+<pre><span class="c"># 启动服务器（默认端口 1234）</span>
+lms server start
+
+<span class="c"># 也可以指定端口</span>
+lms server start <span class="n">--port</span> <span class="n">1234</span></pre>
+      </div>
+      <p>启动后，服务默认监听 <code class="inline">http://localhost:1234</code>。</p>
+
+      <div class="note info"><span class="ic">📦</span><p>如果还没装 <code class="inline">lms</code> CLI，运行 <code class="inline">npx lmstudio install-cli</code> 安装。如果还没下载模型，可用 <code class="inline">lms get ibm/granite-4-micro</code> 拉取一个轻量模型来练手。</p></div>
+    </section>
+
+    <!-- 3 -->
+    <section id="s3">
+      <div class="sec-head"><span class="sec-num">03</span><h2>三分钟快速上手</h2></div>
+      <p class="lead">同一个"自我介绍"请求，用三种语言各写一遍。感受不同接入方式的形态差异。</p>
+
+      <h4>TypeScript · lmstudio-js</h4>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>install &amp; run<span class="lang">typescript</span></div>
+<pre><span class="c">// npm install @lmstudio/sdk</span>
+<span class="k">import</span> { LMStudioClient } <span class="k">from</span> <span class="s">"@lmstudio/sdk"</span>;
+
+<span class="k">const</span> client = <span class="k">new</span> <span class="f">LMStudioClient</span>();
+<span class="k">const</span> model  = <span class="k">await</span> client.llm.<span class="f">model</span>(<span class="s">"openai/gpt-oss-20b"</span>);
+<span class="k">const</span> result = <span class="k">await</span> model.<span class="f">respond</span>(<span class="s">"Who are you, and what can you do?"</span>);
+
+console.<span class="f">info</span>(result.content);</pre>
+      </div>
+
+      <h4>Python · lmstudio-python</h4>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>install &amp; run<span class="lang">python</span></div>
+<pre><span class="c"># pip install lmstudio</span>
+<span class="k">import</span> lmstudio <span class="k">as</span> lms
+
+<span class="k">with</span> lms.<span class="f">Client</span>() <span class="k">as</span> client:
+    model  = client.llm.<span class="f">model</span>(<span class="s">"openai/gpt-oss-20b"</span>)
+    result = model.<span class="f">respond</span>(<span class="s">"Who are you, and what can you do?"</span>)
+    <span class="f">print</span>(result)</pre>
+      </div>
+
+      <h4>HTTP · LM Studio REST API</h4>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>curl<span class="lang">bash</span></div>
+<pre>curl http://localhost:1234/api/v1/chat \
+  <span class="n">-H</span> <span class="s">"Content-Type: application/json"</span> \
+  <span class="n">-H</span> <span class="s">"Authorization: Bearer $LM_API_TOKEN"</span> \
+  <span class="n">-d</span> <span class="s">'{
+    "model": "openai/gpt-oss-20b",
+    "input": "Who are you, and what can you do?"
+  }'</span></pre>
+      </div>
+
+      <div class="note tip"><span class="ic">🎯</span><p><b>观察：</b>三种方式都只需要 <code class="inline">model</code> + 一句话输入。REST 的字段叫 <code class="inline">input</code>（注意不是 OpenAI 的 <code class="inline">messages</code>），这是 LM Studio 原生 API 的特征。</p></div>
+    </section>
+
+    <!-- 4 -->
+    <section id="s4">
+      <div class="sec-head"><span class="sec-num">04</span><h2>身份认证：API Token</h2></div>
+      <p class="lead">默认情况下，本地服务器<strong>不要求</strong>认证——因为它只监听本机。但你可以开启 Token 认证以增强安全性（尤其是要在局域网内共享，或使用本地 MCP 插件时）。</p>
+
+      <div class="note info"><span class="ic">📌</span><p>API Token 功能需要 <b>LM Studio 0.4.0 或更新版本</b>。</p></div>
+
+      <ol class="steps">
+        <li><h4>开启认证开关</h4><p>进入 <strong>Developer 页 → Server Settings</strong>，打开 "Require authentication" 开关。开启后，所有经 REST / Python SDK / TypeScript SDK 的请求都必须带有效 Token。</p></li>
+        <li><h4>创建 Token</h4><p>点击 <strong>Manage Tokens → Create Token</strong>，给它起个名字并选择权限。<strong>创建后立即复制保存</strong>——令牌只会显示这一次。</p></li>
+        <li><h4>配置权限</h4><p>在 Token 列表里点 <strong>Edit</strong> 可随时修改名称与权限范围（可创建多个不同权限的 Token）。</p></li>
+        <li><h4>在请求中携带</h4><p>把 Token 放进 HTTP 头：<code class="inline">Authorization: Bearer $LM_API_TOKEN</code>。</p></li>
+      </ol>
+
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>带 Token 的请求<span class="lang">bash</span></div>
+<pre>curl <span class="n">-X</span> POST http://localhost:1234/api/v1/chat \
+  <span class="n">-H</span> <span class="s">"Authorization: Bearer $LM_API_TOKEN"</span> \
+  <span class="n">-H</span> <span class="s">"Content-Type: application/json"</span> \
+  <span class="n">-d</span> <span class="s">'{ "model": "ibm/granite-4-micro", "input": "Open lmstudio.ai" }'</span></pre>
+      </div>
+      <div class="note warn"><span class="ic">⚠️</span><p><b>注意：</b>使用本地配置的 MCP 插件（来自 <code class="inline">mcp.json</code>）时，<strong>必须</strong>通过 <code class="inline">Authorization</code> 头进行 Token 认证。</p></div>
+    </section>
+
+    <!-- 5 -->
+    <section id="s5">
+      <div class="sec-head"><span class="sec-num">05</span><h2>REST API 核心：有状态对话</h2></div>
+      <p class="lead">LM Studio 的 <code class="inline">/api/v1/chat</code> 端点<strong>默认是有状态的</strong>。这意味着你不必在每次请求里重发整段历史——服务器会自动存储并管理上下文。这是它区别于无状态 OpenAI 接口的关键设计。</p>
+
+      <h3>工作机制</h3>
+      <p>发送对话请求时，LM Studio 把会话存进一个 chat thread，并在响应里返回一个 <code class="inline">response_id</code>。在后续请求里带上它，对话即可延续。</p>
+
+      <div class="flow">
+        <div class="step"><span class="tag">第 1 轮请求</span>input: "My favorite color is blue."</div>
+        <div class="arrow">↓</div>
+        <div class="step" style="border-color:var(--accent-2)"><span class="tag">服务器返回</span>response_id: <code class="inline" style="color:var(--accent-2)">resp_abc123…</code></div>
+        <div class="arrow">↓</div>
+        <div class="step"><span class="tag">第 2 轮请求</span>带上 previous_response_id<br>input: "What color did I mention?"</div>
+        <div class="arrow">↓</div>
+        <div class="step" style="border-color:var(--green)"><span class="tag">模型记得上文</span>"Blue." + 新的 response_id</div>
+      </div>
+
+      <h4>开启新对话</h4>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>新会话<span class="lang">bash</span></div>
+<pre>curl http://localhost:1234/api/v1/chat \
+  <span class="n">-H</span> <span class="s">"Authorization: Bearer $LM_API_TOKEN"</span> \
+  <span class="n">-H</span> <span class="s">"Content-Type: application/json"</span> \
+  <span class="n">-d</span> <span class="s">'{
+    "model": "ibm/granite-4-micro",
+    "input": "My favorite color is blue."
+  }'</span></pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>响应<span class="lang">json</span></div>
+<pre>{
+  <span class="f">"model_instance_id"</span>: <span class="s">"ibm/granite-4-micro"</span>,
+  <span class="f">"output"</span>: [
+    { <span class="f">"type"</span>: <span class="s">"message"</span>, <span class="f">"content"</span>: <span class="s">"That's great! Blue is a beautiful color…"</span> }
+  ],
+  <span class="f">"response_id"</span>: <span class="s">"resp_abc123xyz…"</span>
+}</pre>
+      </div>
+
+      <h4>延续对话</h4>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>延续会话<span class="lang">bash</span></div>
+<pre>curl http://localhost:1234/api/v1/chat \
+  <span class="n">-H</span> <span class="s">"Authorization: Bearer $LM_API_TOKEN"</span> \
+  <span class="n">-H</span> <span class="s">"Content-Type: application/json"</span> \
+  <span class="n">-d</span> <span class="s">'{
+    "model": "ibm/granite-4-micro",
+    "input": "What color did I just mention?",
+    "previous_response_id": "resp_abc123xyz…"
+  }'</span></pre>
+      </div>
+
+      <h4>关闭存储（无状态模式）</h4>
+      <p>不想存对话？把 <code class="inline">store</code> 设为 <code class="inline">false</code>，响应就不会带 <code class="inline">response_id</code>。适合一次性请求。</p>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>无状态<span class="lang">bash</span></div>
+<pre>curl http://localhost:1234/api/v1/chat \
+  <span class="n">-H</span> <span class="s">"Authorization: Bearer $LM_API_TOKEN"</span> \
+  <span class="n">-H</span> <span class="s">"Content-Type: application/json"</span> \
+  <span class="n">-d</span> <span class="s">'{ "model": "ibm/granite-4-micro", "input": "Tell me a joke.", "store": false }'</span></pre>
+      </div>
+      <div class="note info"><span class="ic">🌿</span><p><b>进阶：</b>每个 <code class="inline">response_id</code> 都是会话中一个唯一的"锚点"。指向不同的历史 <code class="inline">response_id</code>，就能从该点<strong>分叉（branch）</strong>出不同的对话支线。</p></div>
+    </section>
+
+    <!-- 6 -->
+    <section id="s6">
+      <div class="sec-head"><span class="sec-num">06</span><h2>chat 端点字段详解</h2></div>
+      <p class="lead"><code class="inline">POST /api/v1/chat</code> —— 这是 REST API 的主力端点。下面拆解它的请求体和响应结构。</p>
+
+      <h3>常用请求字段</h3>
+      <table class="tbl">
+        <thead><tr><th>字段</th><th>类型</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><code>model</code></td><td>string</td><td>模型唯一标识。若未加载会自动加载</td></tr>
+          <tr><td><code>input</code></td><td>string | array</td><td>发给模型的消息，可为纯文本，也可为含 <code>text</code> / <code>image</code> 的对象数组</td></tr>
+          <tr><td><code>system_prompt</code></td><td>string</td><td>设定模型行为的系统消息</td></tr>
+          <tr><td><code>integrations</code></td><td>array</td><td>本次请求启用的集成（插件、临时 MCP 服务器等）</td></tr>
+          <tr><td><code>stream</code></td><td>boolean</td><td>是否经 SSE 流式输出，默认 <code>false</code></td></tr>
+          <tr><td><code>temperature</code></td><td>number</td><td>随机性 [0,1]，0 为确定性输出</td></tr>
+          <tr><td><code>top_p / top_k / min_p</code></td><td>number</td><td>采样控制参数</td></tr>
+          <tr><td><code>repeat_penalty</code></td><td>number</td><td>重复惩罚，1 为不惩罚</td></tr>
+          <tr><td><code>max_output_tokens</code></td><td>integer</td><td>最大生成 token 数</td></tr>
+          <tr><td><code>reasoning</code></td><td>enum</td><td><code>off|low|medium|high|on</code>，需模型支持</td></tr>
+          <tr><td><code>context_length</code></td><td>integer</td><td>上下文 token 数。<strong>使用 MCP 时建议调大</strong></td></tr>
+          <tr><td><code>store</code></td><td>boolean</td><td>是否存储会话，默认 <code>true</code></td></tr>
+          <tr><td><code>previous_response_id</code></td><td>string</td><td>要续接的响应 ID，须以 <code>resp_</code> 开头</td></tr>
+        </tbody>
+      </table>
+
+      <h3>响应里的 output 数组</h3>
+      <p>响应的 <code class="inline">output</code> 是一个数组，每个元素可能是以下几种类型之一——这让你能完整还原模型的"思考—调用工具—回答"全过程：</p>
+      <table class="tbl">
+        <thead><tr><th>type</th><th>含义</th></tr></thead>
+        <tbody>
+          <tr><td><code>message</code></td><td>模型的文本消息</td></tr>
+          <tr><td><code>tool_call</code></td><td>模型发起的工具调用（含 tool 名、arguments、output、provider_info）</td></tr>
+          <tr><td><code>reasoning</code></td><td>模型的推理内容</td></tr>
+          <tr><td><code>invalid_tool_call</code></td><td>无效工具调用（工具名错误或参数错误）</td></tr>
+        </tbody>
+      </table>
+
+      <h3>stats：性能与用量统计</h3>
+      <p>每次响应都附带一个 <code class="inline">stats</code> 对象，这是 LM Studio REST API 相比兼容端点的一大优势：</p>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>stats 示例<span class="lang">json</span></div>
+<pre><span class="f">"stats"</span>: {
+  <span class="f">"input_tokens"</span>: <span class="n">646</span>,
+  <span class="f">"total_output_tokens"</span>: <span class="n">586</span>,
+  <span class="f">"reasoning_output_tokens"</span>: <span class="n">0</span>,
+  <span class="f">"tokens_per_second"</span>: <span class="n">29.75</span>,            <span class="c">// 生成速度</span>
+  <span class="f">"time_to_first_token_seconds"</span>: <span class="n">1.088</span>,    <span class="c">// 首 token 延迟 (TTFT)</span>
+  <span class="f">"model_load_time_seconds"</span>: <span class="n">2.656</span>          <span class="c">// 仅当本次需加载模型时出现</span>
+}</pre>
+      </div>
+
+      <h3>多模态：发送图片</h3>
+      <p>把 <code class="inline">input</code> 写成对象数组，加入 <code class="inline">type: "image"</code> 项，用 base64 data URL 传图：</p>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>图像输入结构<span class="lang">json</span></div>
+<pre><span class="f">"input"</span>: [
+  { <span class="f">"type"</span>: <span class="s">"message"</span>, <span class="f">"content"</span>: <span class="s">"What's in this image?"</span> },
+  { <span class="f">"type"</span>: <span class="s">"image"</span>,   <span class="f">"data_url"</span>: <span class="s">"data:image/jpeg;base64,…"</span> }
+]</pre>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section id="s7">
+      <div class="sec-head"><span class="sec-num">07</span><h2>OpenAI 兼容端点：零成本迁移</h2></div>
+      <p class="lead">如果你已经有用 OpenAI SDK 写的代码，迁移到本地只需要改一行——把 <code class="inline">base_url</code> 指向 LM Studio。其余代码原封不动。</p>
+
+      <h3>支持的端点</h3>
+      <table class="tbl">
+        <thead><tr><th>端点</th><th>方法</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td><code>/v1/models</code></td><td><span class="method get">GET</span></td><td>列出模型</td></tr>
+          <tr><td><code>/v1/responses</code></td><td><span class="method post">POST</span></td><td>Responses API（支持 Codex）</td></tr>
+          <tr><td><code>/v1/chat/completions</code></td><td><span class="method post">POST</span></td><td>Chat Completions（主力）</td></tr>
+          <tr><td><code>/v1/embeddings</code></td><td><span class="method post">POST</span></td><td>生成嵌入向量</td></tr>
+          <tr><td><code>/v1/completions</code></td><td><span class="method post">POST</span></td><td>文本补全（Legacy）</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Python：只改 base_url</h4>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>openai 客户端<span class="lang">python</span></div>
+<pre><span class="k">from</span> openai <span class="k">import</span> OpenAI
+
+client = <span class="f">OpenAI</span>(
+    base_url=<span class="s">"http://localhost:1234/v1"</span>,   <span class="c"># 唯一改动</span>
+    api_key=<span class="s">"lm-studio"</span>                      <span class="c"># 任意占位符即可</span>
+)
+<span class="c"># …其余代码与调用 OpenAI 完全相同…</span></pre>
+      </div>
+
+      <h4>cURL：把域名一换</h4>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>diff<span class="lang">bash</span></div>
+<pre><span class="c">- curl https://api.openai.com/v1/chat/completions \</span>
+<span class="n">+ curl http://localhost:1234/v1/chat/completions \</span>
+  <span class="n">-H</span> <span class="s">"Content-Type: application/json"</span> \
+  <span class="n">-d</span> <span class="s">'{
+      "model": "在此填入 LM Studio 的模型标识",
+      "messages": [{"role": "user", "content": "Say this is a test!"}],
+      "temperature": 0.7
+   }'</span></pre>
+      </div>
+
+      <div class="note tip"><span class="ic">🔌</span><p><b>Codex 支持：</b>因为 LM Studio 实现了 OpenAI 风格的 <code class="inline">POST /v1/responses</code> 端点，所以 Codex 可以直接接上本地模型工作。</p></div>
+      <div class="note info"><span class="ic">🅰️</span><p><b>另有 Anthropic 兼容：</b>除 OpenAI 外，LM Studio 还提供 Anthropic 兼容的 <code class="inline">Messages</code> 端点，让 Claude 风格的请求流程也能直接打到本地服务器。</p></div>
+    </section>
+
+    <!-- 8 -->
+    <section id="s8">
+      <div class="sec-head"><span class="sec-num">08</span><h2>结构化输出：用 Schema 锁死格式</h2></div>
+      <p class="lead">通过给 <code class="inline">/v1/chat/completions</code> 传一份 JSON Schema，可强制模型输出符合该 schema 的合法 JSON。格式与 OpenAI 的 Structured Output API 一致，因此 OpenAI SDK 可直接复用。</p>
+
+      <h4>Python 示例：生成虚构角色</h4>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>structured-output.py<span class="lang">python</span></div>
+<pre><span class="k">from</span> openai <span class="k">import</span> OpenAI
+<span class="k">import</span> json
+
+client = <span class="f">OpenAI</span>(base_url=<span class="s">"http://localhost:1234/v1"</span>, api_key=<span class="s">"lm-studio"</span>)
+
+character_schema = {
+    <span class="f">"type"</span>: <span class="s">"json_schema"</span>,
+    <span class="f">"json_schema"</span>: {
+        <span class="f">"name"</span>: <span class="s">"characters"</span>,
+        <span class="f">"schema"</span>: {
+            <span class="f">"type"</span>: <span class="s">"object"</span>,
+            <span class="f">"properties"</span>: {
+                <span class="f">"characters"</span>: {
+                    <span class="f">"type"</span>: <span class="s">"array"</span>,
+                    <span class="f">"items"</span>: {
+                        <span class="f">"type"</span>: <span class="s">"object"</span>,
+                        <span class="f">"properties"</span>: {
+                            <span class="f">"name"</span>:        {<span class="f">"type"</span>: <span class="s">"string"</span>},
+                            <span class="f">"occupation"</span>:  {<span class="f">"type"</span>: <span class="s">"string"</span>},
+                            <span class="f">"personality"</span>: {<span class="f">"type"</span>: <span class="s">"string"</span>},
+                            <span class="f">"background"</span>:  {<span class="f">"type"</span>: <span class="s">"string"</span>}
+                        },
+                        <span class="f">"required"</span>: [<span class="s">"name"</span>,<span class="s">"occupation"</span>,<span class="s">"personality"</span>,<span class="s">"background"</span>]
+                    },
+                    <span class="f">"minItems"</span>: <span class="n">1</span>
+                }
+            },
+            <span class="f">"required"</span>: [<span class="s">"characters"</span>]
+        }
+    }
+}
+
+response = client.chat.completions.<span class="f">create</span>(
+    model=<span class="s">"your-model"</span>,
+    messages=[{<span class="f">"role"</span>:<span class="s">"user"</span>,<span class="f">"content"</span>:<span class="s">"Create 1-3 fictional characters"</span>}],
+    response_format=character_schema,
+)
+
+<span class="c"># content 是 JSON 字符串，需要自行解析</span>
+results = json.<span class="f">loads</span>(response.choices[<span class="n">0</span>].message.content)
+<span class="f">print</span>(json.<span class="f">dumps</span>(results, indent=<span class="n">2</span>))</pre>
+      </div>
+
+      <div class="note warn"><span class="ic">⚠️</span><p><b>重要：</b>并非所有模型都支持结构化输出，<strong>尤其是 7B 参数以下的小模型</strong>。不确定时请查看模型卡片 README。返回结果在 <code class="inline">choices[0].message.content</code> 中以<strong>字符串</strong>形式给出，需自行 parse 成 JSON 对象。</p></div>
+
+      <h4>底层引擎</h4>
+      <ul>
+        <li><strong>GGUF 模型</strong>：使用 <code class="inline">llama.cpp</code> 基于语法（grammar）的采样 API。</li>
+        <li><strong>MLX 模型</strong>：使用 <a href="https://github.com/dottxt-ai/outlines">Outlines</a> 实现（开源于 <code class="inline">lmstudio-ai/mlx-engine</code>）。</li>
+      </ul>
+    </section>
+
+    <!-- 9 -->
+    <section id="s9">
+      <div class="sec-head"><span class="sec-num">09</span><h2>工具调用 Tool Use：让模型行动起来</h2></div>
+      <p class="lead">工具调用让 LLM 能"请求"调用外部函数与 API。务必记住一句话：<strong>模型本身不能执行任何代码，它只能输出文本</strong>——由你的代码解析这段文本、执行函数、再把结果喂回模型。</p>
+
+      <h3>什么是工具调用？三步循环</h3>
+      <ol>
+        <li>LLM 输出文本，<strong>请求</strong>调用某个函数；</li>
+        <li><strong>你的代码</strong>真正执行这个函数；</li>
+        <li>你的代码把执行<strong>结果反馈</strong>回 LLM，由它生成最终回答。</li>
+      </ol>
+
+      <h3>完整流程图</h3>
+      <div class="flow">
+        <div class="step"><span class="tag">SETUP</span>提供 LLM + 工具列表</div>
+        <div class="arrow">↓</div>
+        <div class="step">获取用户输入</div>
+        <div class="arrow">↓</div>
+        <div class="step">用 messages 提示 LLM</div>
+        <div class="arrow">↓ 需要工具吗？</div>
+        <div class="branch">
+          <div>
+            <div class="step yes"><span class="tag">YES</span>解析工具调用 → 执行 → 把结果加入 messages</div>
+          </div>
+          <div>
+            <div class="step no"><span class="tag">NO</span>直接正常回答用户</div>
+          </div>
+        </div>
+        <div class="arrow">↺ 带着工具结果再次提示模型（这次不再给工具）</div>
+      </div>
+
+      <h3>工具定义长什么样</h3>
+      <p>工具以函数定义数组的形式放进请求体的 <code class="inline">tools</code> 字段，格式与 OpenAI Function Calling 一致：</p>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>tools 定义<span class="lang">json</span></div>
+<pre>[
+  {
+    <span class="f">"type"</span>: <span class="s">"function"</span>,
+    <span class="f">"function"</span>: {
+      <span class="f">"name"</span>: <span class="s">"get_delivery_date"</span>,
+      <span class="f">"description"</span>: <span class="s">"Get the delivery date for a customer's order"</span>,
+      <span class="f">"parameters"</span>: {
+        <span class="f">"type"</span>: <span class="s">"object"</span>,
+        <span class="f">"properties"</span>: { <span class="f">"order_id"</span>: { <span class="f">"type"</span>: <span class="s">"string"</span> } },
+        <span class="f">"required"</span>: [<span class="s">"order_id"</span>]
+      }
+    }
+  }
+]</pre>
+      </div>
+      <p>这个列表会按模型的 chat template 被注入到 <strong>system prompt</strong> 里。当模型决定调用工具时，LM Studio 会把它解析进响应的 <code class="inline">choices[0].message.tool_calls</code>，并把 <code class="inline">finish_reason</code> 设为 <code class="inline">"tool_calls"</code>。</p>
+
+      <h3>多轮示例：核心模式</h3>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>multi-turn-example.py（节选）<span class="lang">python</span></div>
+<pre><span class="c"># 1) 第一次调用，带上 tools</span>
+response = client.chat.completions.<span class="f">create</span>(model=model, messages=messages, tools=tools)
+
+<span class="c"># 2) 解析模型请求的工具调用，执行真实函数</span>
+tool_call = response.choices[<span class="n">0</span>].message.tool_calls[<span class="n">0</span>]
+arguments = json.<span class="f">loads</span>(tool_call.function.arguments)
+delivery_date = <span class="f">get_delivery_date</span>(arguments[<span class="s">"order_id"</span>])
+
+<span class="c"># 3) 把"助手的工具调用"和"工具结果"都追加进 messages</span>
+messages.<span class="f">append</span>({<span class="f">"role"</span>:<span class="s">"assistant"</span>, <span class="f">"tool_calls"</span>:[…]})
+messages.<span class="f">append</span>({
+    <span class="f">"role"</span>: <span class="s">"tool"</span>,
+    <span class="f">"content"</span>: json.<span class="f">dumps</span>({<span class="s">"delivery_date"</span>: delivery_date}),
+    <span class="f">"tool_call_id"</span>: tool_call.id
+})
+
+<span class="c"># 4) 再次调用（这次不带 tools），拿到自然语言最终回答</span>
+final = client.chat.completions.<span class="f">create</span>(model=model, messages=messages)
+<span class="f">print</span>(final.choices[<span class="n">0</span>].message.content)
+<span class="c"># → "Your order #1017 is scheduled for delivery on November 19, 2024…"</span></pre>
+      </div>
+
+      <h3>原生 vs. 默认 支持</h3>
+      <p>在 LM Studio 中，<strong>所有模型都至少支持某种程度</strong>的工具调用，但分两个级别：</p>
+      <div class="card-grid">
+        <div class="card"><div class="k">Native 原生</div><h5>带 🔨 锤子徽章</h5><p>模型本身经过工具调用训练（chat template 支持），且 LM Studio 支持其工具格式。表现更好。例：Qwen、Llama-3.1/3.2、Mistral。</p></div>
+        <div class="card"><div class="k">Default 默认</div><h5>兜底方案</h5><p>模型未经训练或 LM Studio 暂不支持其格式时，用自定义 system prompt 与默认调用格式兜底，并将 <code>tool</code> 角色消息转为 <code>user</code> 角色。效果因模型而异。</p></div>
+      </div>
+
+      <div class="note tip"><span class="ic">🔍</span><p><b>排错技巧：</b>运行 <code class="inline">lms log stream</code> 查看实时日志，就能看到工具列表是如何被注入 prompt、以及模型输出的原始格式。如果小模型输出格式不正确，LM Studio 就无法解析出 <code class="inline">tool_calls</code>——这是定位问题的好线索。</p></div>
+
+      <h3>流式工具调用</h3>
+      <p>当 <code class="inline">stream=true</code> 时，工具调用会分块（chunk）传来：函数名与参数分散在多个 <code class="inline">chunk.choices[0].delta.tool_calls</code> 里，需要你<strong>累加拼接</strong>成完整的函数签名后再执行。</p>
+    </section>
+
+    <!-- 10 -->
+    <section id="s10">
+      <div class="sec-head"><span class="sec-num">10</span><h2>MCP 集成：把外部能力插进对话</h2></div>
+      <p class="lead">在 <code class="inline">/api/v1/chat</code> 的 <code class="inline">integrations</code> 字段里，可以让模型直接与 MCP（Model Context Protocol）服务器交互。有两种接法。</p>
+
+      <h4>① 临时 MCP 服务器（ephemeral_mcp）</h4>
+      <p>无需预先配置，直接在请求里"即用即定义"一个远程 MCP 服务器：</p>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>ephemeral MCP<span class="lang">bash</span></div>
+<pre>curl http://localhost:1234/api/v1/chat \
+  <span class="n">-H</span> <span class="s">"Authorization: Bearer $LM_API_TOKEN"</span> \
+  <span class="n">-H</span> <span class="s">"Content-Type: application/json"</span> \
+  <span class="n">-d</span> <span class="s">'{
+    "model": "ibm/granite-4-micro",
+    "input": "What is the top trending model on hugging face?",
+    "integrations": [
+      {
+        "type": "ephemeral_mcp",
+        "server_label": "huggingface",
+        "server_url": "https://huggingface.co/mcp",
+        "allowed_tools": ["model_search"]
+      }
+    ],
+    "context_length": 8000
+  }'</span></pre>
+      </div>
+
+      <h4>② 本地插件（plugin，来自 mcp.json）</h4>
+      <p>引用你已在 <code class="inline">mcp.json</code> 里配置好的 MCP 插件，ID 形如 <code class="inline">mcp/&lt;server_label&gt;</code>。例如 Playwright 浏览器自动化：</p>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>local plugin<span class="lang">bash</span></div>
+<pre>curl http://localhost:1234/api/v1/chat \
+  <span class="n">-H</span> <span class="s">"Authorization: Bearer $LM_API_TOKEN"</span> \
+  <span class="n">-H</span> <span class="s">"Content-Type: application/json"</span> \
+  <span class="n">-d</span> <span class="s">'{
+    "model": "ibm/granite-4-micro",
+    "input": "Open lmstudio.ai",
+    "integrations": [
+      { "type": "plugin", "id": "mcp/playwright", "allowed_tools": ["browser_navigate"] }
+    ],
+    "context_length": 8000
+  }'</span></pre>
+      </div>
+
+      <table class="tbl">
+        <thead><tr><th>integration 类型</th><th>关键字段</th><th>认证要求</th></tr></thead>
+        <tbody>
+          <tr><td><code>ephemeral_mcp</code></td><td><code>server_label</code> · <code>server_url</code> · <code>allowed_tools</code> · <code>headers</code></td><td>远程，按需</td></tr>
+          <tr><td><code>plugin</code></td><td><code>id</code>（如 <code>mcp/playwright</code>）· <code>allowed_tools</code></td><td><strong>必须</strong>用 Token 认证</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note info"><span class="ic">🧰</span><p><b>组合使用：</b>一个请求里可以同时挂多个 integration——比如一边用 HuggingFace MCP 搜模型、一边用 Playwright 插件打开网页。<code class="inline">allowed_tools</code> 用来收窄模型可调用的工具范围，不填则允许该服务器的全部工具。MCP 场景建议把 <code class="inline">context_length</code> 调大。</p></div>
+    </section>
+
+    <!-- 11 -->
+    <section id="s11">
+      <div class="sec-head"><span class="sec-num">11</span><h2>headless 部署：服务器 / CI 上跑 llmster</h2></div>
+      <p class="lead"><code class="inline">llmster</code> 是 LM Studio 的核心打包成的守护进程（daemon），可在服务器、云实例或 CI 上独立运行，<strong>不依赖图形界面</strong>。</p>
+
+      <h4>安装</h4>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>Mac / Linux<span class="lang">bash</span></div>
+<pre>curl <span class="n">-fsSL</span> https://lmstudio.ai/install.sh | bash</pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>Windows (PowerShell)<span class="lang">powershell</span></div>
+<pre>irm https://lmstudio.ai/install.ps1 | iex</pre>
+      </div>
+
+      <h4>基本用法</h4>
+      <div class="code">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span>lms 常用命令<span class="lang">bash</span></div>
+<pre>lms daemon up          <span class="c"># 启动守护进程</span>
+lms get &lt;model&gt;        <span class="c"># 下载模型</span>
+lms server start       <span class="c"># 启动本地服务器</span>
+lms chat               <span class="c"># 打开交互式会话</span>
+lms load               <span class="c"># 加载一个模型进内存</span>
+lms log stream         <span class="c"># 查看实时日志（排错神器）</span></pre>
+      </div>
+      <div class="note tip"><span class="ic">🖥️</span><p>官方文档另有专题介绍如何<strong>用 systemctl 把 llmster 设为 Linux 开机自启任务</strong>，以及 Idle TTL（空闲自动卸载）与 Auto-Evict 等内存管理特性，适合长期运行的服务部署。</p></div>
+    </section>
+
+    <!-- 12 -->
+    <section id="s12">
+      <div class="sec-head"><span class="sec-num">12</span><h2>速查表 &amp; 教学小结</h2></div>
+
+      <h3>端点速查</h3>
+      <table class="tbl">
+        <thead><tr><th>端点</th><th>方法</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><code>/api/v1/chat</code></td><td><span class="method post">POST</span></td><td>原生对话，有状态，支持 MCP</td></tr>
+          <tr><td><code>/api/v1/models</code></td><td><span class="method get">GET</span></td><td>列出你的模型（含 LLM 与嵌入模型）</td></tr>
+          <tr><td><code>/api/v1/models/load</code></td><td><span class="method post">POST</span></td><td>加载模型</td></tr>
+          <tr><td><code>/api/v1/models/download</code></td><td><span class="method post">POST</span></td><td>下载模型（返回 job_id）</td></tr>
+          <tr><td><code>/api/v1/models/download/status/{job_id}</code></td><td><span class="method get">GET</span></td><td>查询下载进度</td></tr>
+          <tr><td><code>/api/v1/models/unload</code></td><td><span class="method post">POST</span></td><td>卸载模型</td></tr>
+          <tr><td><code>/v1/chat/completions</code></td><td><span class="method post">POST</span></td><td>OpenAI 兼容 · 工具调用 / 结构化输出主力</td></tr>
+          <tr><td><code>/v1/responses</code></td><td><span class="method post">POST</span></td><td>OpenAI 兼容 · Responses（Codex）</td></tr>
+          <tr><td><code>/v1/embeddings</code></td><td><span class="method post">POST</span></td><td>OpenAI 兼容 · 嵌入</td></tr>
+          <tr><td><code>/v1/messages</code></td><td><span class="method post">POST</span></td><td>Anthropic 兼容 · Messages</td></tr>
+        </tbody>
+      </table>
+
+      <h3>三条核心心法</h3>
+      <div class="card-grid">
+        <div class="card"><div class="k">心法 ①</div><h5>一个服务器，多种方言</h5><p>REST 功能最全且有状态；OpenAI / Anthropic 端点为兼容迁移而生。按需选门面。</p></div>
+        <div class="card"><div class="k">心法 ②</div><h5>模型只会说话，不会做事</h5><p>工具调用的本质是"模型请求 → 你执行 → 喂回结果"的循环。代码是真正的行动者。</p></div>
+        <div class="card"><div class="k">心法 ③</div><h5>本地优先，数据不出门</h5><p>认证、MCP、headless 部署共同支撑一个完全私有、可上生产的本地推理栈。</p></div>
+      </div>
+
+      <h3>给学习者的实践路线</h3>
+      <ol class="steps">
+        <li><h4>跑通第一个请求</h4><p><code class="inline">lms server start</code> → <code class="inline">lms get ibm/granite-4-micro</code> → 用 curl 发一句 chat。</p></li>
+        <li><h4>体会有状态对话</h4><p>连续两轮，用 <code class="inline">previous_response_id</code> 让模型"记住"你说过的话。</p></li>
+        <li><h4>迁移一个 OpenAI 脚本</h4><p>把现有 OpenAI 代码的 <code class="inline">base_url</code> 改成本地，验证零改动迁移。</p></li>
+        <li><h4>实现一次工具调用</h4><p>照着多轮示例，让模型调用你写的本地函数并拿回最终自然语言回答。</p></li>
+        <li><h4>挂一个 MCP</h4><p>用 <code class="inline">ephemeral_mcp</code> 接 HuggingFace，或本地 Playwright 插件做浏览器自动化。</p></li>
+      </ol>
+
+      <div class="note info"><span class="ic">📚</span><p><b>延伸阅读（官方）：</b>Streaming events（SSE 流式事件）、Embeddings、Idle TTL &amp; Auto-Evict、Serve on Local Network、API Changelog、以及 <code class="inline">lmstudio-js</code> / <code class="inline">lmstudio-python</code> 两套 SDK 的完整文档。</p></div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>LM Studio 开发者文档 · 教案整理</span>
+    <span>资料来源：<a href="https://lmstudio.ai/docs/developer">lmstudio.ai/docs/developer</a> · 社区 <a href="https://discord.gg/lmstudio">Discord</a></span>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>动态工作流：当一个 Agent 学会指挥一支舰队</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,400..700&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,400..500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e0d0b;
+    --bg-2:#16140f;
+    --paper:#1b1813;
+    --ink:#ede6d6;
+    --ink-soft:#b8ad99;
+    --ink-faint:#7d7565;
+    --ember:#e8622d;
+    --ember-soft:#f2935f;
+    --gold:#d9a441;
+    --line:#332e25;
+    --mono:'JetBrains Mono',monospace;
+    --display:'Fraunces',serif;
+    --body:'Newsreader',Georgia,serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:19px;
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+    mix-blend-mode:overlay;
+  }
+
+  /* progress bar */
+  #progress{
+    position:fixed;top:0;left:0;height:3px;width:0%;
+    background:linear-gradient(90deg,var(--ember),var(--gold));
+    z-index:100;box-shadow:0 0 12px rgba(232,98,45,.6);
+  }
+
+  /* hero */
+  .hero{
+    position:relative;min-height:100vh;display:flex;flex-direction:column;
+    justify-content:center;padding:7vw 8vw 6vw;overflow:hidden;
+    border-bottom:1px solid var(--line);
+  }
+  .hero-grid{
+    position:absolute;inset:0;z-index:0;opacity:.5;
+    background-image:
+      linear-gradient(rgba(232,98,45,.04) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(232,98,45,.04) 1px,transparent 1px);
+    background-size:46px 46px;
+    mask-image:radial-gradient(ellipse 80% 70% at 70% 30%,#000 0%,transparent 80%);
+  }
+  .orbits{position:absolute;top:-10%;right:-8%;width:62vmax;height:62vmax;z-index:0;opacity:.55}
+  .orbits circle{fill:none;stroke:var(--line);stroke-width:1}
+  .node{fill:var(--ember)}
+  .node.g{fill:var(--gold)}
+  .node.s{fill:var(--ink-soft)}
+  .eyebrow{
+    font-family:var(--mono);font-size:13px;letter-spacing:.32em;text-transform:uppercase;
+    color:var(--ember-soft);position:relative;z-index:2;margin-bottom:2rem;
+    display:flex;gap:1.2rem;align-items:center;
+  }
+  .eyebrow::before{content:"";width:42px;height:1px;background:var(--ember)}
+  h1{
+    font-family:var(--display);font-weight:300;font-size:clamp(2.6rem,7vw,6.2rem);
+    line-height:.98;letter-spacing:-.02em;position:relative;z-index:2;max-width:16ch;
+    font-optical-sizing:auto;
+  }
+  h1 em{font-style:italic;color:var(--ember);font-weight:400}
+  .dek{
+    position:relative;z-index:2;margin-top:2.4rem;max-width:54ch;
+    font-size:clamp(1.1rem,2vw,1.5rem);color:var(--ink-soft);font-weight:300;line-height:1.55;
+  }
+  .meta{
+    position:relative;z-index:2;margin-top:3.5rem;display:flex;flex-wrap:wrap;gap:2.5rem;
+    font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--ink-faint);
+    text-transform:uppercase;
+  }
+  .meta b{color:var(--ink);font-weight:500}
+
+  /* article body */
+  article{
+    max-width:760px;margin:0 auto;padding:7rem 2rem 9rem;position:relative;z-index:2;
+  }
+  .lead{
+    font-family:var(--display);font-weight:300;font-size:clamp(1.4rem,3vw,1.95rem);
+    line-height:1.45;color:var(--ink);margin-bottom:3rem;letter-spacing:-.01em;
+  }
+  .lead::first-letter{
+    font-size:4.6em;float:left;line-height:.72;padding:.06em .12em 0 0;
+    font-weight:500;color:var(--ember);font-family:var(--display);
+  }
+  h2{
+    font-family:var(--display);font-weight:400;font-size:clamp(1.7rem,3.5vw,2.5rem);
+    line-height:1.1;letter-spacing:-.015em;margin:4.5rem 0 1.4rem;
+    display:flex;align-items:baseline;gap:1rem;
+  }
+  h2 .num{
+    font-family:var(--mono);font-size:.85rem;color:var(--ember);font-weight:700;
+    letter-spacing:.1em;transform:translateY(-.4em);flex:none;
+  }
+  h3{
+    font-family:var(--display);font-weight:500;font-size:1.35rem;
+    margin:2.6rem 0 .9rem;color:var(--ember-soft);letter-spacing:-.01em;
+  }
+  p{margin-bottom:1.5rem;color:var(--ink-soft)}
+  p strong,li strong{color:var(--ink);font-weight:600}
+  article a{color:var(--gold);text-decoration:none;border-bottom:1px solid var(--line);transition:border-color .2s}
+  article a:hover{border-color:var(--gold)}
+  .divider{
+    height:1px;background:var(--line);margin:4rem 0;position:relative;
+  }
+  .divider::after{
+    content:"◆";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    background:var(--bg);padding:0 1rem;color:var(--ember);font-size:.7rem;
+  }
+
+  /* pull stat strip */
+  .stats{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
+    border:1px solid var(--line);margin:3rem 0;border-radius:2px;overflow:hidden;
+  }
+  .stat{background:var(--paper);padding:2rem 1.4rem;text-align:center}
+  .stat .big{font-family:var(--display);font-size:clamp(2rem,5vw,3.2rem);font-weight:400;color:var(--ember);line-height:1}
+  .stat .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-top:.7rem}
+
+  /* figure / image placeholders */
+  figure{margin:3rem 0}
+  .figbox{
+    width:100%;background:var(--bg-2);border:1px solid var(--line);border-radius:3px;
+    aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
+    position:relative;overflow:hidden;
+  }
+  figcaption{
+    font-family:var(--mono);font-size:12px;color:var(--ink-faint);margin-top:.8rem;
+    text-align:center;letter-spacing:.04em;
+  }
+
+  /* fan-out diagram */
+  .diagram{margin:3.5rem 0}
+  .diagram svg{width:100%;height:auto;display:block}
+  .d-label{font-family:var(--mono);font-size:11px;fill:var(--ink-faint);letter-spacing:.06em}
+  .d-box{fill:var(--paper);stroke:var(--line);stroke-width:1}
+  .d-box-hl{fill:rgba(232,98,45,.08);stroke:var(--ember);stroke-width:1.4}
+  .d-txt{font-family:var(--mono);font-size:12px;fill:var(--ink);letter-spacing:.03em}
+  .d-txt-em{fill:var(--ember-soft)}
+  .d-line{stroke:var(--line);stroke-width:1;fill:none}
+  .d-line-hl{stroke:var(--ember);stroke-width:1.3;fill:none;opacity:.6}
+
+  /* blockquote */
+  blockquote{
+    margin:3rem 0;padding:1.8rem 2rem;background:var(--bg-2);
+    border-left:3px solid var(--ember);border-radius:0 3px 3px 0;
+  }
+  blockquote p{font-family:var(--display);font-style:italic;font-size:1.25rem;color:var(--ink);margin-bottom:1rem;line-height:1.5}
+  blockquote cite{font-family:var(--mono);font-style:normal;font-size:12px;letter-spacing:.06em;color:var(--ink-faint);text-transform:uppercase}
+  blockquote cite b{color:var(--ember-soft);font-weight:500}
+
+  /* code block */
+  .code{
+    background:#0a0908;border:1px solid var(--line);border-radius:4px;
+    margin:2.5rem 0;overflow:hidden;font-family:var(--mono);font-size:14px;
+  }
+  .code-bar{
+    display:flex;align-items:center;gap:.5rem;padding:.7rem 1rem;
+    border-bottom:1px solid var(--line);background:var(--bg-2);
+  }
+  .dot{width:11px;height:11px;border-radius:50%}
+  .code-title{margin-left:.6rem;font-size:11px;color:var(--ink-faint);letter-spacing:.08em}
+  .code pre{padding:1.3rem 1.4rem;overflow-x:auto;line-height:1.7;color:var(--ink-soft)}
+  .code .c{color:#6b6452}
+  .code .k{color:var(--ember-soft)}
+  .code .s{color:var(--gold)}
+  .code .v{color:#7fa8a0}
+
+  /* callout */
+  .callout{
+    display:flex;gap:1.2rem;margin:2.6rem 0;padding:1.5rem 1.7rem;
+    background:linear-gradient(180deg,rgba(217,164,65,.07),rgba(217,164,65,.02));
+    border:1px solid rgba(217,164,65,.25);border-radius:4px;
+  }
+  .callout .ico{flex:none;font-size:1.4rem;line-height:1;color:var(--gold)}
+  .callout p{margin:0;font-size:.97rem;color:var(--ink-soft)}
+  .callout b{color:var(--gold)}
+
+  ul.feat{list-style:none;margin:1.5rem 0}
+  ul.feat li{
+    position:relative;padding-left:1.8rem;margin-bottom:1.2rem;color:var(--ink-soft);
+  }
+  ul.feat li::before{
+    content:"▸";position:absolute;left:0;top:.05em;color:var(--ember);font-size:1rem;
+  }
+
+  /* footer */
+  footer{
+    border-top:1px solid var(--line);padding:4rem 2rem 5rem;text-align:center;
+    position:relative;z-index:2;
+  }
+  footer .mark{font-family:var(--display);font-style:italic;font-size:1.6rem;color:var(--ember);margin-bottom:1rem}
+  footer p{font-family:var(--mono);font-size:12px;color:var(--ink-faint);letter-spacing:.06em;max-width:50ch;margin:0 auto .5rem}
+  footer a{color:var(--gold)}
+
+  /* reveal anim */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:640px){
+    body{font-size:18px}
+    .hero{padding:18vw 7vw 12vw}
+    article{padding:4rem 1.4rem 6rem}
+    .stats{grid-template-columns:1fr}
+    .meta{gap:1.4rem}
+  }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<header class="hero">
+  <div class="hero-grid"></div>
+  <svg class="orbits" viewBox="0 0 400 400">
+    <circle cx="200" cy="200" r="60"/>
+    <circle cx="200" cy="200" r="115"/>
+    <circle cx="200" cy="200" r="170"/>
+    <circle class="node" cx="200" cy="200" r="7"/>
+    <circle class="node g" cx="260" cy="200" r="4"/>
+    <circle class="node s" cx="200" cy="85" r="3.5"/>
+    <circle class="node s" cx="115" cy="270" r="3.5"/>
+    <circle class="node g" cx="300" cy="120" r="4"/>
+    <circle class="node s" cx="70" cy="160" r="3"/>
+    <circle class="node s" cx="330" cy="280" r="3"/>
+    <circle class="node g" cx="160" cy="350" r="3.5"/>
+  </svg>
+
+  <div class="eyebrow">产品解读 · Claude Code</div>
+  <h1>当一个 Agent 学会<br>指挥一支 <em>舰队</em></h1>
+  <p class="dek">Anthropic 在 Claude Code 中推出动态工作流（Dynamic Workflows）——让 Claude 在单个会话里调度成百上千个并行子智能体，并在结果送达你之前自我审查。原本以"季度"为单位规划的工程，如今以"天"计。</p>
+  <div class="meta">
+    <span>读时 · <b>约 8 分钟</b></span>
+    <span>主题 · <b>多智能体编排</b></span>
+    <span>状态 · <b>Research Preview</b></span>
+  </div>
+</header>
+
+<article>
+
+  <p class="lead reveal">有些问题，单个智能体跑一遍是搞不定的——尤其是在庞杂的遗留代码库里。一次横跨整个服务的 bug 排查、一场触及上千文件的迁移、一份你想从各个角度压力测试后再拍板的方案。动态工作流要啃的，正是这一类任务，而且是端到端地啃完。</p>
+
+  <p class="reveal">这是 Anthropic 在 2026 年 5 月 28 日发布的新能力。它的核心动作可以用一句话概括：<strong>Claude 会自己动态编写编排脚本</strong>，在同一个会话里 fan-out 出几十到几百个并行子智能体，让它们各自攻关，再在汇总前对每条结果做独立验证。换句话说，Claude 不再只是"那个干活的人"，而成了"调度这群干活的人的那个人"。</p>
+
+  <div class="stats reveal">
+    <div class="stat"><div class="big">10–100s</div><div class="lbl">并行子智能体</div></div>
+    <div class="stat"><div class="big">11 天</div><div class="lbl">Bun 移植：首提交到合并</div></div>
+    <div class="stat"><div class="big">99.8%</div><div class="lbl">原测试套件通过率</div></div>
+  </div>
+
+  <h2 class="reveal"><span class="num">01</span>它填补的那个空档</h2>
+  <p class="reveal">如果你跟踪过多智能体的演进，会立刻意识到这个功能的精确位置。过去你有两个选择：要么<strong>随手丢一个 subagent</strong> 去做点零碎活，要么<strong>搭一整套 agent team</strong>——自己设计角色、定义协议、维护编排。前者太轻，后者太重。动态工作流恰好坐落在两者之间的真空地带。</p>
+
+  <blockquote class="reveal">
+    <p>动态工作流填补了"发射一个子智能体"和"搭建完整 agent 团队"之间的空白。从规划到落地一气呵成，让我们能放心地跑更长的任务，又不丢失可见性。</p>
+    <cite>Ken Takao · <b>CyberAgent 首席系统工程师</b></cite>
+  </blockquote>
+
+  <p class="reveal">这里藏着一个值得划重点的架构选择：<strong>编排发生在对话之外</strong>。计划不会因为任务越长越大、上下文窗口被挤爆而跑偏。这也是它能撑起数小时乃至数天长任务的根本原因——协调逻辑不跟会话争抢那块寸土寸金的 context。</p>
+
+  <div class="divider reveal"></div>
+
+  <h2 class="reveal"><span class="num">02</span>它如何工作</h2>
+  <p class="reveal">一个工作流启动后，流程大致是这样的：Claude 根据你的 prompt <strong>动态拆解</strong>成子任务，把活儿 fan-out 到一批并行子智能体，结果先经过验证再被折叠回主线，最后你拿到的是一份单一、协调过的答案。</p>
+
+  <div class="diagram reveal">
+    <svg viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg">
+      <!-- prompt -->
+      <rect class="d-box-hl" x="20" y="125" width="120" height="50" rx="4"/>
+      <text class="d-txt d-txt-em" x="80" y="148" text-anchor="middle">你的 Prompt</text>
+      <text class="d-label" x="80" y="165" text-anchor="middle">→ 动态规划</text>
+      <!-- orchestrator -->
+      <rect class="d-box-hl" x="210" y="120" width="120" height="60" rx="4"/>
+      <text class="d-txt d-txt-em" x="270" y="146" text-anchor="middle">编排脚本</text>
+      <text class="d-label" x="270" y="164" text-anchor="middle">会话之外运行</text>
+      <line class="d-line-hl" x1="140" y1="150" x2="210" y2="150"/>
+      <!-- fan out lines -->
+      <line class="d-line-hl" x1="330" y1="150" x2="430" y2="55"/>
+      <line class="d-line-hl" x1="330" y1="150" x2="430" y2="105"/>
+      <line class="d-line-hl" x1="330" y1="150" x2="430" y2="155"/>
+      <line class="d-line-hl" x1="330" y1="150" x2="430" y2="205"/>
+      <line class="d-line-hl" x1="330" y1="150" x2="430" y2="255"/>
+      <!-- subagents -->
+      <rect class="d-box" x="430" y="35" width="140" height="40" rx="4"/>
+      <text class="d-txt" x="445" y="60">subagent · 解题</text>
+      <rect class="d-box" x="430" y="85" width="140" height="40" rx="4"/>
+      <text class="d-txt" x="445" y="110">subagent · 解题</text>
+      <rect class="d-box" x="430" y="135" width="140" height="40" rx="4"/>
+      <text class="d-txt d-txt-em" x="445" y="160">subagent · 对抗</text>
+      <rect class="d-box" x="430" y="185" width="140" height="40" rx="4"/>
+      <text class="d-txt d-txt-em" x="445" y="210">subagent · 对抗</text>
+      <rect class="d-box" x="430" y="235" width="140" height="40" rx="4"/>
+      <text class="d-txt" x="445" y="260">subagent · 验证</text>
+      <!-- converge -->
+      <line class="d-line" x1="570" y1="55" x2="640" y2="150"/>
+      <line class="d-line" x1="570" y1="105" x2="640" y2="150"/>
+      <line class="d-line" x1="570" y1="155" x2="640" y2="150"/>
+      <line class="d-line" x1="570" y1="205" x2="640" y2="150"/>
+      <line class="d-line" x1="570" y1="255" x2="640" y2="150"/>
+      <circle cx="650" cy="150" r="10" fill="none" stroke="#e8622d" stroke-width="1.4"/>
+      <text class="d-label" x="650" y="180" text-anchor="middle">收敛的答案</text>
+    </svg>
+    <figcaption>规划 → fan-out → 独立验证与对抗 → 收敛。协调发生在对话之外。</figcaption>
+  </div>
+
+  <p class="reveal">真正让它超越"单次 pass"的，是后半段的<strong>对抗式收敛</strong>：一批智能体从独立角度给出解，另一批智能体专门负责<strong>反驳、证伪</strong>它们的发现，整个过程持续迭代，直到答案趋于一致。这意味着送到你面前的每条结论，都已经被自己人攻击过一轮了。</p>
+
+  <ul class="feat reveal">
+    <li><strong>断点续跑</strong>：进度随运行持续保存。一个被中断的任务会从断点接着跑，而不是从头再来。</li>
+    <li><strong>计划不漂移</strong>：因为协调在会话之外，任务再大，主线也稳得住。</li>
+    <li><strong>先确认再开跑</strong>：工作流首次触发时，Claude Code 会展示即将运行的内容并请你确认。</li>
+  </ul>
+
+  <div class="callout reveal">
+    <div class="ico">⚡</div>
+    <p><b>关于消耗：</b>动态工作流会比一次普通的 Claude Code 会话消耗多得多的 token。官方反复强调：先从一个范围受限的小任务试水，找到它在你工作流里的"手感"，再放开用。</p>
+  </div>
+
+  <div class="divider reveal"></div>
+
+  <h2 class="reveal"><span class="num">03</span>它能干什么</h2>
+  <p class="reveal">Anthropic 内部团队和早期用户已经把它用在了这几类场景上：</p>
+
+  <h3 class="reveal">代码库级的审计</h3>
+  <p class="reveal">bug 排查、profiler 引导的性能优化审计、安全审计。Claude 并行扫描整个服务或仓库，再对<strong>每一条发现跑独立验证</strong>，于是最终报告里浮出来的是真问题，而不是一堆误报。同样的形态也适用于加固扫描：鉴权检查、输入校验、不安全模式，覆盖整个代码库。</p>
+
+  <h3 class="reveal">大规模迁移与现代化</h3>
+  <p class="reveal">框架替换、API 弃用、语言移植——动辄跨越数千文件，端到端完成。</p>
+
+  <h3 class="reveal">需要"复核两遍"的高风险工作</h3>
+  <p class="reveal">当一个错误答案的代价很高时，工作流会给 Claude <strong>多次独立的尝试</strong>，并派对抗智能体在你看到结果之前先试着把它打破。</p>
+
+  <blockquote class="reveal">
+    <p>动态工作流在大型代码库的探查与审查任务上尤其有价值。我们用它识别死代码、找出静态分析漏掉的清理机会，效果很好，帮助工程师在维护和重构上跑得更快。</p>
+    <cite>Alessio Vallero · <b>Klarna 高级工程经理</b></cite>
+  </blockquote>
+
+  <div class="divider reveal"></div>
+
+  <h2 class="reveal"><span class="num">04</span>样板案例：把 Bun 重写一遍</h2>
+  <p class="reveal">如果想看它在规模上能撬动什么，最好的例子是近期 <strong>Bun 的重写</strong>。Jarred Sumner 用动态工作流把 Bun 从 Zig 移植到 Rust——约 <strong>75 万行 Rust</strong>，原测试套件 <strong>99.8% 通过</strong>，从首次提交到合并 <strong>只用了 11 天</strong>。</p>
+
+  <figure class="reveal">
+    <div class="figbox">
+      <svg viewBox="0 0 600 340" width="78%" xmlns="http://www.w3.org/2000/svg" style="opacity:.92">
+        <text x="30" y="40" class="d-label" style="font-size:13px;fill:#7d7565">PHASE</text>
+        <!-- step 1 -->
+        <rect class="d-box-hl" x="30" y="60" width="540" height="50" rx="4"/>
+        <text x="48" y="83" class="d-txt d-txt-em">① 生命周期映射</text>
+        <text x="48" y="101" class="d-label">为 Zig 代码里每个 struct 字段找到正确的 Rust lifetime</text>
+        <!-- step 2 -->
+        <rect class="d-box" x="30" y="125" width="540" height="50" rx="4"/>
+        <text x="48" y="148" class="d-txt">② 逐文件移植</text>
+        <text x="48" y="166" class="d-label">数百智能体并行：每个 .zig → 行为一致的 .rs，每文件配两名 reviewer</text>
+        <!-- step 3 -->
+        <rect class="d-box" x="30" y="190" width="540" height="50" rx="4"/>
+        <text x="48" y="213" class="d-txt">③ 修复循环</text>
+        <text x="48" y="231" class="d-label">驱动 build 与测试套件，直到两者都跑干净</text>
+        <!-- step 4 -->
+        <rect class="d-box" x="30" y="255" width="540" height="50" rx="4"/>
+        <text x="48" y="278" class="d-txt">④ 隔夜优化</text>
+        <text x="48" y="296" class="d-label">处理多余的数据拷贝，为每项改动开一个 PR 供最终 review</text>
+        <line class="d-line-hl" x1="300" y1="110" x2="300" y2="125"/>
+        <line class="d-line" x1="300" y1="175" x2="300" y2="190"/>
+        <line class="d-line" x1="300" y1="240" x2="300" y2="255"/>
+      </svg>
+    </div>
+    <figcaption>Bun 移植的四个工作流阶段（尚未进入生产，但全程由动态工作流完成）</figcaption>
+  </figure>
+
+  <p class="reveal">注意这里的分工之细：第一个工作流只干一件事——把每个字段的 Rust 生命周期理清楚；下一个才动手写每个 <code>.rs</code> 文件，数百智能体并行、每文件两名审阅者；接着一个修复循环把 build 和测试逼到全绿；移植落地后，还有一个隔夜工作流去收拾不必要的数据拷贝，并为每项改动各开一个 PR。这是把一项以"周"计的工程，拆成机器可以并行碾过去的形状。</p>
+
+  <div class="divider reveal"></div>
+
+  <h2 class="reveal"><span class="num">05</span>怎么上手</h2>
+  <p class="reveal">动态工作流目前以 <strong>research preview</strong> 形式上线，覆盖 Claude Code 的 CLI、桌面端与 VS Code 扩展（面向 Max、Team、以及管理员开启后的 Enterprise 计划），同时也在 Claude API、Amazon Bedrock、Vertex AI 和 Microsoft Foundry 上可用。</p>
+
+  <p class="reveal">建议先打开 <strong>auto mode</strong>。之后有两种启动方式：</p>
+
+  <div class="code reveal">
+    <div class="code-bar">
+      <span class="dot" style="background:#e8622d"></span>
+      <span class="dot" style="background:#d9a441"></span>
+      <span class="dot" style="background:#7fa8a0"></span>
+      <span class="code-title">claude-code · 两种触发方式</span>
+    </div>
+    <pre><span class="c"># 方式一：直接让 Claude 创建工作流</span>
+&gt; <span class="k">Create a workflow</span> to hunt memory bugs across the auth service
+
+<span class="c"># 方式二：打开 Claude Code 专属设置 ultracode</span>
+<span class="c"># 它把 effort 拉到 xhigh，并让 Claude 自行判断何时启用工作流</span>
+effort: <span class="s">ultracode</span>   <span class="c">// → xhigh + 自动决策</span></pre>
+  </div>
+
+  <p class="reveal">计划层面的默认开关也值得记一下：<strong>Max 和 Team 计划、以及通过 API 使用时，默认开启</strong>；<strong>Enterprise 计划在发布时默认关闭</strong>，管理员可在 Claude Code 设置里轻松改动。组织管理员也可以通过托管设置选择禁用工作流。</p>
+
+  <div class="callout reveal">
+    <div class="ico">◆</div>
+    <p><b>它处在多智能体栈的哪一层？</b>不同于 MCP（工具层）或 agent 互操作协议（连接层），动态工作流代表的是<b>编排层的自动化</b>——把"用户手写 agent team 配置"这件事，交还给模型自主动态完成，并内建对抗验证。这是这次发布最值得记住的转向。</p>
+  </div>
+
+  <div class="divider reveal"></div>
+
+  <h2 class="reveal"><span class="num">06</span>一句话总结</h2>
+  <p class="reveal">动态工作流不是又一个"更聪明的模型"，而是一种<strong>形态上的升级</strong>：让 Claude 在面对单次跑不完的大任务时，自己把问题拆开、并行铺出去、互相审查、再收敛回一个答案。它把"以季度规划"的工程压缩到"以天交付"，代价是显著更高的 token 消耗。先用小任务试手，再让它去碾那些你一直拖着没动的大活儿。</p>
+
+  <p class="reveal" style="font-family:var(--mono);font-size:13px;color:var(--ink-faint);letter-spacing:.04em;margin-top:3rem">
+    延伸阅读 · <a href="https://code.claude.com/docs/en/workflows">动态工作流文档</a> · <a href="https://claude.com/blog/introducing-dynamic-workflows-in-claude-code">原始公告</a>
+  </p>
+
+</article>
+
+<footer>
+  <div class="mark">◆ ◆ ◆</div>
+  <p>本文基于 Anthropic 2026 年 5 月 28 日的官方公告整理与扩写，用于技术解读。</p>
+  <p>引用数据与案例（Bun 移植、Klarna、CyberAgent）均来自原始公告。</p>
+</footer>
+
+<script>
+  // progress bar
+  const bar=document.getElementById('progress');
+  function onScroll(){
+    const h=document.documentElement.scrollHeight-window.innerHeight;
+    bar.style.width=(window.scrollY/h*100)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+  // reveal on scroll
+  const io=new IntersectionObserver((es)=>{
+    es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
+  },{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('.reveal').forEach((el,i)=>{
+    el.style.transitionDelay=(Math.min(i,3)*60)+'ms';
+    io.observe(el);
+  });
+</script>
+</body>
+</html>
