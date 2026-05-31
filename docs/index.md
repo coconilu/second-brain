@@ -59,6 +59,7 @@
 ## 月度追踪
 
 - [Top 20 Agent Skills — 2026 年 4 月](skills-monthly/2026-04_top20.md)
+- [GitHub AI Trending Top 10（2026-05-26 至 2026-06-01）](github-ai-trending/2026-05-26_to_2026-06-01.md)
 - [GitHub AI Trending Top 12（2026-05-19 至 2026-05-25）](github-ai-trending/2026-05-19_to_2026-05-25.md)
 - [GitHub AI Trending Top 10（2026-05-12 至 2026-05-18）](github-ai-trending/2026-05-12_to_2026-05-18.md)
 - [GitHub AI Trending Top 10（2026-05-05 至 2026-05-11）](github-ai-trending/2026-05-05_to_2026-05-11.md)
@@ -70,9 +71,9 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
-- [LM Studio 开发者文档 · 教案](lmstudio-teaching/) `HTML`{target="_self"}
-- [大模型术语图鉴](llm-glossary/) `HTML`{target="_self"}
 - [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"}
+- [大模型术语图鉴](llm-glossary/) `HTML`{target="_self"}
+- [LM Studio 开发者文档 · 教案](lmstudio-teaching/) `HTML`{target="_self"}
 - [Next.js 系统精讲 · 架构 · 运行 · 数据结构 · 数据流](nextjs-complete-guide/) `HTML`{target="_self"}
 - [Nuxt 框架深度教学 · 架构 / 运行时 / 数据结构 / 数据流](nuxt-guide/) `HTML`{target="_self"}
 - [React 框架系统学习：架构、运行机制、核心数据结构与面试资料](react-deep-dive/) `HTML`{target="_self"}
