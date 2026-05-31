@@ -13,6 +13,8 @@ const previewSrc = computed(() => {
     ? cleanPath
     : cleanPath.slice(0, cleanPath.lastIndexOf('/') + 1)
 
+  if (basePath === '/') return ''
+
   return `${basePath}preview.png`
 })
 
