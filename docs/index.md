@@ -4,6 +4,7 @@
 
 ## 工具操作指南
 
+- [2026 终端工具选型：Ghostty、cmux、tmux、Zellij、Warp 怎么选](terminal-tools-2026/index.md) — 按终端模拟器、复用器、AI agent 工作台和进程管理四层梳理终端工具组合。
 - [tmux：从一个例子开始](tmux/index.md) — 用会话、窗口、面板搭建稳定的终端工作台。
 - [Claude Code Hooks：从一个例子开始](claude-code-hooks/claude-code-hooks-use.md) — 从自动 lint 入门 hooks。
 - [Claude Code Hooks 完整指南](claude-code-hooks/claude-code-hooks-guide.md) — 系统梳理事件、matcher、退出码和调试方法。
@@ -23,6 +24,7 @@
 
 ## 对比与选型
 
+- [2026 终端工具选型：Ghostty、cmux、tmux、Zellij、Warp 怎么选](terminal-tools-2026/index.md) — 对比 Ghostty、cmux、tmux、Zellij、Warp、WezTerm、Kitty、Solo 等工具的定位和适用场景。
 - [OpenCode vs Claude Code](opencode-vs-claudecode/index.md) — 终端 AI 编程助手的功能、生态和体验对比。
 - [scan-reviewer 与开源社区同类方案的对比](scan-reviewer/comparison.md) — 对比 repo map、RAG、代码图谱等上下文方案。
 - [Scanning Strategy](scan-reviewer/scanning-strategy.md) — scan-reviewer 的可复用代码扫描策略。

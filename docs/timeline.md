@@ -4,6 +4,7 @@
 
 ## 2026-05
 
+- [2026 终端工具选型：Ghostty、cmux、tmux、Zellij、Warp 怎么选](terminal-tools-2026/index.md)
 - [CodeGraph：给 AI 编程助手的本地代码知识图谱](codegraph/index.md)
 - [Next.js 系统精讲 · 架构 · 运行 · 数据结构 · 数据流](nextjs-complete-guide/) `HTML`{target="_self"}
 - [Nuxt 框架深度教学 · 架构 / 运行时 / 数据结构 / 数据流](nuxt-guide/) `HTML`{target="_self"}
