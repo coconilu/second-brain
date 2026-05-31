@@ -2,5 +2,12 @@
   "installCommand": "pnpm install",
   "buildCommand": "pnpm docs:build",
   "outputDirectory": "docs/.vitepress/dist",
-  "cleanUrls": true
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/timeline",
+      "permanent": false
+    }
+  ]
 }
