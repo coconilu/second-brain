@@ -203,6 +203,106 @@ tmux 最重要的能力只有一个：**detach / attach**。
 
 这件事 cmux 不替代，Ghostty 不替代，Warp 也不完全替代。
 
+#### tmux 怎么安装
+
+macOS 用 Homebrew：
+
+```bash
+brew install tmux
+```
+
+Debian / Ubuntu：
+
+```bash
+sudo apt update
+sudo apt install tmux
+```
+
+Fedora：
+
+```bash
+sudo dnf install tmux
+```
+
+Arch Linux：
+
+```bash
+sudo pacman -S tmux
+```
+
+装完之后验证：
+
+```bash
+tmux -V
+# tmux 3.x
+```
+
+#### tmux 最小使用闭环
+
+先不要急着学一堆快捷键，只记住这四步：
+
+```bash
+# 1. 创建一个叫 dev 的会话
+tmux new -s dev
+```
+
+进入 tmux 后，你可以正常跑命令，比如：
+
+```bash
+pnpm dev
+# 或 tail -f app.log
+# 或 vim main.ts
+```
+
+如果要临时离开 tmux，按：
+
+```text
+Ctrl-b，然后按 d
+```
+
+这叫 **detach**。你会回到普通 shell，但 tmux 里的程序还在后台运行。
+
+查看当前有哪些 tmux 会话：
+
+```bash
+tmux ls
+```
+
+重新进入刚才的会话：
+
+```bash
+tmux attach -t dev
+```
+
+如果这个会话不需要了，可以关闭：
+
+```bash
+tmux kill-session -t dev
+```
+
+这就是 tmux 最核心的工作流：
+
+```text
+创建会话 → 跑任务 → detach 离开 → attach 回来 → 任务继续存在
+```
+
+#### 常用快捷键
+
+tmux 默认所有快捷键都以 `Ctrl-b` 开头。你可以把它理解成“告诉 tmux：接下来这个键是给你的”。
+
+| 快捷键 | 作用 |
+|---|---|
+| `Ctrl-b d` | detach，离开当前会话 |
+| `Ctrl-b c` | 新建窗口 |
+| `Ctrl-b n` | 切到下一个窗口 |
+| `Ctrl-b p` | 切到上一个窗口 |
+| `Ctrl-b %` | 左右分屏 |
+| `Ctrl-b "` | 上下分屏 |
+| `Ctrl-b 方向键` | 在 pane 之间移动 |
+| `Ctrl-b x` | 关闭当前 pane |
+
+如果你只想解决“SSH 断了任务别丢”，先会 `new`、`detach`、`ls`、`attach` 就够了；分屏和窗口可以后面再慢慢加。
+
 常见组合：
 
 ```text
