@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIA：当 Agent 开始改写自己 —— 一篇关于自改进循环的实践笔记</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,400&family=Noto+Serif+SC:wght@400;600;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16140f;
+    --paper:#f4f0e6;
+    --paper-2:#ebe5d6;
+    --rust:#b4441f;
+    --rust-deep:#8a2f12;
+    --gold:#c08a2d;
+    --line:#cfc6b0;
+    --muted:#6a6354;
+    --mono:'JetBrains Mono',monospace;
+    --serif:'Noto Serif SC','Fraunces',serif;
+    --display:'Fraunces','Noto Serif SC',serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--serif);
+    line-height:1.85;
+    font-size:18px;
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(192,138,45,.05), transparent 40%),
+      radial-gradient(circle at 88% 92%, rgba(180,68,31,.05), transparent 40%);
+  }
+  .grain{
+    position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.4;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 28px;position:relative;z-index:2}
+
+  /* ── MASTHEAD ── */
+  header.masthead{
+    padding:80px 0 48px;
+    border-bottom:3px double var(--ink);
+    margin-bottom:8px;
+  }
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.34em;
+    text-transform:uppercase;
+    color:var(--rust-deep);
+    margin-bottom:26px;
+    display:flex;gap:14px;align-items:center;
+  }
+  .kicker::after{content:'';flex:1;height:1px;background:var(--line)}
+  h1.title{
+    font-family:var(--display);
+    font-weight:900;
+    font-size:clamp(38px,7vw,68px);
+    line-height:1.02;
+    letter-spacing:-.02em;
+    margin-bottom:24px;
+  }
+  h1.title em{font-style:italic;color:var(--rust)}
+  .standfirst{
+    font-size:21px;
+    color:#3a352c;
+    font-weight:400;
+    max-width:62ch;
+    border-left:3px solid var(--rust);
+    padding-left:20px;
+  }
+  .byline{
+    margin-top:32px;
+    font-family:var(--mono);
+    font-size:12.5px;
+    color:var(--muted);
+    letter-spacing:.05em;
+    display:flex;gap:18px;flex-wrap:wrap;
+  }
+  .byline span{display:flex;gap:7px;align-items:center}
+  .byline b{color:var(--ink);font-weight:600}
+
+  /* ── BODY ── */
+  main{padding:48px 0 40px}
+  section{margin-bottom:58px}
+  .sec-num{
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--gold);
+    letter-spacing:.2em;
+    display:block;
+    margin-bottom:8px;
+  }
+  h2{
+    font-family:var(--display);
+    font-weight:900;
+    font-size:clamp(27px,4.5vw,38px);
+    line-height:1.12;
+    letter-spacing:-.015em;
+    margin-bottom:22px;
+    position:relative;
+  }
+  h3{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:21px;
+    margin:34px 0 14px;
+    color:var(--rust-deep);
+  }
+  p{margin-bottom:18px}
+  p .lead{font-weight:600}
+  strong{font-weight:600;color:var(--ink);background:linear-gradient(transparent 62%, rgba(192,138,45,.28) 0)}
+  a{color:var(--rust-deep);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+  a:hover{color:var(--rust)}
+
+  .dropcap::first-letter{
+    font-family:var(--display);
+    font-weight:900;
+    float:left;
+    font-size:80px;
+    line-height:.72;
+    padding:8px 12px 0 0;
+    color:var(--rust);
+  }
+
+  /* ── PULL QUOTE ── */
+  .pull{
+    font-family:var(--display);
+    font-style:italic;
+    font-weight:600;
+    font-size:clamp(23px,4vw,31px);
+    line-height:1.3;
+    color:var(--rust-deep);
+    text-align:center;
+    margin:48px -10px;
+    padding:8px 0;
+    position:relative;
+  }
+  .pull::before,.pull::after{
+    content:'';display:block;width:54px;height:2px;background:var(--gold);margin:22px auto;
+  }
+
+  /* ── CALLOUT ── */
+  .callout{
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-left:4px solid var(--rust);
+    padding:24px 26px;
+    margin:30px 0;
+    border-radius:2px;
+  }
+  .callout-label{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--rust-deep);
+    margin-bottom:10px;
+  }
+  .callout p:last-child{margin-bottom:0}
+  .callout.warn{border-left-color:var(--gold);background:#f3ecd9}
+  .callout.warn .callout-label{color:#8a6516}
+
+  /* ── DEFINITION GRID ── */
+  .agents{
+    display:grid;gap:0;margin:30px 0;
+    border:1px solid var(--ink);
+  }
+  .agent-row{
+    display:grid;grid-template-columns:140px 1fr;
+    border-bottom:1px solid var(--line);
+  }
+  .agent-row:last-child{border-bottom:none}
+  .agent-name{
+    background:var(--ink);color:var(--paper);
+    padding:18px 16px;
+    font-family:var(--mono);font-size:12.5px;font-weight:600;
+    letter-spacing:.04em;
+    display:flex;align-items:center;
+  }
+  .agent-desc{padding:18px 20px;font-size:16.5px;line-height:1.6}
+  .agent-desc b{color:var(--rust-deep)}
+
+  /* ── CODE ── */
+  pre{
+    background:#1c1a14;
+    color:#e8e2d2;
+    font-family:var(--mono);
+    font-size:13.5px;
+    line-height:1.7;
+    padding:22px 24px;
+    border-radius:4px;
+    overflow-x:auto;
+    margin:24px 0;
+    border:1px solid #000;
+    box-shadow:5px 5px 0 rgba(180,68,31,.18);
+  }
+  pre .c{color:#8a8472;font-style:italic}
+  pre .k{color:#d98a4f}
+  pre .s{color:#b6c47a}
+  pre .f{color:#7fb3c9}
+  code{
+    font-family:var(--mono);
+    font-size:.86em;
+    background:var(--paper-2);
+    padding:2px 6px;
+    border-radius:3px;
+    border:1px solid var(--line);
+    color:var(--rust-deep);
+  }
+
+  /* ── STEP LIST ── */
+  ol.steps{list-style:none;counter-reset:s;margin:24px 0}
+  ol.steps li{
+    counter-increment:s;
+    position:relative;
+    padding:0 0 22px 56px;
+    margin-bottom:0;
+  }
+  ol.steps li::before{
+    content:counter(s);
+    position:absolute;left:0;top:-2px;
+    width:38px;height:38px;
+    background:var(--rust);color:var(--paper);
+    font-family:var(--display);font-weight:900;font-size:19px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+  }
+  ol.steps li::after{
+    content:'';position:absolute;left:18px;top:38px;bottom:6px;width:2px;background:var(--line);
+  }
+  ol.steps li:last-child::after{display:none}
+  ol.steps b{display:block;font-size:18px;color:var(--ink);margin-bottom:4px}
+
+  ul.plain{list-style:none;margin:18px 0}
+  ul.plain li{position:relative;padding-left:26px;margin-bottom:12px}
+  ul.plain li::before{
+    content:'▸';position:absolute;left:0;color:var(--rust);font-size:15px;top:1px;
+  }
+
+  /* ── TABLE ── */
+  .tbl{margin:28px 0;border:1px solid var(--ink);overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th{
+    background:var(--ink);color:var(--paper);
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;
+    text-transform:uppercase;text-align:left;padding:13px 15px;font-weight:600;
+  }
+  td{padding:13px 15px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+  tr:last-child td{border-bottom:none}
+  tr:nth-child(even) td{background:rgba(0,0,0,.018)}
+  td b{color:var(--rust-deep)}
+
+  /* ── FOOTER ── */
+  footer{
+    border-top:3px double var(--ink);
+    padding:44px 0 90px;
+    margin-top:20px;
+  }
+  footer .end{
+    font-family:var(--display);font-weight:900;font-size:24px;margin-bottom:16px;
+  }
+  footer p{font-size:16px;color:var(--muted)}
+  .sig{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--gold);margin-top:26px}
+
+  ::selection{background:var(--rust);color:var(--paper)}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="kicker">多 Agent 架构 · 第 N 篇</div>
+    <h1 class="title">当 Agent 开始<br><em>改写自己</em></h1>
+    <p class="standfirst">
+      SIA 不是又一个让 Agent 更聪明的框架，它把「让 Agent 变好」这件事本身——交给了另一个 Agent。
+      这篇笔记讲清楚它为什么重要，以及如何把这套自改进循环嫁接到你现有的工作流上，而不是推倒重来。
+    </p>
+    <div class="byline">
+      <span>📐 <b>主题</b>&nbsp;自改进循环 / Self-Improving AI</span>
+      <span>🔗 <b>承接</b>&nbsp;lark-cli · Symphony · A2A</span>
+      <span>⏱ <b>篇幅</b>&nbsp;约 12 分钟</span>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+  <!-- 0 -->
+  <section>
+    <p class="dropcap">
+      过去一年，我们一直在沿着同一条线索往前推：先是把单个 Agent 当工具，
+      然后是 <strong>lark-cli</strong> 那样的「协作侧动作执行器」——让 Agent 在飞书上规范地留痕；
+      再到 <strong>Symphony</strong> 那种「把 issue tracker 当控制平面、人退到 PR review 末端」的团队级编排。
+      这些都在回答同一个问题：<em>多个 Agent 如何分工、如何被调度、如何把工作而不是会话管起来。</em>
+    </p>
+    <p>
+      但它们都默认了一个前提——<strong>Agent 本身是给定的</strong>。你写好 prompt、配好工具、定义好 SOP，
+      Agent 就在这个能力边界内干活。它今天和三个月后是一样的，除非你亲自回去改它。
+    </p>
+    <p>
+      SIA（Self-Improving AI）戳的正是这个前提。它问的不是「怎么调度 Agent」，
+      而是<strong>「能不能让 Agent 自己变好」</strong>——而且是在一个明确的基准任务上、可度量地变好。
+    </p>
+  </section>
+
+  <!-- 1 -->
+  <section>
+    <span class="sec-num">01 / 它到底是什么</span>
+    <h2>三个 Agent，一个进化循环</h2>
+    <p>
+      SIA 是 hexolabs 开源的自改进 AI 框架，对应论文 <em>"SIA: Self Improving AI with Harness &amp; Weight Updates"</em>。
+      它的目标用一句话说：<strong>让任意一个 AI 系统（模型或 Agent）在某个基准任务上，自动地、一代比一代地变好。</strong>
+    </p>
+    <p>
+      实现方式不靠玄学，而是让三种角色的 Agent 组成一个闭环：
+    </p>
+
+    <div class="agents">
+      <div class="agent-row">
+        <div class="agent-name">Meta-Agent</div>
+        <div class="agent-desc">读任务描述，<b>从零生成</b>第一版针对该任务的 Target Agent。相当于「招人」——根据岗位需求造出第一个员工。</div>
+      </div>
+      <div class="agent-row">
+        <div class="agent-name">Target Agent</div>
+        <div class="agent-desc">真正<b>下场干活</b>的任务专用 Agent，执行任务并完整记录自己的每一步操作和结果。它是被改进的对象。</div>
+      </div>
+      <div class="agent-row">
+        <div class="agent-name">Feedback Agent</div>
+        <div class="agent-desc">审查 Target 的执行日志，<b>找出问题、给出改法、并据此改写 Target</b>。相当于「主管 + 复盘」——看着绩效记录决定下一版怎么调。</div>
+      </div>
+    </div>
+
+    <p>
+      这三者跑完一轮叫一个「代次」（generation）。Feedback 改完，新的 Target 再上场、再被记录、再被复盘……
+      一代一代滚下去。每一代的产物都被落盘保留：
+    </p>
+
+    <pre><span class="c"># runs/run_1/gen_3/</span>
+target_agent.py        <span class="c"># 这一代的 Agent 代码</span>
+agent_execution.json   <span class="c"># 执行日志（Feedback 的输入）</span>
+improvement.md         <span class="c"># 这一代相对上一代改了什么、为什么（gen 2+）</span></pre>
+
+    <p>
+      注意标题里那个关键词：<strong>Harness &amp; Weight Updates</strong>。SIA 改的不只是 prompt 或脚手架代码（harness），
+      论文宣称它也能更新模型权重（weights）。换句话说，它把「调 Agent」这件事的两个层面——
+      <em>外层的框架</em>和<em>内层的能力</em>——都纳入了同一个自动循环。
+    </p>
+  </section>
+
+  <div class="pull">
+    它把「让 Agent 变好」从一次性的人工劳动，<br>变成了一个可以挂着跑的后台进程。
+  </div>
+
+  <!-- 2 -->
+  <section>
+    <span class="sec-num">02 / 为什么这件事重要</span>
+    <h2>瓶颈又往上挪了一层</h2>
+    <p>
+      还记得 Symphony 的那个洞察吗——当 Codex 足够强，工程师的瓶颈就从「写代码」变成了「监工 Agent」，
+      所以 Symphony 把会话管理这层抽掉。SIA 是同一个故事的<strong>下一章</strong>：
+      当你有了一堆 Agent 在干活，新的瓶颈变成了<strong>「谁来持续优化这些 Agent」</strong>。
+    </p>
+    <p>
+      在 SIA 之前，这个答案是「你，手动地」。你看日志、改 prompt、调工具、再测一遍——
+      这是一种永远做不完、又很难规模化的工作。SIA 把它形式化成一个循环，于是有了三个真正重要的转变：
+    </p>
+
+    <h3>① 优化从「人工劳动」变成「可挂后台的进程」</h3>
+    <p>
+      这是最直接的价值。你不再需要盯着每一代的表现手动迭代——把任务和基准定义清楚，
+      循环自己往前滚。人的角色从<em>「优化者」</em>退到<em>「优化过程的设计者和验收者」</em>，
+      和 Symphony 把人从 prompter 推到 reviewer 是完全同构的方向。
+    </p>
+
+    <h3>② 它把「改进」变成了可审计的资产</h3>
+    <p>
+      每一代的 <code>improvement.md</code> 都是一份白纸黑字的「这次为什么这么改」。
+      这件事被严重低估了——它意味着 Agent 的进化路径<strong>不是黑箱</strong>，而是一条可以回溯、
+      可以评审、可以被团队复用的决策链。这跟 Symphony 的 <code>SPEC.md</code>、
+      跟你 lark-cli 文档里强调的「结构化输出 + 可观测性」是一脉相承的设计品味：
+      <strong>把隐性的判断显性化成可传承的 artifact。</strong>
+    </p>
+
+    <h3>③ 它逼你先把「好」定义清楚</h3>
+    <p>
+      自改进循环要成立，前提是有一个<strong>可度量的基准任务</strong>——否则「改进」无从谈起。
+      这个约束看似是负担，实则是礼物：它强迫团队在放 Agent 上场之前，先回答
+      「这个任务到底怎么算做好了」。很多团队的真正问题不是 Agent 不够强，而是从没把成功标准写下来过。
+    </p>
+
+    <div class="callout warn">
+      <div class="callout-label">⚠ 一个必须说在前面的保留意见</div>
+      <p>
+        SIA 的仓库目前很新、很小（提交和 star 都还是个位到两位数），它引用的论文编号和年份也超出了我能可靠核实的范围。
+        论文里那些亮眼的数字——LawBench 提升 <b>56.6%</b>、GPU kernel 运行时减少 <b>91.9%</b>、单细胞 RNA 去噪较基线提升 <b>502%</b>——
+        我无法替它背书是否经过同行评审。<strong>把它当成一个值得动手验证的范式，而不是一个已被证明的结论。</strong>
+        下面的实践建议，全部建立在「你自己先小范围跑通、用自己的数据验证」之上。
+      </p>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section>
+    <span class="sec-num">03 / 它在你的协议栈里站哪一层</span>
+    <h2>不抢戏，补在最上面那一格</h2>
+    <p>
+      你已经有了一套相对完整的多 Agent 拼图。SIA 的好处是它<strong>不和其中任何一块抢位置</strong>——
+      它补的是过去一直空着的那一格：「谁来让这些 Agent 持续变好」。
+    </p>
+
+    <div class="tbl">
+    <table>
+      <thead>
+        <tr><th>层</th><th>代表</th><th>解决的问题</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b>协作侧执行</b></td><td>lark-cli</td><td>Agent 如何规范地在协作工具上「留痕 / 执行动作」</td></tr>
+        <tr><td><b>任务编排</b></td><td>Symphony</td><td>多个 Agent 如何被调度、人如何退到 review 末端</td></tr>
+        <tr><td><b>Agent 间通信</b></td><td>A2A</td><td>Agent 之间如何发现彼此能力、互相协调</td></tr>
+        <tr><td><b>自改进循环</b></td><td><b>SIA ← 新增</b></td><td><b>Agent 本身如何在基准任务上自动迭代变好</b></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>
+      最值得玩味的一点：SIA 产出的「更好的 Target Agent」，恰恰可以成为上面三层的<strong>输入</strong>。
+      一个被 SIA 在「生成会议纪要」任务上磨过 5 代的 Agent，可以直接被包装成 Symphony 调度的一个 worker，
+      或者你 Claude Code Subagent 体系里的一个 report-bot——它通过 lark-cli 把结果写回飞书。
+      <strong>SIA 是这条流水线的「上游铸造车间」，不是替代品。</strong>
+    </p>
+  </section>
+
+  <!-- 4 -->
+  <section>
+    <span class="sec-num">04 / 五分钟先跑起来</span>
+    <h2>从内置任务开始，别上来就接生产</h2>
+    <p>
+      SIA 自带四个任务（<code>gpqa</code> / <code>lawbench</code> / <code>longcot-chess</code> / <code>spaceship-titanic</code>），
+      装好就能跑——先用它们建立对「一代一代变好」的直觉，再谈接自己的任务。
+    </p>
+
+    <h3>安装（Claude 后端为例）</h3>
+    <pre><span class="k">python3</span> -m venv .venv && <span class="k">source</span> .venv/bin/activate
+<span class="k">pip</span> install <span class="s">'sia-agent[claude]'</span>
+<span class="k">export</span> ANTHROPIC_API_KEY=<span class="s">"..."</span>
+
+<span class="c"># 想跑多供应商（Gemini / OpenAI / Anthropic）则用 openhands 后端：</span>
+<span class="c"># pip install 'sia-agent[openhands]'</span></pre>
+
+    <h3>跑第一个循环</h3>
+    <pre><span class="k">sia</span> --task gpqa --max_gen 5 --run_id 1
+<span class="c"># 跑 5 代自改进，产物落在 runs/run_1/gen_{n}/</span></pre>
+
+    <p>
+      跑完之后，<strong>第一件该做的事不是看分数，是把每一代的 <code>improvement.md</code> 串起来读一遍。</strong>
+      这条「Feedback Agent 的决策链」比最终那个数字有价值得多——它告诉你这套循环是真在做有意义的归因，
+      还是在瞎调。这一步的判断，决定了你值不值得往下接自己的任务。
+    </p>
+
+    <div class="callout">
+      <div class="callout-label">↹ 关键参数速查</div>
+      <p style="font-family:var(--mono);font-size:14px;line-height:2">
+        <code>--max_gen</code> 自改进代数（默认 3）<br>
+        <code>--backend</code> claude / openhands<br>
+        <code>--meta_model</code> Meta &amp; Feedback 用的模型（haiku / sonnet / opus / gemini... / openai...）<br>
+        <code>--task_model</code> Target Agent 用的模型<br>
+        <code>--task_dir</code> 指向你自己的任务目录（与 --task 二选一）
+      </p>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section>
+    <span class="sec-num">05 / 接你自己的任务</span>
+    <h2>「自带任务」才是真正的入口</h2>
+    <p>
+      内置任务是 demo，真正的价值在于把它指向<strong>你团队真实的、重复发生的、且能判定好坏的任务</strong>。
+      SIA 要求一个固定的目录结构：
+    </p>
+
+    <pre>my-task/
+├── data/
+│   ├── public/
+│   │   ├── task.md      <span class="c"># 任务描述——SIA 读这个</span>
+│   │   └── ...          <span class="c"># Agent 被允许看到的输入</span>
+│   └── private/         <span class="c"># 留出的评测数据，永不暴露给 Agent</span>
+└── reference/
+    └── reference_target_agent.py   <span class="c"># Agent 模板</span>
+
+<span class="k">sia</span> --task_dir ./my-task --max_gen 5 --run_id 1</pre>
+
+    <p>
+      这里藏着整个框架最重要的工程纪律，和我们之前聊 Symphony 时说的<strong>「harness engineering」是同一件事</strong>：
+    </p>
+    <ul class="plain">
+      <li><strong>public / private 的隔离就是你的「验收门」。</strong>private 数据永不给 Agent 看到——
+        这是防止自改进循环「对着考题作弊」的唯一保障。如果这个隔离形同虚设，整套循环会愉快地优化出一个只会过拟合的废物。</li>
+      <li><strong><code>task.md</code> 的质量 = 循环的上限。</strong>任务描述写得含糊，Meta-Agent 造出的初版就跑偏，
+        后面再改也是在错误的方向上精进。这跟 Symphony 要求「issue 干净到 Agent 能直接执行」是完全一样的前提。</li>
+      <li><strong>「好」必须能被自动判定。</strong>如果评分还要人来打，自改进循环就退化成了人工迭代——
+        SIA 的全部价值就泄掉了。</li>
+    </ul>
+
+    <p>
+      另外，如果你的任务本质是个 ML 竞赛，SIA 能直接从任何
+      <a href="https://github.com/openai/mle-bench" target="_blank" rel="noopener">MLE-Bench</a>
+      竞赛 bootstrap 出任务目录（自动拉数据、切 public/private、放模板），这是上手自定义任务最快的捷径。
+    </p>
+  </section>
+
+  <!-- 6 -->
+  <section>
+    <span class="sec-num">06 / 落地路径</span>
+    <h2>把 SIA 嫁接到现有工作流的四步</h2>
+    <p>
+      延续你之前那几份 Playbook 的风格，给一条克制的、不推倒重来的铺设路径。
+      核心原则：<strong>SIA 是离线的「铸造车间」，不要让它直接碰生产流量</strong>——
+      它产出 Agent，由你现有的编排层（Symphony / Subagent）去部署。
+    </p>
+
+    <ol class="steps">
+      <li>
+        <b>第 1 周 · 选一个「窄而重复」的任务，建好评测集</b>
+        别贪大。挑一个团队每天都在做、且明确能判对错的小任务（比如「把某类工单分类」「从纪要里抽行动项」）。
+        把它整理成 SIA 的目录结构，<strong>把私有评测集这件事做扎实</strong>——这一步花的时间，决定后面一切是否成立。
+      </li>
+      <li>
+        <b>第 2 周 · 离线跑循环，读 improvement.md 而不是只看分数</b>
+        用 <code>--max_gen 5</code> 跑起来，重点审查 Feedback Agent 的归因链是否合理。
+        这一周的产出不是「一个更好的 Agent」，而是一个判断：<strong>这套循环对你这个任务到底有没有用。</strong>
+        没用就止损，这是最便宜的失败。
+      </li>
+      <li>
+        <b>第 3 周 · 把最佳代次的 Agent「出厂」，包进现有编排</b>
+        把跑出来的 <code>target_agent.py</code> 当成一个产出物，包装成你体系里的一个 Subagent，
+        或一个 Symphony 调度的 worker，让它通过 lark-cli 把结果写回飞书留痕。
+        <strong>SIA 到此退场，回到离线。</strong>线上跑的是它的产物，不是它本身。
+      </li>
+      <li>
+        <b>第 4 周 · 把这条「铸造 → 部署」链路写成团队 SOP</b>
+        固化下来：什么样的任务值得上 SIA、评测集怎么建、improvement.md 怎么评审、
+        出厂的 Agent 怎么纳管和回滚。这一步让 SIA 从「某个人跑通的实验」变成<strong>组织级的、可复用的能力</strong>——
+        和你给 lark-cli 写的那套自定义 Skill、给 Symphony 想的「参考架构小节」是同一种沉淀。
+      </li>
+    </ol>
+
+    <div class="callout">
+      <div class="callout-label">⌘ 一句话原则</div>
+      <p>
+        <strong>SIA 改 Agent，编排层用 Agent，协作层让 Agent 留痕。</strong>
+        把这三件事在物理上分开——自改进永远离线、可审计、对着私有评测集；
+        生产环境只接收它「出厂」的、被你验收过的产物。这样你既拿到了自动优化的红利，
+        又没把一个会自我改写的循环直接接到真实流量上。
+      </p>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section>
+    <span class="sec-num">07 / 收尾</span>
+    <h2>这条线索的下一个坐标</h2>
+    <p>
+      如果说 lark-cli 回答了「Agent 怎么干活」、Symphony 回答了「Agent 怎么被调度」、
+      A2A 回答了「Agent 怎么互相找到」，那么 SIA 补上的是最后一个、也是最反直觉的问题：
+      <strong>「Agent 怎么自己变好」</strong>。
+    </p>
+    <p>
+      它未必成熟——仓库还很新，数字还需自证。但它代表的方向是确定的：
+      当 Agent 的<em>调度</em>和<em>协作</em>都逐渐标准化之后，团队的下一个竞争壁垒，
+      会落在<strong>「谁能更快、更可审计地让自己的 Agent 持续进化」</strong>上。
+      SIA 给了这件事一个可以动手的形状。先用内置任务跑一轮，读读那几份 improvement.md——
+      你会很快知道，这个形状适不适合你手上的活。
+    </p>
+  </section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="end">End of Note</div>
+    <p>
+      这篇笔记把 SIA 接到了你正在搭的那条多 Agent 线索上——把它定位成「上游铸造车间」，
+      而不是又一个要学的新框架。下一步如果有用，我可以：把第 6 节的四步铺设展开成一份完整 Playbook
+      （决策树 / 阶段门 / 评测集规范 / improvement.md 评审清单），
+      或者画一张「SIA 铸造 → 编排部署 → 协作留痕」的 Mermaid 流程图加进来。
+    </p>
+    <p class="sig">DRAFTED · 2026 · v1.0 · 接续 lark-cli &amp; Symphony 系列</p>
+  </div>
+</footer>
+
+</body>
+</html>

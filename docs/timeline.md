@@ -2,6 +2,12 @@
 
 > 按 Git 首次加入时间排序，最近创建的文档在前。
 
+## 2026-06
+
+- [当代码不再由你来写：工程师角色的一次硬着陆](engineer-role-shift/index.md)
+- [用 Issue 驱动开发：当瓶颈从 Agent 转向人](issue-driven-development/index.md)
+- [SIA：当 Agent 开始改写自己 —— 一篇关于自改进循环的实践笔记](self-improving-ai/) `HTML`{target="_self"}
+
 ## 2026-05
 
 - [GitHub AI Trending Top 10（2026-05-26 至 2026-06-01）](github-ai-trending/2026-05-26_to_2026-06-01.md)

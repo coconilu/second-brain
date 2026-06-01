@@ -51,6 +51,9 @@
 
 ## 思考与趋势
 
+- [SIA：当 Agent 开始改写自己 —— 一篇关于自改进循环的实践笔记](self-improving-ai/) `HTML`{target="_self"} — 讨论自改进 AI 的闭环、实践路径和工程含义。
+- [用 Issue 驱动开发：当瓶颈从 Agent 转向人](issue-driven-development/index.md) — 从 Symphony 看 issue tracker 如何成为 agent 协作的控制平面。
+- [当代码不再由你来写：工程师角色的一次硬着陆](engineer-role-shift/index.md) — 讨论 Harness engineering 下工程师从写代码转向造环境的角色变化。
 - [AI 时代，我们不要想好再做，而是边做边想边改](ai-era-think-by-doing/index.md) — 关于提示词焦虑、AI 协作和迭代式思考的感悟。
 - [AI 时代，什么才是稀缺能力](ai-era-scarce-abilities/index.md) — 关于判断力、提问能力和结构化能力的长文。
 - [从 Human Interface 到 Agent Interface](from_human_interface_to_agent_interface/index.md) — 讨论 AI 时代软件行业从人机界面到代理界面的范式转移。
@@ -71,6 +74,7 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
+- [SIA：当 Agent 开始改写自己 —— 一篇关于自改进循环的实践笔记](self-improving-ai/) `HTML`{target="_self"}
 - [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"}
 - [大模型术语图鉴](llm-glossary/) `HTML`{target="_self"}
 - [LM Studio 开发者文档 · 教案](lmstudio-teaching/) `HTML`{target="_self"}
