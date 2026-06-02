@@ -8,6 +8,7 @@ const docsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const standaloneHtmlPages = findStandaloneHtmlPages(docsRoot)
 const standaloneHtmlRoutes = [...standaloneHtmlPages].map((page) => `/${page.replace(/index\.html$/, '')}`)
 const previewImages = findPreviewImages(docsRoot)
+const sidebar = generateSidebarFromIndex(docsRoot)
 
 export default defineConfig({
   title: 'Second Brain',
@@ -38,69 +39,7 @@ export default defineConfig({
       { text: '目录', link: '/' },
       { text: '时间线', link: '/timeline' },
     ],
-    sidebar: [
-      {
-        text: '工具操作指南',
-        collapsed: false,
-        items: [
-          { text: 'tmux：从一个例子开始', link: '/tmux/' },
-          { text: 'Claude Code Hooks：从一个例子开始', link: '/claude-code-hooks/claude-code-hooks-use' },
-          { text: 'Claude Code Hooks 完整指南', link: '/claude-code-hooks/claude-code-hooks-guide' },
-          { text: 'OpenCode 插件：从一个通知开始', link: '/opencode-plugins-tutorial/' },
-          { text: 'Claude Code Plugin：从打包到分发', link: '/claude-plugin/claude-plugin' },
-          { text: 'Claude Code 会话机制', link: '/claude-session/claude-code-session-mechanism' },
-          { text: 'Claude Code 实战指南', link: '/claude-best-practices/claude-code-best-practices' },
-          { text: 'Harness 工程之道教学扩展稿 · HTML', link: '/claude-code-harness-engineering/', target: '_self' },
-          { text: 'Harness 工程深度教案 · HTML', link: '/harness-engineering-lesson-plan/', target: '_self' },
-        ],
-      },
-      {
-        text: 'Agent 架构与协作',
-        collapsed: false,
-        items: [
-          { text: 'Agent 设计模式互动教学稿 · HTML', link: '/agent-design-patterns/', target: '_self' },
-          { text: '从 sub-agent 到 agent-team', link: '/claude-sub-agent/sub-agent-and-agent-team' },
-          { text: 'Sub-agent 和 Agent-team：从一个例子开始', link: '/claude-sub-agent/sub-agent-and-agent-team-guide' },
-          { text: 'Hermes Agent 课程', link: '/hermes-agent-course/' },
-        ],
-      },
-      {
-        text: '对比与选型',
-        collapsed: false,
-        items: [
-          { text: 'OpenCode vs Claude Code', link: '/opencode-vs-claudecode/' },
-          { text: 'scan-reviewer 对比', link: '/scan-reviewer/comparison' },
-          { text: 'Scanning Strategy', link: '/scan-reviewer/scanning-strategy' },
-        ],
-      },
-      {
-        text: '思考与趋势',
-        collapsed: false,
-        items: [
-          { text: 'AI 时代，什么才是稀缺能力', link: '/ai-era-scarce-abilities/' },
-          { text: '从 Human Interface 到 Agent Interface', link: '/from_human_interface_to_agent_interface/' },
-          { text: 'DeepSeek 演进', link: '/deepseek-evolution/' },
-        ],
-      },
-      {
-        text: '月度追踪',
-        collapsed: false,
-        items: [
-          { text: 'Top 20 Agent Skills — 2026 年 4 月', link: '/skills-monthly/2026-04_top20' },
-          { text: 'GitHub AI Trending Top 10（2026-05-12 至 2026-05-18）', link: '/github-ai-trending/2026-05-12_to_2026-05-18' },
-          { text: 'GitHub AI Trending Top 10（2026-05-05 至 2026-05-11）', link: '/github-ai-trending/2026-05-05_to_2026-05-11' },
-          { text: 'GitHub AI Trending Top 10（2026-04-28 至 2026-05-04）', link: '/github-ai-trending/2026-04-28_to_2026-05-04' },
-          { text: 'Top 20 AI 开源项目 — 2026 年 4 月', link: '/ai-monthly/2026-04_top20' },
-        ],
-      },
-      {
-        text: '按时间浏览',
-        collapsed: false,
-        items: [
-          { text: '文档创建时间线', link: '/timeline' },
-        ],
-      },
-    ],
+    sidebar,
     outline: {
       level: [2, 3],
       label: '本页目录',
@@ -169,6 +108,76 @@ function htmlStaticPagesPlugin(root: string, pages: Set<string>): Plugin {
       }
     },
   }
+}
+
+function generateSidebarFromIndex(root: string) {
+  const indexPath = path.join(root, 'index.md')
+  const content = fs.readFileSync(indexPath, 'utf-8')
+  const sidebar = []
+  let currentSection: { text: string; collapsed: boolean; items: Array<{ text: string; link: string; target?: string }> } | null = null
+
+  for (const line of content.split('\n')) {
+    const headingMatch = line.match(/^##\s+(.+)\s*$/)
+
+    if (headingMatch) {
+      const text = headingMatch[1].trim()
+
+      // This section already exists only to expose all standalone HTML pages on
+      // the homepage. Most of those links are also manually placed in curated
+      // categories above, so duplicating it in the sidebar makes navigation noisy.
+      if (text === '独立 HTML 页面（自动生成）') {
+        currentSection = null
+        continue
+      }
+
+      currentSection = { text, collapsed: false, items: [] }
+      sidebar.push(currentSection)
+      continue
+    }
+
+    if (!currentSection) continue
+
+    const itemMatch = line.match(/^-\s+\[([^\]]+)\]\(([^)]+)\)(.*)$/)
+    if (!itemMatch) continue
+
+    const [, text, rawLink, suffix] = itemMatch
+    const item: { text: string; link: string; target?: string } = {
+      text: suffix.includes('`HTML`') ? `${text} · HTML` : text,
+      link: normalizeSidebarLink(rawLink),
+    }
+
+    if (suffix.includes('target="_self"')) {
+      item.target = '_self'
+    }
+
+    currentSection.items.push(item)
+  }
+
+  sidebar.push({
+    text: '按时间浏览',
+    collapsed: false,
+    items: [{ text: '文档创建时间线', link: '/timeline' }],
+  })
+
+  return sidebar
+}
+
+function normalizeSidebarLink(link: string) {
+  if (/^(https?:|mailto:|#)/.test(link)) return link
+
+  let normalized = link.replace(/^\.\//, '')
+
+  if (normalized.endsWith('/index.html')) {
+    normalized = normalized.slice(0, -'index.html'.length)
+  } else if (normalized.endsWith('/index.md')) {
+    normalized = normalized.slice(0, -'index.md'.length)
+  } else if (normalized.endsWith('.html')) {
+    normalized = normalized.slice(0, -'.html'.length)
+  } else if (normalized.endsWith('.md')) {
+    normalized = normalized.slice(0, -'.md'.length)
+  }
+
+  return normalized.startsWith('/') ? normalized : `/${normalized}`
 }
 
 function findStandaloneHtmlPages(root: string) {

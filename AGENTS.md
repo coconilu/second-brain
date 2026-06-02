@@ -85,8 +85,8 @@ Without a platform argument, install/uninstall/update defaults to both platforms
 
 ## Workflow for updating the docs site
 
-1. Add or edit Markdown/HTML content under `docs/`.
-2. Run `pnpm docs:update-index` to refresh `docs/timeline.md` and any generated links in `docs/index.md`.
+1. Add or edit Markdown/HTML content under `docs/`. The VitePress sidebar is auto-generated from `docs/index.md` `##` sections — add a link for the new page under the relevant heading; no need to manually edit `config.ts`.
+2. Run `pnpm docs:update-index` to refresh `docs/timeline.md` and the auto-generated standalone HTML pages section in `docs/index.md`.
 3. Run `pnpm docs:dev` for local preview, or `pnpm docs:build` to validate the VitePress build.
 4. Run `pnpm deploy:preview` to build and deploy a Vercel preview, `pnpm deploy` to deploy without a local build, or `pnpm deploy:prod` to build and deploy to production.
 5. Do not commit generated `docs/.vitepress/dist/` or cache output.
