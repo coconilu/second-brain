@@ -1,0 +1,2531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuxt.js 深度解析 — 从架构到数据流</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #00DC82;
+  --primary-dark: #00b368;
+  --sidebar-bg: #1a1a2e;
+  --sidebar-w: 300px;
+  --content-bg: #ffffff;
+  --text: #2c3e50;
+  --text-light: #5a6a7a;
+  --heading: #1a1a2e;
+  --code-bg: #1e1e2e;
+  --code-text: #cdd6f4;
+  --border: #e2e8f0;
+  --table-stripe: #f7faf9;
+  --hero-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: var(--text);
+  background: var(--content-bg);
+  line-height: 1.75;
+  font-size: 16px;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--sidebar-bg);
+  overflow-y: auto;
+  z-index: 1000;
+  padding: 24px 0;
+  transition: transform 0.3s ease;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+.sidebar-header {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 12px;
+}
+.sidebar-header .logo {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.5px;
+}
+.sidebar-header .version {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 4px;
+}
+
+.sidebar-nav { list-style: none; }
+.sidebar-nav li { }
+.sidebar-nav a {
+  display: block;
+  padding: 6px 20px;
+  color: rgba(255,255,255,0.65);
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 1.6;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+.sidebar-nav a:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.05);
+}
+.sidebar-nav a.active {
+  color: var(--primary);
+  border-left-color: var(--primary);
+  background: rgba(0,220,130,0.06);
+}
+.sidebar-nav .nav-chapter {
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  font-size: 13.5px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.sidebar-nav .nav-chapter:first-child { border-top: none; margin-top: 0; }
+.sidebar-nav .nav-section { padding-left: 32px; font-size: 12.5px; }
+.sidebar-nav .nav-subsection { padding-left: 44px; font-size: 12px; color: rgba(255,255,255,0.5); }
+
+/* ===== Hamburger ===== */
+.hamburger {
+  display: none;
+  position: fixed;
+  top: 16px; left: 16px;
+  z-index: 1100;
+  width: 44px; height: 44px;
+  background: var(--sidebar-bg);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.hamburger span {
+  display: block;
+  width: 22px; height: 2px;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+.hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+}
+
+/* ===== Main Content ===== */
+.main {
+  margin-left: var(--sidebar-w);
+  min-height: 100vh;
+}
+
+/* ===== Hero ===== */
+.hero {
+  background: var(--hero-gradient);
+  padding: 80px 48px 64px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle at 30% 70%, rgba(0,220,130,0.08) 0%, transparent 50%),
+              radial-gradient(circle at 70% 30%, rgba(0,220,130,0.05) 0%, transparent 50%);
+  animation: heroGlow 8s ease-in-out infinite alternate;
+}
+@keyframes heroGlow {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-2%, 2%); }
+}
+.hero-content { position: relative; z-index: 1; }
+.hero h1 {
+  font-size: 42px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+}
+.hero h1 .highlight { color: var(--primary); }
+.hero .subtitle {
+  font-size: 18px;
+  color: rgba(255,255,255,0.6);
+  font-weight: 400;
+  letter-spacing: 2px;
+}
+.hero .badge {
+  display: inline-block;
+  margin-top: 24px;
+  padding: 6px 18px;
+  background: rgba(0,220,130,0.15);
+  border: 1px solid rgba(0,220,130,0.3);
+  border-radius: 20px;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ===== Content Area ===== */
+.content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 48px 120px;
+}
+
+/* ===== Headings ===== */
+.content h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--heading);
+  margin: 64px 0 24px;
+  padding-bottom: 12px;
+  border-bottom: 3px solid var(--primary);
+  scroll-margin-top: 24px;
+}
+.content h2:first-child { margin-top: 0; }
+
+.content h3 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--heading);
+  margin: 48px 0 16px;
+  scroll-margin-top: 24px;
+}
+
+.content h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #34495e;
+  margin: 36px 0 12px;
+  scroll-margin-top: 24px;
+}
+
+/* ===== Paragraphs ===== */
+.content p {
+  margin: 12px 0;
+  line-height: 1.85;
+}
+
+/* ===== Blockquotes ===== */
+.content blockquote {
+  margin: 20px 0;
+  padding: 16px 24px;
+  border-left: 4px solid var(--primary);
+  background: #f0fdf7;
+  border-radius: 0 8px 8px 0;
+  color: var(--text-light);
+  font-size: 15px;
+}
+.content blockquote p { margin: 4px 0; }
+
+/* ===== Strong & Code inline ===== */
+.content strong { font-weight: 600; color: var(--heading); }
+.content code:not(pre code) {
+  background: #f1f5f9;
+  color: #e74c3c;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: "SF Mono", "Fira Code", "JetBrains Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+  font-size: 0.88em;
+  word-break: break-word;
+}
+
+/* ===== Code Blocks ===== */
+.code-block {
+  position: relative;
+  margin: 20px 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--code-bg);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.code-block .code-lang {
+  position: absolute;
+  top: 0; right: 0;
+  padding: 4px 14px;
+  background: rgba(0,220,130,0.15);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 0 10px 0 8px;
+}
+.code-block pre {
+  margin: 0;
+  padding: 24px 20px;
+  overflow-x: auto;
+  font-family: "SF Mono", "Fira Code", "JetBrains Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--code-text);
+}
+.code-block pre::-webkit-scrollbar { height: 6px; }
+.code-block pre::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+/* ===== Tables ===== */
+.content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 14.5px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+}
+.content thead th {
+  background: var(--sidebar-bg);
+  color: #fff;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13.5px;
+}
+.content tbody td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.content tbody tr:nth-child(even) { background: var(--table-stripe); }
+.content tbody tr:hover { background: #eef9f3; }
+
+/* ===== Lists ===== */
+.content ul, .content ol {
+  margin: 12px 0;
+  padding-left: 24px;
+}
+.content li { margin: 6px 0; line-height: 1.75; }
+
+/* ===== Horizontal Rule ===== */
+.content hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, var(--primary), transparent);
+  margin: 56px 0;
+}
+
+/* ===== Back to top ===== */
+.back-to-top {
+  position: fixed;
+  bottom: 32px; right: 32px;
+  width: 46px; height: 46px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,220,130,0.35);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s;
+  z-index: 900;
+}
+.back-to-top.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.back-to-top:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,220,130,0.45);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .hamburger { display: flex; }
+  .overlay.open { display: block; }
+  .main { margin-left: 0; }
+  .hero { padding: 64px 24px 48px; }
+  .hero h1 { font-size: 30px; }
+  .hero .subtitle { font-size: 15px; }
+  .content { padding: 32px 20px 80px; }
+  .content h2 { font-size: 24px; }
+  .content h3 { font-size: 19px; }
+  .content table { font-size: 13px; }
+  .content thead th, .content tbody td { padding: 8px 10px; }
+}
+@media (max-width: 480px) {
+  .hero h1 { font-size: 24px; }
+  .hero .subtitle { font-size: 13px; }
+  .code-block pre { font-size: 12px; padding: 18px 14px; }
+}
+
+/* ===== ASCII art ===== */
+.code-block pre.ascii-art {
+  color: #a6e3a1;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+
+<!-- Hamburger Button -->
+<button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+  <span></span><span></span><span></span>
+</button>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">Nuxt.js Guide</div>
+    <div class="version">Interview-Level Reference</div>
+  </div>
+  <ul class="sidebar-nav" id="sidebarNav">
+    <li><a href="#ch1" class="nav-chapter">第一章 定位与核心概念</a></li>
+    <li><a href="#s1-1" class="nav-section">1.1 Nuxt 是什么</a></li>
+    <li><a href="#s1-2" class="nav-section">1.2 Nuxt 3 vs Nuxt 2</a></li>
+    <li><a href="#s1-3" class="nav-section">1.3 核心概念速览</a></li>
+    <li><a href="#ch2" class="nav-chapter">第二章 整体架构全景</a></li>
+    <li><a href="#s2-1" class="nav-section">2.1 架构分层总览</a></li>
+    <li><a href="#s2-2" class="nav-section">2.2 核心包关系图</a></li>
+    <li><a href="#s2-3" class="nav-section">2.3 生命周期</a></li>
+    <li><a href="#ch3" class="nav-chapter">第三章 构建管线深度剖析</a></li>
+    <li><a href="#s3-1" class="nav-section">3.1 Nuxt 初始化流程</a></li>
+    <li><a href="#s3-2" class="nav-section">3.2 虚拟文件生成</a></li>
+    <li><a href="#s3-3" class="nav-section">3.3 Vite 构建管线</a></li>
+    <li><a href="#s3-4" class="nav-section">3.4 自动导入系统</a></li>
+    <li><a href="#s3-5" class="nav-section">3.5 组件自动注册</a></li>
+    <li><a href="#ch4" class="nav-chapter">第四章 Nitro 服务器引擎</a></li>
+    <li><a href="#s4-1" class="nav-section">4.1 Nitro 的设计理念</a></li>
+    <li><a href="#s4-2" class="nav-section">4.2 h3 HTTP 框架</a></li>
+    <li><a href="#s4-3" class="nav-section">4.3 服务器目录约定</a></li>
+    <li><a href="#s4-4" class="nav-section">4.4 构建与部署</a></li>
+    <li><a href="#ch5" class="nav-chapter">第五章 Nuxt 应用层架构</a></li>
+    <li><a href="#s5-1" class="nav-section">5.1 应用入口与启动流程</a></li>
+    <li><a href="#s5-2" class="nav-section">5.2 NuxtApp 数据结构</a></li>
+    <li><a href="#s5-3" class="nav-section">5.3 NuxtSSRContext</a></li>
+    <li><a href="#s5-4" class="nav-section">5.4 页面、布局与组件</a></li>
+    <li><a href="#s5-5" class="nav-section">5.5 内置组件</a></li>
+    <li><a href="#ch6" class="nav-chapter">第六章 渲染系统深度剖析</a></li>
+    <li><a href="#s6-1" class="nav-section">6.1 通用渲染完整流程</a></li>
+    <li><a href="#s6-2" class="nav-section">6.2 水合详解</a></li>
+    <li><a href="#s6-3" class="nav-section">6.3 客户端导航</a></li>
+    <li><a href="#s6-4" class="nav-section">6.4 Payload 传递机制</a></li>
+    <li><a href="#s6-5" class="nav-section">6.5 其他渲染模式</a></li>
+    <li><a href="#ch7" class="nav-chapter">第七章 数据获取系统</a></li>
+    <li><a href="#s7-1" class="nav-section">7.1 useAsyncData</a></li>
+    <li><a href="#s7-2" class="nav-section">7.2 useFetch</a></li>
+    <li><a href="#s7-3" class="nav-section">7.3 $fetch</a></li>
+    <li><a href="#s7-4" class="nav-section">7.4 服务端直接调用</a></li>
+    <li><a href="#s7-5" class="nav-section">7.5 useCookie</a></li>
+    <li><a href="#s7-6" class="nav-section">7.6 useRequestHeaders/Fetch</a></li>
+    <li><a href="#s7-7" class="nav-section">7.7 Nitro 存储层</a></li>
+    <li><a href="#ch8" class="nav-chapter">第八章 状态管理</a></li>
+    <li><a href="#s8-1" class="nav-section">8.1 useState</a></li>
+    <li><a href="#s8-2" class="nav-section">8.2 Pinia 集成</a></li>
+    <li><a href="#s8-3" class="nav-section">8.3 useAsyncData 缓存</a></li>
+    <li><a href="#ch9" class="nav-chapter">第九章 插件系统</a></li>
+    <li><a href="#s9-1" class="nav-section">9.1 插件定义与执行顺序</a></li>
+    <li><a href="#s9-2" class="nav-section">9.2 插件可以做什么</a></li>
+    <li><a href="#ch10" class="nav-chapter">第十章 中间件系统</a></li>
+    <li><a href="#s10-1" class="nav-section">10.1 路由中间件</a></li>
+    <li><a href="#s10-2" class="nav-section">10.2 服务端中间件</a></li>
+    <li><a href="#ch11" class="nav-chapter">第十一章 模块系统</a></li>
+    <li><a href="#s11-1" class="nav-section">11.1 模块的概念与作用</a></li>
+    <li><a href="#s11-2" class="nav-section">11.2 模块的定义</a></li>
+    <li><a href="#s11-3" class="nav-section">11.3 生命周期钩子</a></li>
+    <li><a href="#s11-4" class="nav-section">11.4 @nuxt/kit API</a></li>
+    <li><a href="#ch12" class="nav-chapter">第十二章 钩子系统</a></li>
+    <li><a href="#s12-1" class="nav-section">12.1 NuxtApp 钩子</a></li>
+    <li><a href="#s12-2" class="nav-section">12.2 构建时钩子</a></li>
+    <li><a href="#s12-3" class="nav-section">12.3 Nitro 钩子</a></li>
+    <li><a href="#ch13" class="nav-chapter">第十三章 目录结构</a></li>
+    <li><a href="#s13-1" class="nav-section">13.1 完整目录结构</a></li>
+    <li><a href="#s13-2" class="nav-section">13.2 动态路由命名</a></li>
+    <li><a href="#s13-3" class="nav-section">13.3 特殊文件说明</a></li>
+    <li><a href="#ch14" class="nav-chapter">第十四章 性能优化</a></li>
+    <li><a href="#s14-1" class="nav-section">14.1 自动代码分割</a></li>
+    <li><a href="#s14-2" class="nav-section">14.2 预取策略</a></li>
+    <li><a href="#s14-3" class="nav-section">14.3 图片优化</a></li>
+    <li><a href="#s14-4" class="nav-section">14.4 字体优化</a></li>
+    <li><a href="#s14-5" class="nav-section">14.5 SEO 优化</a></li>
+    <li><a href="#s14-6" class="nav-section">14.6 渲染优化</a></li>
+    <li><a href="#ch15" class="nav-chapter">第十五章 部署架构</a></li>
+    <li><a href="#s15-1" class="nav-section">15.1 部署模式对比</a></li>
+    <li><a href="#s15-2" class="nav-section">15.2 Node.js 部署</a></li>
+    <li><a href="#s15-3" class="nav-section">15.3 Docker 部署</a></li>
+    <li><a href="#s15-4" class="nav-section">15.4 环境变量</a></li>
+    <li><a href="#ch16" class="nav-chapter">第十六章 测试策略</a></li>
+    <li><a href="#s16-1" class="nav-section">16.1 测试工具链</a></li>
+    <li><a href="#s16-2" class="nav-section">16.2 测试类型</a></li>
+    <li><a href="#ch17" class="nav-chapter">第十七章 面试题解答</a></li>
+    <li><a href="#ch18" class="nav-chapter">第十八章 数据流总结</a></li>
+    <li><a href="#s18-1" class="nav-section">18.1 完整数据流示意图</a></li>
+    <li><a href="#s18-2" class="nav-section">18.2 核心数据流向</a></li>
+    <li><a href="#ch19" class="nav-chapter">第十九章 高级话题</a></li>
+    <li><a href="#s19-1" class="nav-section">19.1 自定义渲染器</a></li>
+    <li><a href="#s19-2" class="nav-section">19.2 自定义 Nitro Preset</a></li>
+    <li><a href="#s19-3" class="nav-section">19.3 多层应用</a></li>
+    <li><a href="#s19-4" class="nav-section">19.4 Virtual Files</a></li>
+    <li><a href="#s19-5" class="nav-section">19.5 DevTools 集成</a></li>
+    <li><a href="#appendix" class="nav-chapter">附录：关键术语速查表</a></li>
+  </ul>
+</aside>
+
+<!-- Main Content -->
+<main class="main">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1><span class="highlight">Nuxt.js</span> 深度解析</h1>
+      <p class="subtitle">从架构到数据流 &mdash; 面试级完全指南</p>
+      <span class="badge">Based on Nuxt 3 &middot; 19 Chapters &middot; Interview Ready</span>
+    </div>
+  </section>
+
+  <div class="content">
+    <blockquote><p>本文基于 Nuxt 3（当前主流版本），兼顾 Nuxt 2 的核心差异点。目标是让你读完后，能回答面试中关于 Nuxt 的绝大多数问题。</p></blockquote>
+
+    <!-- ==================== 第一章 ==================== -->
+    <h2 id="ch1">第一章 Nuxt.js 的定位与核心概念</h2>
+
+    <h3 id="s1-1">1.1 Nuxt 是什么</h3>
+    <p>Nuxt.js 是一个基于 Vue.js 的<strong>元框架（Meta-Framework）</strong>。所谓"元框架"，是指它在 Vue（一个 UI 框架）之上，提供了完整的应用工程方案：路由、服务端渲染、数据获取、构建优化、部署适配等开箱即用的能力。类比关系：Vue 之于 Nuxt，如同 React 之于 Next.js，Svelte 之于 SvelteKit。</p>
+    <p>Nuxt 解决的本质问题是：<strong>把一个前端框架（Vue）变成一个全栈应用框架</strong>。Vue 本身只关心组件渲染，而 Nuxt 在其上叠加了路由系统、服务端/客户端渲染协调、数据序列化与水合（hydration）、代码分割策略、模块生态等企业级需求。</p>
+
+    <h3 id="s1-2">1.2 Nuxt 3 与 Nuxt 2 的关键差异</h3>
+    <table>
+      <thead><tr><th>维度</th><th>Nuxt 2</th><th>Nuxt 3</th></tr></thead>
+      <tbody>
+        <tr><td>底层服务器</td><td><code>@nuxt/server</code> (Connect)</td><td>Nitro (h3 + Rollup)</td></tr>
+        <tr><td>Vue 版本</td><td>Vue 2</td><td>Vue 3</td></tr>
+        <tr><td>构建工具</td><td>Webpack</td><td>Vite（默认）/ Webpack</td></tr>
+        <tr><td>响应式</td><td>Options API</td><td>Composition API</td></tr>
+        <tr><td>语言</td><td>JavaScript</td><td>TypeScript（原生支持）</td></tr>
+        <tr><td>包管理</td><td>nuxt 单体包</td><td>模块化拆分为多个独立包</td></tr>
+        <tr><td>服务端引擎</td><td>紧耦合的 Express/Connect</td><td>与平台无关的 Nitro（可部署到 Cloudflare Workers、Deno Deploy 等）</td></tr>
+        <tr><td>数据获取</td><td><code>asyncData()</code>、<code>fetch()</code> (Options API)</td><td><code>useAsyncData()</code>、<code>useFetch()</code> (Composition API)</td></tr>
+        <tr><td>状态管理</td><td>Vuex</td><td>Pinia / useState</td></tr>
+        <tr><td>混合渲染</td><td>不支持</td><td>Route Rules（per-route SSR/SPA/ISR）</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="s1-3">1.3 核心概念速览</h3>
+    <p><strong>约定优于配置（Convention over Configuration）</strong>：Nuxt 的核心设计哲学。通过目录结构和文件命名约定来自动生成功能，减少手动配置。例如 <code>pages/</code> 目录下的文件自动生成路由，<code>server/api/</code> 下的文件自动注册为 API 端点。</p>
+    <p><strong>全栈一体</strong>：同一个项目中既有前端 Vue 应用，也有后端 Node.js（或 Serverless）服务，共享类型定义和配置。</p>
+    <p><strong>通用渲染（Universal Rendering）</strong>：同一套 Vue 组件代码既能在服务端渲染为 HTML，也能在客户端接管交互，Nuxt 负责协调两者之间的状态同步。</p>
+
+    <hr>
+
+    <!-- ==================== 第二章 ==================== -->
+    <h2 id="ch2">第二章 整体架构全景</h2>
+
+    <h3 id="s2-1">2.1 架构分层总览</h3>
+    <p>Nuxt 3 的架构可以分为四个核心层：</p>
+    <div class="code-block"><span class="code-lang">text</span><pre class="ascii-art">┌─────────────────────────────────────────────────────────┐
+│                    开发者代码层                           │
+│   pages/  layouts/  components/  server/  plugins/      │
+├─────────────────────────────────────────────────────────┤
+│                    Nuxt 框架层                           │
+│   Nuxt Core · Nuxt Kit · @nuxt/schema                   │
+│   自动导入 · 模块系统 · 插件系统 · 中间件系统              │
+├─────────────────────────────────────────────────────────┤
+│                    引擎层                                │
+│   Nitro (Server Engine)  ·  Vite (Build Engine)         │
+│   h3 (HTTP Framework)   ·  vue-bundle-renderer         │
+├─────────────────────────────────────────────────────────┤
+│                    平台/运行时层                          │
+│   Node.js · Cloudflare Workers · Deno · Vercel Edge     │
+│   AWS Lambda · Netlify Functions · Static Hosting       │
+└─────────────────────────────────────────────────────────┘</pre></div>
+
+    <h3 id="s2-2">2.2 核心包关系图</h3>
+    <p>Nuxt 3 本身是一个由多个 npm 包组成的 monorepo（仓库地址 <code>nuxt/nuxt</code>），核心包包括：</p>
+    <p><strong><code>nuxt</code>（主入口包）</strong>—— 这是用户安装的包，它实际上是一个编排器，内部依赖并协调以下子包：</p>
+    <p><strong><code>@nuxt/kit</code></strong> —— 模块和插件开发的工具库。提供了 <code>defineNuxtModule</code>、<code>useNuxt()</code>、<code>addPlugin()</code>、<code>addComponent()</code>、<code>addServerHandler()</code> 等 API。所有 Nuxt 模块都通过 <code>@nuxt/kit</code> 与 Nuxt 核心交互。</p>
+    <p><strong><code>@nuxt/schema</code></strong> —— 定义了 Nuxt 的完整配置 schema（<code>NuxtConfig</code> 类型就是从这里生成的）。它使用 <code>untyped</code> 库从 schema 自动推导 TypeScript 类型，所以用户在 <code>nuxt.config.ts</code> 中获得完整的类型提示。</p>
+    <p><strong><code>@nuxt/vite-builder</code></strong> —— 基于 Vite 的构建器，负责 Vue 应用的开发服务器和生产构建。</p>
+    <p><strong><code>@nuxt/webpack-builder</code></strong> —— 基于 Webpack 的可选构建器（Nuxt 3 默认使用 Vite）。</p>
+    <p><strong><code>@nuxt/vue-renderer</code></strong> —— 负责将 Vue 应用渲染为 HTML（SSR）或生成 SPA 的 HTML 壳。</p>
+    <p><strong>Nitro 相关包（<code>nitropack</code>）</strong> —— 独立的 HTTP 服务器引擎，有自己的构建管线，最终可以编译为各种平台的部署产物。</p>
+
+    <h3 id="s2-3">2.3 Nuxt 的生命周期（构建时 vs 运行时）</h3>
+    <p>理解 Nuxt 最关键的一点是区分<strong>构建时（Build Time）</strong>和<strong>运行时（Runtime）</strong>两个阶段：</p>
+    <p><strong>构建时（nuxi build / nuxi dev）</strong>：</p>
+    <ol>
+      <li>加载 <code>nuxt.config.ts</code> 配置</li>
+      <li>初始化 Nuxt 实例（创建 <code>NuxtApp</code> 对象——注意这是构建时的内部对象，不是运行时的）</li>
+      <li>安装所有模块（Modules），按顺序执行每个模块的 setup 函数</li>
+      <li>扫描项目目录（pages、components、composables、plugins、middleware、server/api 等）</li>
+      <li>通过模板引擎生成虚拟文件（<code>.nuxt/</code> 目录下的文件，如 <code>app.config.mjs</code>、<code>routes.mjs</code>、<code>plugins/server.mjs</code> 等）</li>
+      <li>构建 Nitro 服务器应用</li>
+      <li>构建 Vue 客户端和服务端应用（通过 Vite 或 Webpack）</li>
+      <li>输出部署产物（<code>.output/</code> 目录）</li>
+    </ol>
+    <p><strong>运行时（node .output/server/index.mjs）</strong>：</p>
+    <ol>
+      <li>Nitro 服务器启动，监听 HTTP 请求</li>
+      <li>根据请求 URL 匹配渲染模式（SSR/SPA/ISR/SWR 等，由 Route Rules 决定）</li>
+      <li>如果是 SSR：在服务端执行 Vue SSR 渲染，生成 HTML + payload</li>
+      <li>返回 HTML 给浏览器</li>
+      <li>浏览器加载客户端 JS bundle</li>
+      <li>Vue 客户端应用挂载（mount），执行水合（hydration），接管 DOM</li>
+      <li>客户端路由切换时，通过 payload 或 API 调用获取数据</li>
+    </ol>
+
+    <hr>
+
+    <!-- ==================== 第三章 ==================== -->
+    <h2 id="ch3">第三章 构建管线深度剖析</h2>
+
+    <h3 id="s3-1">3.1 Nuxt 初始化流程</h3>
+    <p>当你运行 <code>npx nuxi dev</code> 或 <code>npx nuxi build</code> 时，内部发生的事情：</p>
+    <div class="code-block"><span class="code-lang">text</span><pre class="ascii-art">用户执行 nuxi dev
+       │
+       ▼
+  CLI 入口 (nuxi)
+       │
+       ▼
+  加载 nuxt.config.ts
+  (使用 jiti 执行 TypeScript 配置文件)
+       │
+       ▼
+  创建 Nuxt 实例
+  (调用 createNuxt(options))
+       │
+       ▼
+  ┌─────────────────────────┐
+  │  Nuxt 实例内部结构       │
+  │  - options (完整配置)    │
+  │  - hooks (钩子系统)      │
+  │  - vfs (虚拟文件系统)    │
+  │  - server (Nitro引用)    │
+  └─────────────────────────┘
+       │
+       ▼
+  安装所有模块 (installModules)
+  按 nuxt.config 中 modules 数组的顺序
+  依次调用每个模块的 setup()
+       │
+       ▼
+  执行 Nuxt 钩子
+  (modules:done → app:resolve → build:before → ...)
+       │
+       ▼
+  扫描项目目录
+  (pages/, components/, composables/, plugins/, middleware/)
+       │
+       ▼
+  生成 .nuxt/ 虚拟文件
+  (路由表、插件注册、组件注册等)
+       │
+       ▼
+  启动开发服务器 (Vite dev server + Nitro dev server)
+  或执行生产构建 (Vite build + Nitro build)</pre></div>
+
+    <h3 id="s3-2">3.2 虚拟文件生成（.nuxt 目录）</h3>
+    <p>Nuxt 在构建时会生成一个 <code>.nuxt/</code> 目录，里面是自动生成的代码文件。这些文件是 Nuxt "约定优于配置" 的核心实现手段。关键文件包括：</p>
+    <p><strong><code>.nuxt/app.config.mjs</code></strong> —— 合并用户 <code>app.config.ts</code> 和模块提供的配置。</p>
+    <p><strong><code>.nuxt/components.plugin.mjs</code></strong> —— 注册所有自动发现的组件（来自 <code>components/</code> 目录及模块注册的组件），使用 <code>app.component()</code> 全局注册。</p>
+    <p><strong><code>.nuxt/imports.d.ts</code></strong> —— 自动导入的类型声明文件。Nuxt 使用 <code>unimport</code> 扫描 <code>composables/</code> 目录和内置 composables，生成这个文件以提供 TypeScript 支持。</p>
+    <p><strong><code>.nuxt/middleware/</code></strong> —— 中间件注册相关代码。</p>
+    <p><strong><code>.nuxt/nuxt.config.mjs</code></strong> —— 运行时的配置对象（注意与构建时的 <code>nuxt.config.ts</code> 不同，这是经过处理和 tree-shaking 后的精简版本）。</p>
+    <p><strong><code>.nuxt/plugins/</code></strong> —— 插件注册代码，分为 client 和 server 两个版本，控制插件的执行顺序和环境。</p>
+    <p><strong><code>.nuxt/routes.mjs</code></strong> —— 基于 <code>pages/</code> 目录结构自动生成的路由配置。这是 <code>vue-router</code> 的路由数组。</p>
+    <p><strong><code>.nuxt/types/</code></strong> —— 自动生成的 TypeScript 类型，包括路由类型、组件类型、布局类型等。</p>
+    <p><strong><code>.nuxt/dist/</code></strong> —— 构建产物（生产模式下）。</p>
+
+    <h3 id="s3-3">3.3 Vite 构建管线</h3>
+    <p>Nuxt 3 默认使用 Vite 作为前端构建工具。构建过程分为<strong>两个独立的构建</strong>：</p>
+    <p><strong>客户端构建（Client Build）</strong>：</p>
+    <ul>
+      <li>入口：<code>.nuxt/dist/client/</code> 中的入口文件</li>
+      <li>产出：浏览器可执行的 JS/CSS/资源文件</li>
+      <li>代码分割策略：每个路由页面自动分割为独立 chunk（lazy loading）</li>
+      <li>产出位于 <code>.output/public/_nuxt/</code></li>
+    </ul>
+    <p><strong>服务端构建（Server Build）</strong>：</p>
+    <ul>
+      <li>入口：<code>.nuxt/dist/server/</code> 中的入口文件</li>
+      <li>产出：Node.js 可执行的 bundle（用于 SSR 渲染）</li>
+      <li>这是一个特殊的 bundle：它不包含 Node.js 内置模块和外部依赖（externals）</li>
+      <li>产出位于 <code>.output/server/</code></li>
+    </ul>
+    <p>在开发模式下，Vite 的开发服务器提供 HMR（Hot Module Replacement），Nitro 的开发服务器则负责 SSR 渲染和 API 路由。</p>
+
+    <h3 id="s3-4">3.4 自动导入系统（Auto-imports）</h3>
+    <p>这是 Nuxt 3 最具特色的功能之一，底层依赖 <code>unimport</code> 和 <code>unplugin-auto-import</code>。</p>
+    <p><strong>工作原理</strong>：</p>
+    <ol>
+      <li>Nuxt 在构建时扫描以下来源的导出：
+        <ul>
+          <li>Vue 的核心 API（<code>ref</code>、<code>computed</code>、<code>watch</code>、<code>onMounted</code> 等）</li>
+          <li>Vue Router 的 API（<code>useRoute</code>、<code>useRouter</code>、<code>navigateTo</code> 等）</li>
+          <li>Nuxt 内置的 composables（<code>useFetch</code>、<code>useAsyncData</code>、<code>useState</code>、<code>useHead</code>、<code>useRuntimeConfig</code> 等）</li>
+          <li>用户 <code>composables/</code> 目录下的所有导出</li>
+          <li>用户 <code>utils/</code> 目录下的所有导出</li>
+          <li>模块注册的 composables</li>
+        </ul>
+      </li>
+      <li>生成一个 import map，记录每个导出的来源文件</li>
+      <li>在构建时，通过 Vite/Rollup 插件对用户的源码进行 AST 分析：
+        <ul>
+          <li>发现代码中使用了 <code>ref</code> 但没有 import &rarr; 自动在文件头部插入 <code>import { ref } from 'vue'</code></li>
+          <li>发现代码中使用了 <code>useMyComposable</code> &rarr; 自动插入 <code>import { useMyComposable } from '~/composables/useMyComposable'</code></li>
+        </ul>
+      </li>
+      <li>同时生成 <code>.nuxt/types/imports.d.ts</code> 提供 IDE 类型支持</li>
+    </ol>
+    <p><strong>面试关键点</strong>：自动导入不是魔法，它是构建时的静态分析 + 代码转换。它不会增加运行时开销，因为最终产物里就是普通的 ES module import。</p>
+
+    <h3 id="s3-5">3.5 组件自动注册</h3>
+    <p><code>components/</code> 目录下的 Vue 组件会被自动注册。实现机制：</p>
+    <ol>
+      <li>Nuxt 扫描 <code>components/</code> 目录（包括子目录和模块注册的组件路径）</li>
+      <li>为每个组件生成注册信息（名称、路径、是否异步加载等）</li>
+      <li>在 <code>.nuxt/components.plugin.mjs</code> 中，使用 <code>app.component()</code> 全局注册</li>
+      <li>对于懒加载组件，使用 <code>defineAsyncComponent</code> 包装，配合 Vite 的代码分割实现按需加载</li>
+      <li>组件名称基于文件路径自动生成：<code>components/ui/Button.vue</code> &rarr; <code>&lt;UiButton /&gt;</code></li>
+    </ol>
+
+    <hr>
+
+    <!-- ==================== 第四章 ==================== -->
+    <h2 id="ch4">第四章 Nitro 服务器引擎</h2>
+    <p>Nitro 是 Nuxt 3 最核心的架构创新。它不仅仅是一个服务器——它是一个<strong>与平台无关的 HTTP 应用引擎</strong>。</p>
+
+    <h3 id="s4-1">4.1 Nitro 的设计理念</h3>
+    <p>传统的 Nuxt 2 服务器紧耦合于 Node.js 和 Connect/Express 中间件模型。这导致了一个问题：如果你想部署到 Cloudflare Workers（基于 V8 Isolates，不支持 Node.js API），或者 AWS Lambda（Serverless 模型），需要大量的适配工作。</p>
+    <p>Nitro 的设计目标是：</p>
+    <ul>
+      <li><strong>一次编写，到处部署</strong>：同一份服务器代码可以部署到 Node.js、Cloudflare Workers、Deno Deploy、Vercel Edge Functions、AWS Lambda、Netlify Functions 等平台</li>
+      <li><strong>基于 Web Standards</strong>：使用 <code>Request</code>/<code>Response</code>（Fetch API）作为请求/响应的基础抽象，而非 Node.js 的 <code>IncomingMessage</code>/<code>ServerResponse</code></li>
+      <li><strong>零配置优化</strong>：自动 tree-shaking 未使用的代码，最小化部署体积</li>
+      <li><strong>跨平台兼容层</strong>：通过 <code>unenv</code> 包提供 Node.js API 的 polyfill/shim</li>
+    </ul>
+
+    <h3 id="s4-2">4.2 h3：Nitro 的 HTTP 框架</h3>
+    <p>Nitro 底层使用 h3 作为 HTTP 框架。h3（名字来源于 H&#8322;O 的"三氢"——比 H&#8322;O 多一个 H，寓意比传统 HTTP 框架多一点东西）是一个极简的、兼容 Node.js 和 Web Standards 的 HTTP 框架。</p>
+    <p>h3 的核心数据结构：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// H3Event —— 封装了每个 HTTP 请求的上下文
+interface H3Event {
+  // 底层的 Node.js 请求/响应对象（Node.js 环境）
+  node: {
+    req: IncomingMessage
+    res: ServerResponse
+  }
+  // Web Standards 的 Request/Response（跨平台环境）
+  web?: {
+    request: Request
+  }
+  // 请求上下文，可以存储任意数据
+  context: Record&lt;string, any&gt;
+  // 请求的 Fetch API Request 对象
+  _request?: Request
+}</code></pre></div>
+
+    <p><strong>关键 API</strong>：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// 读取请求体
+const body = await readBody(event)       // JSON body
+const formData = await readFormData(event) // form data
+const rawBody = await readRawBody(event)   // raw buffer
+
+// 读取查询参数
+const query = getQuery(event)            // ?key=value → { key: 'value' }
+
+// 读取路由参数
+const params = getRouterParams(event)    // /api/user/:id → { id: '...' }
+
+// 设置响应头/状态码
+setResponseHeader(event, 'Content-Type', 'application/json')
+setResponseStatus(event, 201)
+
+// 发送响应
+return { data: '...' }                   // 自动 JSON 序列化
+return send(event, 'Hello')             // 发送字符串
+return sendStream(event, readableStream) // 流式响应
+
+// 错误处理
+throw createError({
+  statusCode: 404,
+  statusMessage: 'Not Found',
+  data: { id: '...' }
+})</code></pre></div>
+
+    <h3 id="s4-3">4.3 Nitro 的服务器目录约定</h3>
+    <div class="code-block"><span class="code-lang">text</span><pre>server/
+├── api/                    # API 路由（自动注册为 /api/* 端点）
+│   ├── hello.ts            # GET /api/hello
+│   ├── hello.post.ts       # POST /api/hello（通过文件名后缀指定 HTTP 方法）
+│   └── users/
+│       ├── index.ts        # GET /api/users
+│       ├── [id].ts         # GET /api/users/:id（动态路由参数）
+│       └── [id].put.ts     # PUT /api/users/:id
+├── routes/                 # 自定义路由（不自动加 /api 前缀）
+│   └── health.ts           # GET /health
+├── middleware/              # 服务器中间件（在每个请求前执行）
+│   ├── auth.ts             # 认证中间件
+│   └── logger.ts           # 日志中间件
+├── plugins/                # Nitro 插件（服务器启动时执行一次）
+│   └── database.ts         # 数据库连接初始化
+└── utils/                  # 服务器工具函数（自动导入）
+    └── validators.ts</pre></div>
+
+    <p><strong>API 路由的处理函数签名</strong>：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// server/api/hello.ts
+export default defineEventHandler(async (event: H3Event) =&gt; {
+  // event 是 h3 的事件对象，包含了请求的所有信息
+
+  // 读取查询参数
+  const query = getQuery(event)
+
+  // 读取请求体
+  const body = await readBody(event)
+
+  // 返回数据（自动序列化为 JSON）
+  return {
+    message: 'Hello World',
+    query
+  }
+})</code></pre></div>
+
+    <p><strong>中间件的签名</strong>：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// server/middleware/auth.ts
+export default defineEventHandler(async (event) =&gt; {
+  // 中间件可以修改 event.context，后续的处理函数可以读取
+  event.context.userId = await verifyToken(getHeader(event, 'Authorization'))
+
+  // 如果中间件返回了值，就直接作为响应返回，不再执行后续处理
+  // 如果不返回值（return undefined），则继续执行后续处理
+})</code></pre></div>
+
+    <h3 id="s4-4">4.4 Nitro 的构建与部署</h3>
+    <p>Nitro 的构建过程：</p>
+    <ol>
+      <li><strong>收集处理器（Handlers）</strong>：扫描 <code>server/api/</code>、<code>server/routes/</code>、<code>server/middleware/</code>，加上 Nuxt 内置的 SSR 渲染处理器</li>
+      <li><strong>构建 Rollup Bundle</strong>：使用 Rollup 打包服务器代码</li>
+      <li><strong>平台适配</strong>：根据 <code>preset</code> 配置选择目标平台的入口模板（Node.js、Cloudflare Workers、AWS Lambda 等）</li>
+      <li><strong>静态资源处理</strong>：将 <code>public/</code> 和客户端构建产物复制到输出目录</li>
+      <li><strong>生成部署产物</strong>：输出到 <code>.output/</code> 目录</li>
+    </ol>
+
+    <p><strong>部署产物结构</strong>：</p>
+    <div class="code-block"><span class="code-lang">text</span><pre>.output/
+├── server/
+│   ├── index.mjs           # 服务器入口（可直接 node index.mjs 启动）
+│   ├── chunks/             # 代码分割后的 chunk 文件
+│   └── plugins/            # Nitro 插件
+├── public/                 # 静态资源
+│   ├── _nuxt/              # 客户端构建产物（JS/CSS/字体等）
+│   ├── favicon.ico
+│   └── ...
+├── nitro.json              # Nitro 元数据
+└── package.json            # 精简的 package.json（只包含运行时依赖）</pre></div>
+
+    <p><strong>Route Rules（路由规则）</strong>—— Nitro 最强大的特性之一：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// nuxt.config.ts
+export default defineNuxtConfig({
+  routeRules: {
+    // 这个页面使用 SPA 模式（不 SSR）
+    '/admin/**': { ssr: false },
+
+    // 这个页面静态生成（构建时生成 HTML）
+    '/blog': { prerender: true },
+
+    // 这个 API 使用 ISR（增量静态再生成），缓存 1 小时
+    '/api/popular': { isr: 3600 },
+
+    // 这个页面使用 SWR（stale-while-revalidate），缓存 10 分钟
+    '/products/**': { swr: 600 },
+
+    // 这个路径重定向
+    '/old-page': { redirect: '/new-page' },
+
+    // 添加自定义响应头
+    '/api/**': {
+      headers: { 'X-Custom-Header': 'value' }
+    }
+  }
+})</code></pre></div>
+    <p>这意味着在<strong>同一个 Nuxt 应用中</strong>，不同路由可以使用不同的渲染策略。这在实际项目中非常实用：管理后台用 SPA（因为需要登录态），营销页面用静态生成（追求性能和 SEO），数据 API 用 ISR/SWR（平衡性能和实时性）。</p>
+
+    <hr>
+
+    <!-- ==================== 第五章 ==================== -->
+    <h2 id="ch5">第五章 Nuxt 应用层架构</h2>
+
+    <h3 id="s5-1">5.1 应用入口与启动流程</h3>
+    <p>Nuxt 客户端应用的启动过程（运行时）：</p>
+    <div class="code-block"><span class="code-lang">text</span><pre class="ascii-art">浏览器加载 HTML
+       │
+       ▼
+  加载客户端 JS Bundle
+       │
+       ▼
+  执行 Nuxt 入口文件
+  (.nuxt/dist/client/app.config.mjs → nuxt/dist/app/)
+       │
+       ▼
+  创建 Vue App 实例
+  (createApp() 或 createSSRApp())
+       │
+       ▼
+  创建 NuxtApp 实例
+  (运行时 NuxtApp，包含插件、钩子、payload 等)
+       │
+       ▼
+  安装 Vue 插件
+  (router、pinia、全局组件等)
+       │
+       ▼
+  执行 Nuxt 插件
+  (按顺序执行 plugins/ 目录下的插件)
+       │
+       ▼
+  挂载 Vue App 到 DOM
+  (app.mount('#__nuxt'))
+       │
+       ▼
+  水合（Hydration）
+  (将服务端渲染的静态 HTML "激活"为可交互的 Vue 应用)</pre></div>
+
+    <h3 id="s5-2">5.2 运行时 NuxtApp 数据结构</h3>
+    <p>这是 Nuxt 3 运行时最核心的数据结构。通过 <code>useNuxtApp()</code> 可以在任何组件或 composable 中访问：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>interface NuxtApp {
+  // Vue 应用实例
+  vueApp: App&lt;Element&gt;
+
+  // 全局属性（类似 Vue 2 的 Vue.prototype）
+  globalName: string   // 默认 'nuxt'
+
+  // 版本信息
+  versions: Record&lt;string, string&gt;
+
+  // 钩子系统
+  hooks: Hookable&lt;NuxtAppHooks&gt;
+  hook: NuxtApp['hooks']['hook']
+  callHook: NuxtApp['hooks']['callHook']
+
+  // 运行回调（注册在 app 挂载/渲染时执行的回调）
+  _asyncDataPromises: Record&lt;string, Promise&lt;any&gt;&gt;
+
+  // SSR 上下文（仅在服务端存在）
+  ssrContext?: NuxtSSRContext
+
+  // Payload（服务端传递给客户端的数据）
+  payload: {
+    serverRendered: boolean
+    data: Record&lt;string, any&gt;
+    state: Record&lt;string, any&gt;
+    error?: Error | { url: string, statusCode: number, statusMessage: string }
+    _errors: Record&lt;string, any&gt;
+    [key: string]: any
+  }
+
+  // 是否在水合阶段
+  isHydrating: boolean
+
+  // 提供/注入（类似 Vue 的 provide/inject，但在 NuxtApp 层面）
+  provide: (name: string, value: any) =&gt; void
+
+  // 内部属性
+  _scope: EffectScope
+  _id: number
+  _processingPlugin: boolean
+}</code></pre></div>
+    <p><strong>面试关键点</strong>：<code>NuxtApp</code> 是每个 Nuxt 请求的核心上下文对象。在服务端，每个请求有独立的 <code>NuxtApp</code> 实例（通过 <code>AsyncLocalStorage</code> 或显式传递来隔离）；在客户端，只有一个全局的 <code>NuxtApp</code> 实例。</p>
+
+    <h3 id="s5-3">5.3 NuxtSSRContext 数据结构</h3>
+    <p>在服务端渲染时，每个请求都有一个 <code>NuxtSSRContext</code> 对象，它承载了 SSR 过程中的所有上下文信息：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>interface NuxtSSRContext {
+  // 当前请求的 URL
+  url: string
+
+  // 请求的事件对象（h3 的 H3Event）
+  event: H3Event
+
+  // 请求的来源（IP、Host 等）
+  req: IncomingMessage  // Node.js 环境
+  res: ServerResponse   // Node.js 环境
+
+  // 渲染结果
+  noSSR: boolean          // 是否跳过 SSR
+  error?: any             // SSR 过程中的错误
+
+  // 渲染过程中的数据收集
+  payload: {
+    data: Record&lt;string, any&gt;    // useAsyncData 的缓存
+    state: Record&lt;string, any&gt;   // useState 的缓存
+    _errors: Record&lt;string, any&gt;
+  }
+
+  // 用于 &lt;head&gt; 标签管理（useHead）
+  head: HeadEntry[]
+
+  // 组件渲染追踪
+  renderedComponents?: Set&lt;string&gt;
+
+  // 岛屿组件相关
+  islands: Map&lt;string, any&gt;
+
+  // 渲染出的 HTML
+  renderResult?: {
+    html: string
+  }
+
+  // 缓存和去重
+  _asyncDataPromises: Record&lt;string, Promise&lt;any&gt;&gt;
+
+  // Teleports（Vue 的 &lt;Teleport&gt; 组件渲染结果）
+  teleports: Record&lt;string, string&gt;
+}</code></pre></div>
+
+    <h3 id="s5-4">5.4 页面、布局与组件系统</h3>
+
+    <h4 id="s5-4-pages">页面（Pages）</h4>
+    <p><code>pages/</code> 目录下的每个 <code>.vue</code> 文件对应一个路由。Nuxt 使用 <code>vue-router</code> 作为路由引擎，但增加了以下增强：</p>
+    <ul>
+      <li><strong>自动代码分割</strong>：每个页面组件自动使用 <code>defineAsyncComponent</code> 包装，实现按需加载</li>
+      <li><strong>路由元信息（Route Meta）</strong>：通过 <code>definePageMeta()</code> 宏定义页面级别的路由元数据</li>
+      <li><strong>导航守卫</strong>：通过 <code>definePageMeta()</code> 中的 <code>middleware</code> 属性指定页面级中间件</li>
+    </ul>
+    <div class="code-block"><span class="code-lang">vue</span><pre><code>&lt;!-- pages/index.vue --&gt;
+&lt;script setup&gt;
+definePageMeta({
+  layout: 'default',         // 使用哪个布局
+  middleware: ['auth'],      // 使用哪些中间件
+  // 路由元信息
+  pageType: 'home',
+  requiresAuth: false,
+  // 过渡动画
+  pageTransition: { name: 'page', mode: 'out-in' },
+  layoutTransition: { name: 'layout', mode: 'out-in' },
+  // keep-alive
+  keepalive: true,
+  // 自定义滚动行为
+  scrollToTop: true
+})
+&lt;/script&gt;</code></pre></div>
+    <p><strong>注意</strong>：<code>definePageMeta</code> 是一个编译器宏（compiler macro），类似于 Vue 的 <code>defineProps</code>。它在构建时被提取出来作为路由元信息，不会出现在组件的 setup 代码中。Nuxt 通过一个 Vite/Rollup 插件在构建时将其提取。</p>
+
+    <h4 id="s5-4-layouts">布局（Layouts）</h4>
+    <p><code>layouts/</code> 目录定义页面布局模板。布局本质上是带有 <code>&lt;slot /&gt;</code> 的 Vue 组件：</p>
+    <div class="code-block"><span class="code-lang">vue</span><pre><code>&lt;!-- layouts/default.vue --&gt;
+&lt;template&gt;
+  &lt;div&gt;
+    &lt;AppHeader /&gt;
+    &lt;main&gt;
+      &lt;slot /&gt;   &lt;!-- 页面内容在这里渲染 --&gt;
+    &lt;/main&gt;
+    &lt;AppFooter /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;</code></pre></div>
+    <p>页面通过 <code>definePageMeta({ layout: 'default' })</code> 选择布局。布局切换时会触发过渡动画。</p>
+    <p><strong>嵌套布局的渲染链</strong>：</p>
+    <div class="code-block"><span class="code-lang">text</span><pre>&lt;NuxtLayout&gt;            ← 最外层布局
+  └── &lt;NuxtPage&gt;       ← 页面组件
+        └── &lt;NuxtLayout&gt;  ← 如果页面内部又有布局（嵌套路由场景）
+              └── &lt;NuxtPage&gt;  ← 子路由页面</pre></div>
+
+    <h3 id="s5-5">5.5 Nuxt 内置组件</h3>
+    <p>Nuxt 提供了几个核心的内置组件，它们是框架功能的入口点：</p>
+    <p><strong><code>&lt;NuxtPage&gt;</code></strong> —— 路由出口，等价于 <code>&lt;RouterView&gt;</code> 但增加了 Nuxt 的增强：自动的页面过渡动画（<code>pageTransition</code>）、自动的 <code>keepalive</code> 支持、将 <code>pageKey</code> 作为 prop 传递，控制组件何时重新渲染。</p>
+    <p><strong><code>&lt;NuxtLayout&gt;</code></strong> —— 布局容器，管理布局切换和布局过渡动画。</p>
+    <p><strong><code>&lt;NuxtLink&gt;</code></strong> —— 增强的链接组件，基于 <code>&lt;RouterLink&gt;</code> 增加了：</p>
+    <ul>
+      <li><strong>预取（Prefetching）</strong>：当链接进入视口时（通过 Intersection Observer），自动预取目标页面的 JS chunk 和数据</li>
+      <li><strong>外部链接处理</strong>：自动识别外部链接并添加 <code>rel="noopener"</code></li>
+      <li><strong>active 状态</strong>：与 RouterLink 一样的 active/exact-active class 支持</li>
+    </ul>
+    <div class="code-block"><span class="code-lang">vue</span><pre><code>&lt;NuxtLink to="/about" prefetch&gt;关于我们&lt;/NuxtLink&gt;
+&lt;NuxtLink to="/products" :prefetch="false"&gt;产品&lt;/NuxtLink&gt;
+&lt;NuxtLink to="https://example.com"&gt;外部链接&lt;/NuxtLink&gt;</code></pre></div>
+    <p><strong><code>&lt;NuxtLoadingIndicator&gt;</code></strong> —— 页面导航进度条。</p>
+    <p><strong><code>&lt;NuxtErrorBoundary&gt;</code></strong> —— 错误边界组件，捕获子组件中的错误。</p>
+    <p><strong><code>&lt;ClientOnly&gt;</code></strong> —— 只在客户端渲染的内容（跳过 SSR）。</p>
+    <p><strong><code>&lt;ServerOnly&gt;</code> / <code>&lt;NuxtIsland&gt;</code></strong> —— 岛屿架构相关组件（后面详述）。</p>
+    <p><strong><code>&lt;Suspense&gt;</code></strong>（Vue 原生）—— Nuxt 的页面组件默认被 <code>&lt;Suspense&gt;</code> 包裹，支持异步 setup。</p>
+
+    <hr>
+
+    <!-- ==================== 第六章 ==================== -->
+    <h2 id="ch6">第六章 渲染系统深度剖析</h2>
+    <p>这是面试中最常被问到的部分。</p>
+
+    <h3 id="s6-1">6.1 通用渲染（Universal Rendering）的完整流程</h3>
+    <p><strong>第一次请求（SSR）</strong>：</p>
+    <div class="code-block"><span class="code-lang">text</span><pre class="ascii-art">① 浏览器发送 HTTP 请求 → https://example.com/products
+
+② Nitro 服务器接收请求
+   - h3 路由匹配 → 进入 SSR 渲染处理器
+   - 检查 Route Rules：该路径是否配置了 SSR？
+   - 创建 NuxtSSRContext
+
+③ Vue SSR 渲染
+   - 创建 Vue 应用实例（createSSRApp）
+   - 安装路由，设置当前 URL
+   - 安装所有 Nuxt 插件
+   - 执行页面组件的 setup()
+     → useAsyncData() / useFetch() 被调用
+     → 在服务端发起数据请求
+     → 数据存入 NuxtSSRContext.payload.data
+   - Vue 渲染器将虚拟 DOM 渲染为 HTML 字符串
+     (使用 vue-bundle-renderer 的 renderToString)
+   - 收集渲染过程中触发的 &lt;Head&gt; 标签
+   - 收集 &lt;Teleport&gt; 内容
+
+④ 组装完整 HTML
+   Nitro 将各部分拼接：
+
+   &lt;!DOCTYPE html&gt;
+   &lt;html&gt;
+   &lt;head&gt;
+     &lt;!-- 来自 useHead() 的标签 --&gt;
+     &lt;title&gt;Products&lt;/title&gt;
+     &lt;meta name="description" content="..." /&gt;
+     &lt;link rel="stylesheet" href="/_nuxt/xxx.css" /&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+     &lt;div id="__nuxt"&gt;
+       &lt;!-- SSR 渲染出的 HTML --&gt;
+       &lt;div class="products-page"&gt;
+         &lt;h1&gt;Products&lt;/h1&gt;
+         &lt;ul&gt;
+           &lt;li&gt;Product 1 - $99&lt;/li&gt;
+           &lt;li&gt;Product 2 - $199&lt;/li&gt;
+         &lt;/ul&gt;
+       &lt;/div&gt;
+     &lt;/div&gt;
+
+     &lt;!-- Payload 注入脚本 --&gt;
+     &lt;script&gt;
+       window.__NUXT__ = {
+         data: { "products-page": { data: [...], pending: false } },
+         state: { ... },
+         serverRendered: true,
+         config: { ... }
+       }
+     &lt;/script&gt;
+
+     &lt;script type="module" src="/_nuxt/entry.js"&gt;&lt;/script&gt;
+   &lt;/body&gt;
+   &lt;/html&gt;
+
+⑤ 返回 HTML 给浏览器
+
+⑥ 浏览器渲染 HTML
+   - 用户立即看到页面内容（有内容但不可交互）
+   - 同时下载客户端 JS Bundle
+
+⑦ 客户端 JS 执行
+   - 创建 Vue 应用实例（createSSRApp）
+   - 读取 window.__NUXT__ 中的 payload
+   - 使用 payload 中的数据初始化 useAsyncData 缓存
+     （避免客户端再次请求相同数据）
+   - 执行水合（Hydration）：
+     Vue 将已有的 DOM 与虚拟 DOM 进行匹配，
+     添加事件监听器，激活响应式系统
+
+⑧ 页面变为可交互状态（Interactive）</pre></div>
+
+    <h3 id="s6-2">6.2 水合（Hydration）详解</h3>
+    <p>水合是 SSR 应用中最关键也最容易出问题的环节。</p>
+    <p><strong>水合的本质</strong>：服务端渲染出了"静态"的 HTML（有结构但没有交互能力），水合是 Vue 在客户端"接管"这些 DOM 的过程：</p>
+    <ol>
+      <li><strong>DOM 匹配</strong>：Vue 遍历服务端渲染的 DOM 树，与客户端虚拟 DOM 进行对比匹配</li>
+      <li><strong>事件绑定</strong>：为匹配的 DOM 元素添加事件监听器（click、input 等）</li>
+      <li><strong>响应式激活</strong>：将 Vue 的响应式系统绑定到 DOM 元素上</li>
+      <li><strong>状态同步</strong>：从 payload 中恢复 <code>useAsyncData</code>、<code>useState</code> 的数据</li>
+    </ol>
+    <p><strong>水合不匹配（Hydration Mismatch）</strong>：</p>
+    <p>当服务端渲染的 HTML 结构与客户端首次渲染的虚拟 DOM 不一致时，就会发生水合不匹配。常见原因：</p>
+    <ul>
+      <li><strong>时间/日期相关</strong>：服务端和客户端的时区或时间不同</li>
+      <li><strong>随机数/UUID</strong>：<code>Math.random()</code> 在服务端和客户端产生不同的值</li>
+      <li><strong>浏览器 API</strong>：服务端没有 <code>window</code>、<code>localStorage</code>、<code>document</code> 等对象</li>
+      <li><strong>条件渲染</strong>：基于客户端状态（如媒体查询、用户偏好）的条件渲染</li>
+      <li><strong>HTML 嵌套不合法</strong>：如在 <code>&lt;p&gt;</code> 中嵌套 <code>&lt;div&gt;</code>（浏览器会自动修正，导致 DOM 结构与服务端不一致）</li>
+    </ul>
+    <p><strong>解决方案</strong>：</p>
+    <div class="code-block"><span class="code-lang">vue</span><pre><code>&lt;!-- 方案1：使用 ClientOnly --&gt;
+&lt;ClientOnly&gt;
+  &lt;ClientSideOnlyComponent /&gt;
+&lt;/ClientOnly&gt;
+
+&lt;!-- 方案2：使用 onMounted 延迟渲染 --&gt;
+&lt;script setup&gt;
+const isClient = ref(false)
+onMounted(() =&gt; { isClient.value = true })
+&lt;/script&gt;
+&lt;template&gt;
+  &lt;div v-if="isClient"&gt;{{ new Date().toLocaleString() }}&lt;/div&gt;
+  &lt;div v-else&gt;Loading time...&lt;/div&gt;
+&lt;/template&gt;
+
+&lt;!-- 方案3：使用 useHydration 的友好方式 --&gt;
+&lt;script setup&gt;
+const nuxtApp = useNuxtApp()
+// nuxtApp.isHydrating 为 true 时，说明正在水合
+&lt;/script&gt;</code></pre></div>
+
+    <h3 id="s6-3">6.3 客户端导航（Client-Side Navigation）</h3>
+    <p>首次请求之后，用户点击 <code>&lt;NuxtLink&gt;</code> 进行的页面切换不再发起完整的 HTML 请求，而是客户端路由：</p>
+    <div class="code-block"><span class="code-lang">text</span><pre class="ascii-art">① 用户点击 &lt;NuxtLink to="/about"&gt;
+
+② NuxtLink 拦截点击事件
+   - 调用 vue-router 的 push()
+   - URL 变为 /about（History API）
+
+③ Nuxt 客户端路由守卫触发
+   - 执行全局中间件（middleware/）
+   - 执行页面级中间件（definePageMeta 中的 middleware）
+   - 如果中间件调用了 navigateTo() 或 abortNavigation()，导航中止
+
+④ 加载目标页面的 JS chunk
+   - 如果该 chunk 还没有加载，动态 import()
+   - 这就是为什么 Nuxt 页面是自动代码分割的
+
+⑤ 执行目标页面的 setup()
+   - useAsyncData() / useFetch() 被调用
+   - 如果 payload 中已有该页面的数据（通过 prefetch），直接使用
+   - 否则发起 API 请求获取数据
+
+⑥ 渲染新页面组件
+   - 触发页面过渡动画（如果有配置）
+   - Vue 更新 DOM
+
+⑦ 页面更新完成</pre></div>
+
+    <h3 id="s6-4">6.4 Payload 传递机制</h3>
+    <p>Payload 是 SSR 中服务端向客户端传递数据的核心机制。</p>
+    <p><strong>服务端</strong>：</p>
+    <ul>
+      <li><code>useAsyncData()</code> 和 <code>useFetch()</code> 获取的数据自动存入 <code>NuxtSSRContext.payload.data</code></li>
+      <li><code>useState()</code> 的值自动存入 <code>NuxtSSRContext.payload.state</code></li>
+      <li>错误信息存入 <code>NuxtSSRContext.payload._errors</code></li>
+    </ul>
+    <p><strong>序列化</strong>：Nuxt 使用自定义的序列化器（基于 <code>destr</code> 和 <code>superjson</code> 的思想）将 payload 序列化为 JavaScript 代码，嵌入到 HTML 的 <code>&lt;script&gt;</code> 标签中。支持的类型包括：Date、Map、Set、RegExp、URL、undefined、BigInt 等。</p>
+    <p><strong>客户端</strong>：</p>
+    <ul>
+      <li>客户端 JS 加载后，读取 <code>window.__NUXT__</code>（或通过内联模块方式注入）</li>
+      <li><code>useAsyncData()</code> 检查 payload 中是否已有对应 key 的数据</li>
+      <li>如果有，直接使用，不再发起网络请求（这就是 SSR 数据复用的实现）</li>
+      <li>如果没有（比如客户端导航到新页面），则发起新的请求</li>
+    </ul>
+    <p><strong>Payload 提取优化（Nuxt 3.x）</strong>：在较新版本的 Nuxt 3 中，payload 不再通过 <code>window.__NUXT__</code> 全局变量传递，而是通过 <code>&lt;script type="application/json"&gt;</code> 标签或 <code>&lt;script type="module"&gt;</code> 内联模块的方式传递，这允许浏览器以更高效的方式解析。</p>
+
+    <h3 id="s6-5">6.5 其他渲染模式</h3>
+
+    <h4>SPA 模式（Client-Only Rendering）</h4>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// nuxt.config.ts
+export default defineNuxtConfig({
+  ssr: false  // 全局关闭 SSR
+})
+// 或者通过 Route Rules 对特定路由关闭</code></pre></div>
+    <p>SPA 模式下，Nitro 服务器只返回一个空的 HTML 壳（包含 JS bundle 引用），所有渲染在客户端完成。与纯 Vue SPA 的区别是仍然可以使用 Nuxt 的文件路由、插件、模块等功能。</p>
+
+    <h4>静态站点生成（SSG - Static Site Generation）</h4>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// nuxt.config.ts
+export default defineNuxtConfig({
+  // 构建时使用 SSR 渲染每个路由，生成静态 HTML
+  // 运行时不需要 Node.js 服务器
+})
+// 执行 npx nuxi generate</code></pre></div>
+    <p><code>nuxi generate</code> 会：构建应用 &rarr; 启动临时 Nitro 服务器 &rarr; 遍历所有路由 &rarr; 对每个路由执行 SSR 渲染 &rarr; 将 HTML 和静态资源输出到 <code>.output/public/</code> 目录 &rarr; 部署时只需要一个静态文件服务器。</p>
+
+    <h4>ISR（Incremental Static Regeneration）</h4>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>routeRules: {
+  '/blog/**': { isr: 3600 }  // 每小时重新生成
+}</code></pre></div>
+    <p>页面在首次请求时静态生成并缓存。后续请求直接使用缓存。缓存过期后，下一个请求会触发后台重新生成，同时仍然返回旧的缓存（stale-while-revalidate 模式）。</p>
+
+    <h4>岛屿架构（Island Architecture）</h4>
+    <p>这是一种混合渲染策略：页面大部分是静态 HTML（不水合），只有标记为"岛屿"的组件会在客户端水合：</p>
+    <div class="code-block"><span class="code-lang">vue</span><pre><code>&lt;template&gt;
+  &lt;div&gt;
+    &lt;!-- 这个组件在服务端渲染，不在客户端水合 --&gt;
+    &lt;StaticContent /&gt;
+
+    &lt;!-- 这个组件在服务端渲染，并在客户端水合（可交互） --&gt;
+    &lt;NuxtIsland name="InteractiveChart" :props="{ data }" /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;</code></pre></div>
+    <p>好处：减少客户端 JS 体积和水合时间，提升首屏性能。适合页面中大部分内容是静态的、只有少部分是交互式的场景。</p>
+
+    <hr>
+
+    <!-- ==================== 第七章 ==================== -->
+    <h2 id="ch7">第七章 数据获取系统</h2>
+
+    <h3 id="s7-1">7.1 useAsyncData —— 数据获取的基石</h3>
+    <p><code>useAsyncData</code> 是 Nuxt 3 数据获取的核心 composable。它解决了一个关键问题：<strong>如何让同一份数据获取代码在服务端和客户端都能正确运行，且数据能在两端之间同步</strong>。</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// 签名
+function useAsyncData&lt;T&gt;(
+  key: string,                          // 唯一标识符
+  handler: () =&gt; Promise&lt;T&gt;,            // 数据获取函数
+  options?: AsyncDataOptions&lt;T&gt;         // 配置项
+): AsyncData&lt;T&gt;
+
+function useAsyncData&lt;T&gt;(
+  handler: () =&gt; Promise&lt;T&gt;,            // key 可以省略（自动基于文件路径生成）
+  options?: AsyncDataOptions&lt;T&gt;
+): AsyncData&lt;T&gt;</code></pre></div>
+
+    <p><strong>返回值数据结构</strong>：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>interface AsyncData&lt;T&gt; {
+  data: Ref&lt;T | null&gt;           // 数据（响应式引用）
+  pending: Ref&lt;boolean&gt;         // 加载状态
+  status: Ref&lt;'idle' | 'pending' | 'success' | 'error'&gt;
+  error: Ref&lt;Error | null&gt;      // 错误信息
+  refresh: () =&gt; Promise&lt;void&gt;  // 手动刷新数据
+  execute: () =&gt; Promise&lt;void&gt;  // 手动执行数据获取
+  clear: () =&gt; void             // 清除数据
+}</code></pre></div>
+
+    <p><strong>配置项</strong>：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>interface AsyncDataOptions&lt;T&gt; {
+  server?: boolean          // 是否在服务端执行（默认 true）
+  lazy?: boolean            // 是否懒加载（默认 false）
+  default?: () =&gt; T | Ref&lt;T&gt;  // 默认值
+  transform?: (data: T) =&gt; T   // 数据转换函数
+  pick?: string[]           // 数据选取函数
+  watch?: Ref[]             // 响应式值变化时自动重新获取
+  immediate?: boolean       // 是否立即执行（默认 true）
+  deep?: boolean            // 深度监听（默认 true）
+  dedupe?: 'cancel' | 'defer'  // 去重策略
+}</code></pre></div>
+
+    <p><strong>内部工作原理</strong>：</p>
+    <div class="code-block"><span class="code-lang">text</span><pre class="ascii-art">useAsyncData(key, handler) 被调用
+       │
+       ▼
+  检查 NuxtApp._asyncDataPromises[key]
+  是否已有相同 key 的进行中请求？
+       │
+       ├── 有 → 复用已有的 Promise（去重）
+       │
+       └── 没有 →
+              │
+              ▼
+         检查 NuxtApp.payload.data[key]
+         服务端是否已经获取了数据？（SSR payload）
+              │
+              ├── 有 → 直接使用 payload 中的数据
+              │         不调用 handler
+              │         data.value = payload.data[key]
+              │
+              └── 没有 →
+                     │
+                     ▼
+                  检查当前环境
+                     │
+                     ├── 服务端（SSR）
+                     │   → 调用 handler()
+                     │   → 结果存入 payload.data[key]
+                     │   → 会被序列化到 HTML 中
+                     │
+                     └── 客户端
+                         → 调用 handler()
+                         → 结果存入 data.value
+                         → 不进入 payload</pre></div>
+
+    <h3 id="s7-2">7.2 useFetch —— useAsyncData 的便捷封装</h3>
+    <p><code>useFetch</code> 是 <code>useAsyncData</code> + <code>$fetch</code> 的组合，用于最常见的"调用 API 获取数据"场景：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// 签名
+function useFetch&lt;T&gt;(
+  url: string | Ref&lt;string&gt; | (() =&gt; string),  // URL（可以是响应式的）
+  options?: UseFetchOptions&lt;T&gt;
+): AsyncData&lt;T&gt;</code></pre></div>
+
+    <p><strong>useFetch 的 options 扩展了 useAsyncData 的 options，额外支持</strong>：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>interface UseFetchOptions&lt;T&gt; extends AsyncDataOptions&lt;T&gt; {
+  method?: string          // 请求方法
+  query?: Record&lt;string, any&gt;   // 查询参数
+  params?: Record&lt;string, any&gt;  // URL 路径参数
+  body?: any               // 请求体
+  headers?: Record&lt;string, string&gt;  // 请求头
+  baseURL?: string          // 基础 URL
+  onResponse?: (context: { response: Response }) =&gt; void
+  onResponseError?: (context: { response: Response }) =&gt; void
+  onRequest?: (context: { request: Request, options: any }) =&gt; void
+  onRequestError?: (context: { request: Request, options: any, error: Error }) =&gt; void
+  transform?: (data: any) =&gt; T
+  pick?: string[]
+  timeout?: number
+}</code></pre></div>
+
+    <p><strong>示例</strong>：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// 基本用法
+const { data, pending, error, refresh } = await useFetch('/api/products')
+
+// 带参数
+const { data } = await useFetch('/api/products', {
+  method: 'POST',
+  body: { category: 'electronics' },
+  query: { page: 1, limit: 20 }
+})
+
+// URL 响应式（URL 变化时自动重新获取）
+const id = ref(1)
+const { data } = await useFetch(() =&gt; `/api/products/${id.value}`)
+
+// watch 触发重新获取
+const search = ref('')
+const { data } = await useFetch('/api/search', {
+  query: { q: search },
+  watch: [search]
+})
+
+// transform + pick
+const { data } = await useFetch('/api/users', {
+  transform: (response) =&gt; response.data,
+  pick: ['name', 'email']
+})</code></pre></div>
+
+    <h3 id="s7-3">7.3 $fetch —— 底层 HTTP 客户端</h3>
+    <p><code>$fetch</code> 是 Nuxt 3 内置的 HTTP 客户端，基于 <code>ofetch</code> 库。它可以在服务端和客户端统一使用：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// 在服务端：
+// - 如果请求的是本站 API（如 /api/xxx），直接调用 Nitro 处理函数
+//   不发起真实的 HTTP 请求（零网络开销！）
+// - 如果请求的是外部 URL，发起真实的 HTTP 请求
+
+// 在客户端：
+// - 总是发起真实的 HTTP 请求（fetch API）
+
+// 用法
+const data = await $fetch('/api/users', {
+  method: 'GET',
+  query: { page: 1 },
+  headers: { Authorization: 'Bearer xxx' }
+})
+
+// 注意：$fetch 不会自动处理 SSR 数据同步
+// 如果需要 SSR 兼容，应该用 useFetch 或 useAsyncData + $fetch</code></pre></div>
+
+    <p><strong>关键面试题</strong>：<code>$fetch</code> 和 <code>useFetch</code> 的区别是什么？</p>
+    <ul>
+      <li><code>$fetch</code> 是一个纯函数式的 HTTP 请求工具，不关心 SSR/CSR 的数据同步</li>
+      <li><code>useFetch</code> = <code>useAsyncData</code> + <code>$fetch</code>，自动处理 SSR payload 传递、去重、响应式状态</li>
+      <li>在 <code>useAsyncData</code> 的 handler 中用 <code>$fetch</code> 是推荐做法</li>
+      <li>在事件处理函数（如按钮点击）中直接用 <code>$fetch</code> 即可</li>
+    </ul>
+
+    <h3 id="s7-4">7.4 服务端 API 中的直接调用（避免自调自）</h3>
+    <p>这是一个重要的性能优化点。当 SSR 渲染时，页面组件中的 <code>useFetch('/api/products')</code> 实际上不需要发起真实的 HTTP 请求，因为请求者和被请求者在同一个进程中：</p>
+    <div class="code-block"><span class="code-lang">text</span><pre class="ascii-art">┌──────────────────────────────────────┐
+│         Nitro 服务器进程              │
+│                                      │
+│  SSR 渲染器                          │
+│    │                                 │
+│    ├── useFetch('/api/products')     │
+│    │     │                           │
+│    │     ▼                           │
+│    │   $fetch 检测到是本站 API        │
+│    │     │                           │
+│    │     ▼                           │
+│    │   直接调用 API handler 函数      │
+│    │   （不经过网络层，零开销）        │
+│    │     │                           │
+│    │     ▼                           │
+│    │   server/api/products.ts        │
+│    │   的 default export 被直接调用   │
+│    │                                 │
+│  server/api/products.ts              │
+│    └── defineEventHandler(...)       │
+└──────────────────────────────────────┘</pre></div>
+    <p>这是通过 h3/Nitro 的 <strong>direct call</strong> 机制实现的：<code>$fetch</code> 在内部检查请求的 URL 是否匹配已注册的服务器处理器，如果匹配，直接调用处理函数而非发起 HTTP 请求。</p>
+
+    <h3 id="s7-5">7.5 useCookie —— SSR 安全的 Cookie 操作</h3>
+    <p><code>useCookie</code> 是 Nuxt 内置的 Cookie 读写 composable，解决了 SSR 中 Cookie 读写的核心难题：服务端没有 <code>document.cookie</code>。</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// 签名
+function useCookie&lt;T = string | null&gt;(
+  name: string,
+  options?: CookieOptions
+): Ref&lt;T | null&gt;
+
+interface CookieOptions {
+  path?: string          // 默认 '/'
+  domain?: string
+  maxAge?: number         // 秒
+  expires?: Date
+  httpOnly?: boolean
+  secure?: boolean
+  sameSite?: 'strict' | 'lax' | 'none' | boolean
+  default?: () =&gt; T       // 默认值
+  watch?: boolean | 'shallow'
+  readonly?: boolean
+}</code></pre></div>
+
+    <p><strong>工作原理</strong>：</p>
+    <ul>
+      <li><strong>服务端</strong>：从 <code>H3Event</code> 的请求头中解析 <code>Cookie</code> 字段，写入时通过 <code>Set-Cookie</code> 响应头发送给浏览器</li>
+      <li><strong>客户端</strong>：使用 <code>document.cookie</code> API 读写</li>
+      <li><strong>响应式</strong>：返回一个 <code>Ref</code>，当 <code>.value</code> 被修改时，自动将新的 Cookie 值写入</li>
+    </ul>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// 基本用法
+const token = useCookie('auth-token')
+token.value = 'new-jwt-token'  // 自动写入 Cookie
+
+// 带默认值和类型
+const theme = useCookie&lt;'light' | 'dark'&gt;('theme', {
+  default: () =&gt; 'light',
+  maxAge: 60 * 60 * 24 * 365  // 1年
+})
+
+// 存储复杂数据（自动 JSON 序列化/反序列化）
+const preferences = useCookie('user-prefs', {
+  default: () =&gt; ({ sidebar: true, compact: false })
+})</code></pre></div>
+    <p><strong>面试关键点</strong>：<code>useCookie</code> 在 SSR 中读写的是<strong>当前请求的 Cookie</strong>，而非浏览器中的 Cookie。这意味着在服务端修改 Cookie 后，同一请求中后续的读取能看到新值，但浏览器要等到收到 <code>Set-Cookie</code> 响应头后才会更新。</p>
+
+    <h3 id="s7-6">7.6 useRequestHeaders 与 useRequestFetch</h3>
+    <p>这两个 composable 解决 SSR 中的一个常见问题：<strong>服务端发起的 API 请求不会自动携带客户端的请求头（如 Cookie、Authorization）</strong>。</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// useRequestHeaders —— 获取当前 SSR 请求的请求头
+const headers = useRequestHeaders()                    // 所有请求头
+const cookies = useRequestHeaders(['cookie'])           // 只要 cookie 头
+const authHeaders = useRequestHeaders(['authorization']) // 只要 auth 头
+
+// useRequestFetch —— 创建一个自动转发 SSR 请求头的 $fetch
+const fetch = useRequestFetch()
+const { data } = await useAsyncData('user', () =&gt;
+  fetch('/api/auth/me')  // 自动携带 SSR 请求的 Cookie
+)</code></pre></div>
+    <p><strong>为什么需要这个</strong>：在 SSR 渲染中，<code>useFetch('/api/auth/me')</code> 默认走 Nitro 的 direct call 机制（直接调用 handler 函数），此时 handler 中的 <code>getRequestHeaders(event)</code> 获取到的是<strong>内部调用的请求</strong>，而不是原始浏览器请求的 Cookie。<code>useRequestFetch</code> 会将原始请求的关键请求头（尤其是 Cookie）注入到内部调用中，确保认证信息不丢失。</p>
+    <p><strong>推荐实践</strong>：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// composables/useAuth.ts
+export const useAuth = () =&gt; {
+  const fetch = useRequestFetch()
+
+  const { data: user } = await useAsyncData('user', () =&gt;
+    fetch('/api/auth/me').catch(() =&gt; null)
+  )
+
+  return { user, isLoggedIn: computed(() =&gt; !!user.value) }
+}</code></pre></div>
+
+    <h3 id="s7-7">7.7 Nitro 存储层（unstorage）</h3>
+    <p>Nitro 内置了 <code>unstorage</code>，提供了一个统一的键值存储抽象，可以对接多种后端：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// server/api/cache.ts
+export default defineEventHandler(async (event) =&gt; {
+  const storage = useStorage()
+
+  await storage.setItem('cache:key', { data: 'value' })
+  const value = await storage.getItem('cache:key')
+
+  await storage.setItem('redis:user:123', userData)
+
+  return value
+})</code></pre></div>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// nuxt.config.ts —— 配置存储驱动
+export default defineNuxtConfig({
+  nitro: {
+    storage: {
+      cache: { driver: 'memory' },
+      redis: {
+        driver: 'redis',
+        host: process.env.REDIS_HOST,
+        port: 6379
+      },
+      files: {
+        driver: 'fs',
+        base: './data'
+      }
+    }
+  }
+})</code></pre></div>
+    <p>这在 Serverless 和 Edge 环境中特别有用，因为这些环境通常没有本地文件系统或持久化存储，<code>unstorage</code> 提供了一致的接口来对接 Cloudflare KV、Upstash Redis、AWS DynamoDB 等云存储服务。</p>
+
+    <hr>
+
+    <!-- ==================== 第八章 ==================== -->
+    <h2 id="ch8">第八章 状态管理</h2>
+
+    <h3 id="s8-1">8.1 useState —— Nuxt 内置的跨端状态</h3>
+    <p><code>useState</code> 是 Nuxt 提供的最简单的跨端状态管理工具：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// 签名
+function useState&lt;T&gt;(
+  key: string,                  // 唯一标识符
+  init?: () =&gt; T | Ref&lt;T&gt;      // 初始值工厂函数
+): Ref&lt;T&gt;</code></pre></div>
+    <p><strong>工作原理</strong>：服务端创建响应式引用并存入 payload.state &rarr; SSR 完成后序列化到 HTML &rarr; 客户端水合时从 payload 恢复 &rarr; 后续客户端调用直接使用已有值。</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// composables/useCounter.ts
+export const useCounter = () =&gt; {
+  const count = useState('counter', () =&gt; 0)
+  const increment = () =&gt; count.value++
+  const decrement = () =&gt; count.value--
+  return { count, increment, decrement }
+}</code></pre></div>
+
+    <h3 id="s8-2">8.2 Pinia 集成</h3>
+    <p>Nuxt 3 官方推荐通过 <code>@pinia/nuxt</code> 模块集成 Pinia：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// stores/auth.ts
+export const useAuthStore = defineStore('auth', () =&gt; {
+  const user = ref(null)
+  const isLoggedIn = computed(() =&gt; !!user.value)
+
+  async function login(credentials) {
+    user.value = await $fetch('/api/auth/login', {
+      method: 'POST',
+      body: credentials
+    })
+  }
+
+  function logout() {
+    user.value = null
+    navigateTo('/login')
+  }
+
+  return { user, isLoggedIn, login, logout }
+})</code></pre></div>
+    <p><strong>Pinia 与 SSR 的关系</strong>：Pinia 的 store 状态默认<strong>不会</strong>自动通过 SSR payload 传递。需要通过 Nuxt 的插件或 <code>useState</code> 来桥接。实际上，<code>@pinia/nuxt</code> 模块已经内置了这种 SSR 状态桥接，开发者不需要手动处理。</p>
+
+    <h3 id="s8-3">8.3 useAsyncData 缓存作为状态</h3>
+    <p>在很多场景下，<code>useAsyncData</code> 的缓存本身就是一种状态管理方式。相同 <code>key</code> 的 <code>useAsyncData</code> 在多个组件中共享同一份数据：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// composables/useProducts.ts
+export const useProducts = () =&gt; {
+  return useAsyncData('products', () =&gt; $fetch('/api/products'))
+}
+
+// 在组件 A 中
+const { data: products } = await useProducts()
+// 在组件 B 中
+const { data: products } = await useProducts()
+// 两个组件共享同一份数据，只发起一次请求</code></pre></div>
+
+    <hr>
+
+    <!-- ==================== 第九章 ==================== -->
+    <h2 id="ch9">第九章 插件系统</h2>
+
+    <h3 id="s9-1">9.1 插件的定义与执行顺序</h3>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// plugins/myPlugin.ts
+
+// 方式1：简单函数
+export default defineNuxtPlugin((nuxtApp) =&gt; {
+  // nuxtApp 是运行时的 NuxtApp 实例
+  // nuxtApp.vueApp.use(someVuePlugin)
+  nuxtApp.provide('myHelper', () =&gt; { /* ... */ })
+})
+
+// 方式2：对象形式（更精细的控制）
+export default defineNuxtPlugin({
+  name: 'my-plugin',
+  enforce: 'pre',             // 执行时机：'pre' | 'default' | 'post'
+  dependsOn: ['other-plugin'],
+  async setup(nuxtApp) {
+    // 插件逻辑
+  },
+  hooks: {
+    'app:created'(vueApp) { /* ... */ },
+    'page:start'() { /* ... */ }
+  }
+})
+
+// 通过文件名控制环境：
+// plugins/myPlugin.client.ts  → 只在客户端执行
+// plugins/myPlugin.server.ts  → 只在服务端执行</code></pre></div>
+    <p><strong>插件执行顺序</strong>：</p>
+    <ol>
+      <li><code>enforce: 'pre'</code> 的插件最先执行</li>
+      <li><code>enforce: 'default'</code>（默认）的插件按文件名字母顺序执行</li>
+      <li><code>enforce: 'post'</code> 的插件最后执行</li>
+      <li>如果有 <code>dependsOn</code>，会等待依赖的插件完成后再执行</li>
+    </ol>
+
+    <h3 id="s9-2">9.2 插件可以做什么</h3>
+    <ul>
+      <li><strong>注册 Vue 插件</strong>：<code>nuxtApp.vueApp.use(pinia)</code></li>
+      <li><strong>注入全局方法/属性</strong>：<code>nuxtApp.provide('api', apiClient)</code></li>
+      <li><strong>注册全局组件</strong>：<code>nuxtApp.vueApp.component('MyComponent', MyComponent)</code></li>
+      <li><strong>注册全局指令</strong>：<code>nuxtApp.vueApp.directive('focus', { ... })</code></li>
+      <li><strong>注册路由守卫</strong>：<code>nuxtApp.vueApp.use(router =&gt; { router.beforeEach(...) })</code></li>
+      <li><strong>设置全局错误处理</strong>：<code>nuxtApp.vueApp.config.errorHandler = (...)</code></li>
+      <li><strong>注册 NuxtApp 钩子</strong>：<code>nuxtApp.hook('page:finish', () =&gt; { ... })</code></li>
+    </ul>
+
+    <hr>
+
+    <!-- ==================== 第十章 ==================== -->
+    <h2 id="ch10">第十章 中间件系统</h2>
+
+    <h3 id="s10-1">10.1 路由中间件</h3>
+    <p>路由中间件在每次页面导航时执行，用于权限验证、数据预加载、日志等：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// middleware/auth.ts
+export default defineNuxtRouteMiddleware((to, from) =&gt; {
+  const authStore = useAuthStore()
+
+  if (!authStore.isLoggedIn &amp;&amp; to.meta.requiresAuth) {
+    return navigateTo('/login')
+  }
+
+  // 不返回值 = 继续导航
+  // 返回 navigateTo('/path') = 重定向
+  // 返回 abortNavigation() = 中止导航
+  // 返回 abortNavigation(error) = 中止并设置错误
+})</code></pre></div>
+    <p><strong>中间件分类</strong>：</p>
+    <ul>
+      <li><strong>全局中间件</strong>：<code>middleware/</code> 目录下文件名以 <code>.global</code> 结尾的文件，每次导航都执行</li>
+      <li><strong>命名中间件</strong>：普通文件名的中间件，需要在 <code>definePageMeta({ middleware: ['auth'] })</code> 中引用</li>
+      <li><strong>匿名中间件</strong>：直接在 <code>definePageMeta</code> 中定义内联中间件</li>
+    </ul>
+    <p><strong>中间件执行顺序</strong>：全局中间件（按文件名字母序） &rarr; 命名中间件（按 <code>definePageMeta</code> 中数组的顺序）</p>
+    <p><strong>执行环境细节</strong>：路由中间件<strong>同时在服务端和客户端执行</strong>。在 SSR 首次请求时，Nuxt 会在服务端执行路由中间件。在后续客户端导航时，中间件在客户端执行。这意味着中间件代码应该避免直接使用浏览器专有 API，或通过 <code>import.meta.client</code> / <code>import.meta.server</code> 做环境判断。</p>
+
+    <h3 id="s10-2">10.2 服务端中间件（Server Middleware）</h3>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// server/middleware/auth.ts
+export default defineEventHandler(async (event) =&gt; {
+  // 对每个 API 请求和 SSR 请求都会执行
+  const token = getHeader(event, 'Authorization')
+  if (token) {
+    event.context.user = await verifyToken(token)
+  }
+  // 不返回值 = 继续处理
+  // 返回值 = 直接响应，不再执行后续处理
+})</code></pre></div>
+
+    <hr>
+
+    <!-- ==================== 第十一章 ==================== -->
+    <h2 id="ch11">第十一章 模块系统</h2>
+
+    <h3 id="s11-1">11.1 模块的概念与作用</h3>
+    <p>模块是 Nuxt 的扩展机制。一个模块可以在构建时修改 Nuxt 的配置、注册组件、添加插件、注入服务器处理器等。Nuxt 生态的绝大部分功能（Tailwind CSS、Pinia、Content、Image、Auth 等）都是通过模块提供的。</p>
+
+    <h3 id="s11-2">11.2 模块的定义</h3>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// modules/myModule.ts
+import { defineNuxtModule, addPlugin, addComponent, createResolver } from '@nuxt/kit'
+
+export default defineNuxtModule({
+  meta: {
+    name: 'my-module',
+    configKey: 'myModule',
+    compatibility: { nuxt: '&gt;=3.0.0' }
+  },
+  defaults: {
+    apiKey: '',
+    enableFeature: true
+  },
+  async setup(options, nuxt) {
+    const resolver = createResolver(import.meta.url)
+
+    // 1. 注册插件
+    addPlugin(resolver.resolve('./runtime/plugin'))
+
+    // 2. 注册组件
+    addComponent({
+      name: 'MyComponent',
+      filePath: resolver.resolve('./runtime/MyComponent.vue')
+    })
+
+    // 3. 注册 composable（使其可被自动导入）
+    nuxt.hook('imports:dirs', (dirs) =&gt; {
+      dirs.push(resolver.resolve('./runtime/composables'))
+    })
+
+    // 4. 注册服务器 API
+    addServerHandler({
+      route: '/api/my-module/data',
+      handler: resolver.resolve('./runtime/server/api/data')
+    })
+
+    // 5. 修改 Nuxt 配置
+    nuxt.options.css.push('my-module/dist/styles.css')
+
+    // 6. 修改 Vite 配置
+    nuxt.hook('vite:extendConfig', (config) =&gt; {
+      config.resolve.alias['#my-module'] = resolver.resolve('./runtime')
+    })
+
+    // 7. 注册 Nitro 插件
+    nuxt.hook('nitro:config', (nitroConfig) =&gt; {
+      nitroConfig.plugins = nitroConfig.plugins || []
+      nitroConfig.plugins.push(resolver.resolve('./runtime/server/plugin'))
+    })
+  }
+})</code></pre></div>
+
+    <h3 id="s11-3">11.3 模块的生命周期钩子</h3>
+    <p>Nuxt 在构建过程中会触发一系列钩子，模块可以监听这些钩子：</p>
+    <div class="code-block"><span class="code-lang">text</span><pre>modules:before          ← 模块安装前
+modules:done            ← 所有模块安装完成
+app:resolve             ← Vue 应用配置解析完成
+app:templates           ← 虚拟文件模板生成前
+app:templatesGenerated  ← 虚拟文件生成完成
+build:before            ← 构建开始前
+build:done              ← 构建完成
+pages:extend            ← 路由表生成后（可添加/修改路由）
+components:extend       ← 组件列表生成后
+imports:dirs            ← 自动导入目录收集
+imports:extend          ← 自动导入列表生成后
+nitro:config            ← Nitro 配置生成后
+nitro:init              ← Nitro 实例创建后
+vite:extendConfig       ← Vite 配置生成后
+vite:serverCreated      ← Vite 开发服务器创建后</pre></div>
+
+    <h3 id="s11-4">11.4 @nuxt/kit 核心 API 速查</h3>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>defineNuxtModule({ meta, defaults, setup })  // 定义模块
+addPlugin({ src, mode })                       // 添加插件
+addComponent({ name, filePath })               // 添加组件
+addServerHandler({ route, handler, method, middleware })  // 添加服务器处理器
+addServerPlugin({ src })                       // 添加服务器插件
+addRouteMiddleware({ name, path, global })     // 添加路由中间件
+extendPages((pages) =&gt; { pages.push(...) })    // 修改页面路由
+extendViteConfig((config) =&gt; { ... })          // 修改 Vite 配置
+extendWebpackConfig((config) =&gt; { ... })       // 修改 Webpack 配置
+addVitePlugin(plugin)                          // 安装 Vite 插件
+createResolver(import.meta.url)                // 创建路径解析器
+useNuxt()                                      // 获取 Nuxt 实例
+useLogger('my-module')                         // 创建日志</code></pre></div>
+
+    <hr>
+
+    <!-- ==================== 第十二章 ==================== -->
+    <h2 id="ch12">第十二章 Nuxt 钩子系统（Hooks）</h2>
+
+    <h3 id="s12-1">12.1 NuxtApp 钩子（运行时）</h3>
+    <p>这些钩子在运行时触发，可在插件或组件中监听：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// 应用生命周期
+app:beforeMount         // Vue 应用挂载前
+app:mounted             // Vue 应用挂载完成
+app:error               // 应用发生错误
+app:suspense:resolve    // Suspense 解析完成
+
+// 页面导航
+page:start              // 页面导航开始
+page:finish             // 页面导航完成
+page:loading:start      // 页面加载开始
+page:loading:end        // 页面加载结束
+page:transition:finish  // 页面过渡动画完成
+
+// 数据获取
+asyncData:start         // useAsyncData 开始
+asyncData:end           // useAsyncData 结束
+
+// 渲染
+app:rendered            // SSR 渲染完成（仅服务端）
+app:chunkError          // 加载 JS chunk 失败
+
+// 使用方式
+const nuxtApp = useNuxtApp()
+nuxtApp.hook('page:finish', () =&gt; {
+  console.log('Page navigation finished')
+})</code></pre></div>
+
+    <h3 id="s12-2">12.2 Nuxt 钩子（构建时）</h3>
+    <p>这些钩子在构建时触发，可在模块中监听（第十一章已列出）。</p>
+
+    <h3 id="s12-3">12.3 Nitro 钩子（服务器运行时）</h3>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// 请求生命周期
+request            // 收到请求
+beforeResponse     // 响应发送前
+afterResponse      // 响应发送后
+error              // 请求处理出错
+
+// 渲染
+render:html        // HTML 渲染后（可修改 HTML）
+render:response    // 响应准备发送前
+
+// 使用方式（在 Nitro 插件中）
+// server/plugins/renderHook.ts
+export default defineStritroPlugin((nitroApp) =&gt; {
+  nitroApp.hooks.hook('render:html', (html, { event }) =&gt; {
+    // html 是一个对象，包含 head、bodyAppend 等数组
+    html.head.push('&lt;link rel="preconnect" href="https://fonts.googleapis.com" /&gt;')
+  })
+})</code></pre></div>
+
+    <hr>
+
+    <!-- ==================== 第十三章 ==================== -->
+    <h2 id="ch13">第十三章 目录结构与文件约定详解</h2>
+
+    <h3 id="s13-1">13.1 完整目录结构</h3>
+    <div class="code-block"><span class="code-lang">text</span><pre>my-nuxt-app/
+├── .nuxt/                    # 自动生成的虚拟文件（不要手动修改，加入 .gitignore）
+├── .output/                  # 生产构建产物
+├── app.vue                   # 应用根组件（入口组件）
+├── app.config.ts             # 应用配置（可在运行时通过 payload 传递）
+├── error.vue                 # 全局错误页面
+├── nuxt.config.ts            # Nuxt 配置（构建时）
+├── tsconfig.json             # TypeScript 配置
+│
+├── assets/                   # 静态资源（会被构建工具处理）
+│   ├── css/
+│   ├── images/
+│   └── fonts/
+│
+├── public/                   # 公共资源（直接复制到输出目录）
+│   ├── favicon.ico
+│   └── robots.txt
+│
+├── components/               # Vue 组件（自动注册）
+│   ├── AppHeader.vue         # → &lt;AppHeader /&gt;
+│   ├── AppFooter.vue         # → &lt;AppFooter /&gt;
+│   ├── ui/
+│   │   ├── Button.vue        # → &lt;UiButton /&gt;
+│   │   └── Input.vue         # → &lt;UiInput /&gt;
+│   └── base/
+│       └── Card.vue          # → &lt;BaseCard /&gt;
+│
+├── composables/              # 组合式函数（自动导入）
+│   ├── useAuth.ts
+│   ├── useProducts.ts
+│   └── useCounter.ts
+│
+├── utils/                    # 工具函数（自动导入）
+│   ├── formatters.ts
+│   └── validators.ts
+│
+├── layouts/                  # 页面布局
+│   ├── default.vue
+│   ├── auth.vue
+│   └── blank.vue
+│
+├── pages/                    # 路由页面
+│   ├── index.vue             # /
+│   ├── about.vue             # /about
+│   ├── products/
+│   │   ├── index.vue         # /products
+│   │   ├── [id].vue          # /products/:id（动态路由）
+│   │   └── [...slug].vue     # /products/*（通配路由）
+│   └── users/
+│       ├── index.vue         # /users
+│       └── [id]/
+│           ├── index.vue     # /users/:id
+│           └── settings.vue  # /users/:id/settings（嵌套路由）
+│
+├── middleware/                # 路由中间件
+│   ├── auth.global.ts        # 全局中间件
+│   └── admin.ts              # 命名中间件
+│
+├── plugins/                  # Nuxt 插件
+│   ├── vue-plugins.ts
+│   ├── analytics.client.ts   # 只在客户端执行
+│   └── i18n.ts
+│
+├── server/                   # 服务器代码（Nitro）
+│   ├── api/                  # API 路由
+│   ├── routes/               # 自定义路由
+│   ├── middleware/            # 服务器中间件
+│   ├── plugins/              # Nitro 插件
+│   └── utils/                # 服务器工具函数（自动导入）
+│
+├── stores/                   # Pinia stores
+│   └── auth.ts
+│
+└── types/                    # TypeScript 类型定义
+    └── index.d.ts</pre></div>
+
+    <h3 id="s13-2">13.2 动态路由命名约定</h3>
+    <table>
+      <thead><tr><th>文件名</th><th>路由路径</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>[id].vue</code></td><td><code>/:id</code></td><td>单个动态参数</td></tr>
+        <tr><td><code>[[id]].vue</code></td><td><code>/:id?</code></td><td>可选动态参数</td></tr>
+        <tr><td><code>[...slug].vue</code></td><td><code>/*</code></td><td>通配（catch-all）路由</td></tr>
+        <tr><td><code>[[...slug]].vue</code></td><td><code>/*</code> (可选)</td><td>可选通配路由</td></tr>
+        <tr><td><code>[id]-[name].vue</code></td><td><code>/:id-:name</code></td><td>多个参数混合文本</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="s13-3">13.3 特殊文件说明</h3>
+
+    <h4>app.vue</h4>
+    <p>应用根组件。如果存在 <code>pages/</code> 目录，<code>app.vue</code> 中通常需要包含 <code>&lt;NuxtPage /&gt;</code>。</p>
+    <div class="code-block"><span class="code-lang">vue</span><pre><code>&lt;!-- app.vue --&gt;
+&lt;template&gt;
+  &lt;div&gt;
+    &lt;NuxtLayout&gt;
+      &lt;NuxtPage /&gt;
+    &lt;/NuxtLayout&gt;
+  &lt;/div&gt;
+&lt;/template&gt;</code></pre></div>
+
+    <h4>error.vue</h4>
+    <p>全局错误页面。当应用发生未捕获的错误时显示。</p>
+    <div class="code-block"><span class="code-lang">vue</span><pre><code>&lt;!-- error.vue --&gt;
+&lt;script setup&gt;
+const props = defineProps(['error'])
+const handleError = () =&gt; clearError({ redirect: '/' })
+&lt;/script&gt;
+&lt;template&gt;
+  &lt;div&gt;
+    &lt;h1&gt;{{ error.statusCode }}&lt;/h1&gt;
+    &lt;p&gt;{{ error.message }}&lt;/p&gt;
+    &lt;button @click="handleError"&gt;返回首页&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/template&gt;</code></pre></div>
+
+    <h4>app.config.ts</h4>
+    <p>应用级配置，可在运行时通过 <code>useAppConfig()</code> 访问。与 <code>nuxt.config.ts</code> 的区别：<code>nuxt.config.ts</code> 是构建时配置（修改需要重新构建），<code>app.config.ts</code> 理论上可以在运行时更新。</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// app.config.ts
+export default defineAppConfig({
+  theme: {
+    primaryColor: '#3b82f6',
+    dark: false
+  },
+  siteName: 'My App'
+})
+
+// 在组件中使用
+const appConfig = useAppConfig()
+console.log(appConfig.theme.primaryColor)</code></pre></div>
+
+    <hr>
+
+    <!-- ==================== 第十四章 ==================== -->
+    <h2 id="ch14">第十四章 性能优化策略</h2>
+
+    <h3 id="s14-1">14.1 自动代码分割</h3>
+    <p>Nuxt 自动对以下内容进行代码分割：</p>
+    <ul>
+      <li><strong>页面组件</strong>：每个 <code>pages/</code> 下的页面自动成为独立的 chunk</li>
+      <li><strong>异步组件</strong>：使用 <code>defineAsyncComponent</code> 加载的组件</li>
+      <li><strong>动态导入</strong>：<code>import()</code> 语句自动分割</li>
+    </ul>
+
+    <h3 id="s14-2">14.2 预取策略</h3>
+    <p><code>&lt;NuxtLink&gt;</code> 组件内置了智能预取：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// NuxtLink 的预取逻辑（简化）
+class NuxtLinkPrefetch {
+  // 1. 使用 IntersectionObserver 监听链接是否进入视口
+  observer = new IntersectionObserver((entries) =&gt; {
+    entries.forEach(entry =&gt; {
+      if (entry.isIntersecting) {
+        this.prefetchRoute(entry.target.href)
+      }
+    })
+  })
+
+  // 2. 预取目标页面的 JS chunk
+  async prefetchRoute(url) {
+    // 动态 import() 页面组件
+    // 浏览器会在后台下载但不执行
+  }
+
+  // 3. 可选：预取页面的数据
+  async prefetchData(url) {
+    // 提前调用 API 获取数据
+  }
+}</code></pre></div>
+
+    <h3 id="s14-3">14.3 图片优化</h3>
+    <p>通过 <code>@nuxt/image</code> 模块：</p>
+    <div class="code-block"><span class="code-lang">vue</span><pre><code>&lt;NuxtImg
+  src="/images/hero.jpg"
+  width="800"
+  height="400"
+  format="webp"
+  quality="80"
+  loading="lazy"
+  placeholder
+/&gt;</code></pre></div>
+    <p>自动处理：格式转换（WebP/AVIF）、尺寸优化、懒加载、响应式图片（srcset）、低质量占位图。</p>
+
+    <h3 id="s14-4">14.4 字体优化</h3>
+    <p>Nuxt 3 内置了 <code>@nuxt/fonts</code> 模块，自动处理：字体文件自托管、预加载关键字体、字体子集化（只包含页面使用的字符）、<code>font-display: swap</code> 防止 FOIT。</p>
+
+    <h3 id="s14-5">14.5 SEO 优化（useHead）</h3>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>useHead({
+  title: 'My Page Title',
+  meta: [
+    { name: 'description', content: 'Page description for SEO' },
+    { property: 'og:title', content: 'My Page Title' },
+    { property: 'og:image', content: 'https://example.com/image.jpg' }
+  ],
+  link: [
+    { rel: 'canonical', href: 'https://example.com/page' }
+  ],
+  script: [
+    { src: 'https://analytics.example.com/script.js', defer: true }
+  ]
+})
+
+// 或者使用 useSeoMeta（更便捷的 SEO 元信息）
+useSeoMeta({
+  title: 'My Page',
+  description: 'Page description',
+  ogTitle: 'My Page',
+  ogDescription: 'Page description',
+  ogImage: 'https://example.com/image.jpg',
+  twitterCard: 'summary_large_image'
+})</code></pre></div>
+    <p><code>useHead</code> 底层使用 <code>@unhead/vue</code>，它会在 SSR 时将所有 head 标签序列化到 HTML 的 <code>&lt;head&gt;</code> 中，在客户端通过 DOM 操作动态更新。</p>
+
+    <h3 id="s14-6">14.6 渲染优化</h3>
+    <ul>
+      <li><strong>路由级别的渲染策略</strong>：通过 Route Rules 对不同路由使用不同策略</li>
+      <li><strong>组件懒加载</strong>：<code>&lt;LazyMyComponent /&gt;</code> 语法糖</li>
+      <li><strong>Suspense 边界</strong>：页面组件天然支持异步 setup</li>
+      <li><strong>Islands</strong>：减少客户端 JS 体积</li>
+      <li><strong>Payload 提取</strong>：新版 Nuxt 支持将 payload 从 HTML 中提取为独立文件</li>
+    </ul>
+
+    <hr>
+
+    <!-- ==================== 第十五章 ==================== -->
+    <h2 id="ch15">第十五章 部署架构</h2>
+
+    <h3 id="s15-1">15.1 部署模式对比</h3>
+    <table>
+      <thead><tr><th>部署模式</th><th>运行环境要求</th><th>适用场景</th><th>构建命令</th></tr></thead>
+      <tbody>
+        <tr><td>Node.js Server</td><td>Node.js 进程</td><td>需要 SSR、API 路由</td><td><code>npx nuxi build</code> + <code>node .output/server/index.mjs</code></td></tr>
+        <tr><td>Static Hosting</td><td>任意静态文件服务器</td><td>纯静态网站、博客</td><td><code>npx nuxi generate</code></td></tr>
+        <tr><td>Serverless</td><td>AWS Lambda 等</td><td>弹性伸缩、低流量</td><td><code>npx nuxi build</code>（preset: aws-lambda）</td></tr>
+        <tr><td>Edge</td><td>Cloudflare Workers 等</td><td>低延迟、全球分发</td><td><code>npx nuxi build</code>（preset: cloudflare）</td></tr>
+        <tr><td>Docker</td><td>Docker 运行时</td><td>容器化部署</td><td><code>npx nuxi build</code> + Dockerfile</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="s15-2">15.2 Node.js 部署</h3>
+    <div class="code-block"><span class="code-lang">bash</span><pre><code># 构建
+npx nuxi build
+
+# 启动（生产）
+PORT=3000 HOST=0.0.0.0 node .output/server/index.mjs
+
+# 或使用 PM2
+pm2 start .output/server/index.mjs --name my-nuxt-app</code></pre></div>
+
+    <h3 id="s15-3">15.3 Docker 部署</h3>
+    <div class="code-block"><span class="code-lang">dockerfile</span><pre><code>FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/.output .output
+EXPOSE 3000
+CMD ["node", ".output/server/index.mjs"]</code></pre></div>
+
+    <h3 id="s15-4">15.4 环境变量</h3>
+    <p>Nuxt 3 有两种环境变量：<strong>构建时环境变量</strong>（通过 <code>nuxt.config.ts</code> 中的 <code>env</code> 或 <code>.env</code> 文件）和<strong>运行时环境变量</strong>（通过 <code>runtimeConfig</code> 配置）：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// nuxt.config.ts
+export default defineNuxtConfig({
+  runtimeConfig: {
+    // 仅在服务端可用
+    apiSecret: process.env.API_SECRET,
+    dbUrl: process.env.DATABASE_URL,
+
+    // 在客户端和服务端都可用
+    public: {
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://api.example.com',
+      appName: 'My Nuxt App'
+    }
+  }
+})
+
+// 在代码中使用
+const config = useRuntimeConfig()
+// 服务端：可以访问 config.apiSecret 和 config.public.apiBase
+// 客户端：只能访问 config.public.apiBase</code></pre></div>
+    <p><strong>环境变量覆盖规则</strong>：运行时配置可以通过环境变量覆盖，命名规则为 <code>NUXT_</code> 前缀 + 大写 + 下划线分隔。例如 <code>runtimeConfig.apiSecret</code> &rarr; <code>NUXT_API_SECRET</code>，<code>runtimeConfig.public.apiBase</code> &rarr; <code>NUXT_PUBLIC_API_BASE</code>。</p>
+
+    <hr>
+
+    <!-- ==================== 第十六章 ==================== -->
+    <h2 id="ch16">第十六章 测试策略</h2>
+
+    <h3 id="s16-1">16.1 测试工具链</h3>
+    <p>Nuxt 3 官方提供 <code>@nuxt/test-utils</code>，集成了 Vitest：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// vitest.config.ts
+import { defineVitestConfig } from '@nuxt/test-utils/config'
+
+export default defineVitestConfig({
+  // 自动设置 Nuxt 测试环境
+})</code></pre></div>
+
+    <h3 id="s16-2">16.2 测试类型</h3>
+
+    <h4>组件单元测试</h4>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// components/__tests__/Button.spec.ts
+import { mountSuspended } from '@nuxt/test-utils/runtime'
+import Button from '~/components/ui/Button.vue'
+
+test('Button renders correctly', async () =&gt; {
+  const component = await mountSuspended(Button, {
+    props: { label: 'Click me' }
+  })
+  expect(component.text()).toContain('Click me')
+})</code></pre></div>
+    <p><code>mountSuspended</code> 是增强版 mount，会等待所有异步 setup（<code>useAsyncData</code> 等）完成后再返回。</p>
+
+    <h4>Composable 测试</h4>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>import { mockNuxtImport } from '@nuxt/test-utils/runtime'
+
+// Mock 自动导入的 composable
+mockNuxtImport('useFetch', () =&gt; {
+  return () =&gt; ({
+    data: ref({ items: [] }),
+    pending: ref(false),
+    error: ref(null)
+  })
+})</code></pre></div>
+
+    <h4>API 路由测试</h4>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>import { $fetch, setup } from '@nuxt/test-utils/e2e'
+
+await setup({ server: true })
+
+test('GET /api/products', async () =&gt; {
+  const data = await $fetch('/api/products')
+  expect(data).toHaveProperty('items')
+})</code></pre></div>
+
+    <h4>E2E 测试（结合 Playwright）</h4>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>import { expect, test } from '@playwright/test'
+import { setup, $fetch } from '@nuxt/test-utils/e2e'
+
+await setup({ server: true })
+
+test('home page renders', async ({ page }) =&gt; {
+  await page.goto('/')
+  await expect(page.locator('h1')).toHaveText('Welcome')
+})</code></pre></div>
+
+    <hr>
+
+    <!-- ==================== 第十七章 ==================== -->
+    <h2 id="ch17">第十七章 高频面试题与深度解答</h2>
+
+    <h3>Q1: Nuxt 和纯 Vue SPA 有什么本质区别？</h3>
+    <p><strong>答</strong>：本质区别在于 Nuxt 在 Vue 之上增加了<strong>服务端层</strong>和<strong>构建编排层</strong>：</p>
+    <ol>
+      <li><strong>渲染能力</strong>：Nuxt 支持 SSR、SSG、ISR、混合渲染，而 Vue SPA 只有客户端渲染</li>
+      <li><strong>路由系统</strong>：Nuxt 基于文件系统自动生成路由</li>
+      <li><strong>全栈能力</strong>：Nuxt 内置了 Nitro 服务器引擎，可以直接写 API 端点</li>
+      <li><strong>构建优化</strong>：Nuxt 自动配置代码分割、预取、资源优化</li>
+      <li><strong>数据获取协调</strong>：<code>useAsyncData</code> / <code>useFetch</code> 自动处理 SSR-CSR 数据同步</li>
+      <li><strong>模块生态</strong>：通过模块系统快速集成 Tailwind、Pinia、i18n 等</li>
+    </ol>
+
+    <h3>Q2: Nuxt 3 为什么选择 Nitro 作为服务器引擎？</h3>
+    <p><strong>答</strong>：Nuxt 2 的服务器紧耦合于 Node.js + Connect/Express，无法部署到 Edge Runtime。Nitro 基于 h3（使用 Web Standards API），通过 Rollup 构建和 tree-shaking，通过 preset 系统适配不同平台。同一个 Nuxt 应用可以用不同 preset 部署到不同平台，代码不需要任何修改。</p>
+
+    <h3>Q3: SSR 中数据是如何从服务端传递到客户端的？</h3>
+    <p><strong>答</strong>：通过 <strong>Payload 机制</strong>。SSR 渲染时 <code>useAsyncData</code>/<code>useFetch</code> 的数据存入 <code>NuxtSSRContext.payload.data</code>，<code>useState</code> 存入 <code>payload.state</code>。渲染完成后序列化为 JSON 嵌入 HTML 的 <code>&lt;script&gt;</code> 标签中。客户端水合时读取 payload 恢复数据，避免重复请求。</p>
+
+    <h3>Q4: 什么是水合不匹配？如何避免？</h3>
+    <p><strong>答</strong>：水合不匹配发生在服务端渲染的 HTML 与客户端虚拟 DOM 不一致时。常见原因：浏览器 API（<code>window</code>/<code>document</code>）、时间/随机数、HTML 非法嵌套。解决方案：使用 <code>&lt;ClientOnly&gt;</code> 包裹、<code>import.meta.client</code> 条件判断、确保 HTML 语义正确。</p>
+
+    <h3>Q5: useFetch 和 useAsyncData 应该如何选择？</h3>
+    <p><strong>答</strong>：<code>useFetch</code> 是 <code>useAsyncData</code> + <code>$fetch</code> 的便捷封装。调用本站 API 用 <code>useFetch</code>（最简洁）；调用外部 API 或需要自定义逻辑用 <code>useAsyncData</code> + <code>$fetch</code>；非 HTTP 请求用 <code>useAsyncData</code>。两者在 SSR 数据同步方面行为一致。</p>
+
+    <h3>Q6: Nuxt 的自动导入是怎么实现的？</h3>
+    <p><strong>答</strong>：自动导入是<strong>构建时</strong>的代码转换。Nuxt 使用 <code>unimport</code> 扫描所有可导入来源，生成 import map，通过 Vite 插件进行 AST 分析，自动插入缺失的 import 语句。最终产物是普通的 ES module import，<strong>零运行时开销</strong>。</p>
+
+    <h3>Q7: Nuxt 模块和 Vue 插件有什么区别？</h3>
+    <p><strong>答</strong>：Nuxt 模块工作在<strong>构建时</strong>，可修改配置、注册组件、添加服务器处理器等；Vue 插件工作在<strong>运行时</strong>，通过 <code>app.use()</code> 注册。一个 Nuxt 模块通常会注册 Vue 插件，但职责更广。</p>
+
+    <h3>Q8: Nuxt 中间件和服务端中间件有什么不同？</h3>
+    <p><strong>答</strong>：路由中间件（<code>middleware/</code>）在客户端导航时执行，用于页面级权限验证；服务端中间件（<code>server/middleware/</code>）在 Nitro 服务器上执行，对每个 HTTP 请求都执行，用于 API 认证、CORS 等。</p>
+
+    <h3>Q9: 如何在 Nuxt 中处理认证？</h3>
+    <p><strong>答</strong>：典型架构：登录 &rarr; 获取 token &rarr; HttpOnly Cookie 存储（最安全）&rarr; 路由中间件保护客户端路由 &rarr; server middleware 验证服务端请求 &rarr; SSR 时使用 <code>useRequestFetch()</code> 转发 Cookie。</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// composables/useAuth.ts
+export const useAuth = () =&gt; {
+  const user = useState('user', () =&gt; null)
+  const fetch = useRequestFetch()  // 自动转发 SSR Cookie
+
+  const { data } = await useAsyncData('user', () =&gt;
+    fetch('/api/auth/me').catch(() =&gt; null)
+  )
+  user.value = data.value
+
+  return { user, isLoggedIn: computed(() =&gt; !!user.value) }
+}</code></pre></div>
+
+    <h3>Q10: Nuxt 3 如何处理错误？</h3>
+    <p><strong>答</strong>：多层错误处理：<code>&lt;NuxtErrorBoundary&gt;</code>（组件级）、<code>app:error</code> 钩子（应用级）、<code>error.vue</code>（全局错误页）、<code>createError</code>（API 错误）、<code>useFetch</code> 的 <code>onResponseError</code>（请求错误）。</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// 抛出错误
+throw createError({
+  statusCode: 404,
+  statusMessage: 'Page Not Found',
+  fatal: true
+})
+
+// 全局错误处理插件
+export default defineNuxtPlugin((nuxtApp) =&gt; {
+  nuxtApp.hook('app:error', (error) =&gt; {
+    console.error('Global error:', error)
+  })
+})</code></pre></div>
+
+    <h3>Q11-Q16: 更多面试要点速览</h3>
+    <ul>
+      <li><strong>Q11 Route Rules</strong>：取代了 Nuxt 2 中分散的路由级配置，支持 SSR/SPA/ISR/SWR/重定向等，通配符匹配，同一应用可混合使用不同策略。</li>
+      <li><strong>Q12 NuxtLink 预取</strong>：使用 IntersectionObserver + 动态 import()，是 JavaScript 级别的预取，不同于浏览器级 <code>&lt;link rel="prefetch"&gt;</code>。</li>
+      <li><strong>Q13 渲染模式选择</strong>：SSR 适合动态内容+SEO；SSG 适合静态内容；ISR 介于两者之间；SPA 适合不需 SEO 的管理后台。推荐 Route Rules 混合使用。</li>
+      <li><strong>Q14 definePageMeta 为何是编译器宏</strong>：路由元信息需在构建时提取（而非运行时），确保导航守卫在不加载组件代码时就能访问元信息。</li>
+      <li><strong>Q15 nuxt.config.ts vs app.config.ts</strong>：前者是构建时工程配置（修改需重新构建），后者是应用级参数（可在运行时通过模块注入或 Nitro 插件覆盖）。</li>
+      <li><strong>Q16 SSR Cookie 转发</strong>：使用 <code>useRequestFetch()</code> 创建自动转发原始请求头的 $fetch 实例，确保认证信息不丢失。</li>
+    </ul>
+
+    <hr>
+
+    <!-- ==================== 第十八章 ==================== -->
+    <h2 id="ch18">第十八章 数据流全景总结</h2>
+
+    <h3 id="s18-1">18.1 完整数据流示意图</h3>
+    <div class="code-block"><span class="code-lang">text</span><pre class="ascii-art">                              ┌──────────────────┐
+                              │   浏览器/客户端    │
+                              └────────┬─────────┘
+                                       │
+                          HTTP 请求（首次请求 / API 调用）
+                                       │
+                              ┌────────▼─────────┐
+                              │   Nitro Server    │
+                              │   (h3 路由匹配)   │
+                              └───┬──────────┬───┘
+                                  │          │
+                     ┌────────────▼──┐  ┌────▼────────────┐
+                     │  SSR 渲染路径  │  │  API 路由路径    │
+                     │               │  │                  │
+                     │ 创建 Vue App  │  │ 执行 Handler    │
+                     │ 执行 setup()  │  │ defineEventHandler│
+                     │ useFetch →    │  │                  │
+                     │ 直接调用      │  │ 返回 JSON       │
+                     │ API Handler   │  │                  │
+                     │ (无网络开销)  │  └────────┬────────┘
+                     │               │          │
+                     │ 渲染 HTML     │          │
+                     │ 序列化 payload │          │
+                     └───────┬───────┘          │
+                             │                  │
+                    HTML + Payload           JSON 响应
+                             │                  │
+                      ┌──────▼──────────────────▼──┐
+                      │        浏览器接收            │
+                      └──────┬──────────────────┬──┘
+                             │                  │
+                     渲染 HTML（立即可见）        │
+                     下载 JS Bundle              │
+                             │                  │
+                      ┌──────▼──────┐           │
+                      │   水合阶段   │           │
+                      │ 读取 payload │           │
+                      │ 恢复状态    │           │
+                      │ 绑定事件    │           │
+                      │ 激活响应式  │           │
+                      └──────┬──────┘           │
+                             │                  │
+                      ┌──────▼──────┐           │
+                      │  可交互状态  │           │
+                      │ 后续导航:    │           │
+                      │ 客户端路由   │           │
+                      │ + API 请求  │───────────┘
+                      └─────────────┘</pre></div>
+
+    <h3 id="s18-2">18.2 核心数据流向一句话总结</h3>
+    <p><strong>服务端到客户端</strong>：数据通过 SSR 渲染时获取 &rarr; 存入 payload &rarr; 序列化到 HTML &rarr; 客户端水合时读取 payload &rarr; 恢复为响应式状态。</p>
+    <p><strong>客户端到服务端</strong>：用户操作 &rarr; 触发事件 &rarr; <code>$fetch</code>/<code>useFetch</code> 发起 HTTP 请求 &rarr; Nitro 路由匹配 &rarr; 执行 API handler &rarr; 返回 JSON &rarr; 更新客户端状态。</p>
+    <p><strong>服务端内部快捷路径</strong>：SSR 渲染时 <code>useFetch('/api/xxx')</code> &rarr; Nitro 检测到是本站 API &rarr; 直接调用 handler 函数（不经过网络层）&rarr; 零延迟获取数据。</p>
+
+    <hr>
+
+    <!-- ==================== 第十九章 ==================== -->
+    <h2 id="ch19">第十九章 高级话题</h2>
+
+    <h3 id="s19-1">19.1 自定义渲染器</h3>
+    <p>Nuxt 允许自定义 HTML 渲染过程，通过 Nitro 的 <code>render:html</code> 钩子：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// server/plugins/customRenderer.ts
+export default defineStritroPlugin((nitroApp) =&gt; {
+  nitroApp.hooks.hook('render:html', (html, { event }) =&gt; {
+    // html 结构：
+    // {
+    //   htmlAttrs: string[],      // &lt;html&gt; 的属性
+    //   head: string[],           // &lt;head&gt; 内容
+    //   bodyAttrs: string[],      // &lt;body&gt; 的属性
+    //   bodyPrepend: string[],    // &lt;body&gt; 开头注入
+    //   body: string[],           // &lt;body&gt; 主要内容
+    //   bodyAppend: string[]      // &lt;body&gt; 结尾注入
+    // }
+
+    html.head.push('&lt;meta name="custom" content="value" /&gt;')
+    html.bodyAppend.push('&lt;script&gt;console.log("injected")&lt;/script&gt;')
+  })
+})</code></pre></div>
+
+    <h3 id="s19-2">19.2 自定义 Nitro Preset</h3>
+    <p>如果要部署到不被官方支持的平台，可以创建自定义 preset：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// nuxt.config.ts
+export default defineNuxtConfig({
+  nitro: {
+    preset: 'custom-preset',
+    rollupConfig: {
+      // 自定义 Rollup 配置
+    }
+  }
+})</code></pre></div>
+
+    <h3 id="s19-3">19.3 多层应用（Multi-App / Layers）</h3>
+    <p>Nuxt 3 支持将多个 Nuxt 应用组合为一个，称为 Layers：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// nuxt.config.ts
+export default defineNuxtConfig({
+  extends: [
+    './base-app',              // 本地路径
+    'my-shared-layer',         // npm 包
+    'github:org/repo'          // GitHub 仓库
+  ]
+})</code></pre></div>
+    <p>Layer 可以提供：页面、组件、composables、插件、服务器处理器、配置等。所有 layer 的功能会被合并到主应用中。适用于微前端、共享基础应用、团队间代码共享。</p>
+
+    <h3 id="s19-4">19.4 Virtual Files（虚拟文件系统）</h3>
+    <p>Nuxt 的虚拟文件系统（VFS）是构建时的关键概念。<code>.nuxt/</code> 目录下的文件在开发模式下通过 Vite 的虚拟模块机制在内存中提供：</p>
+    <div class="code-block"><span class="code-lang">typescript</span><pre><code>// 在代码中可以使用 # 前缀引用虚拟文件
+import { useAppConfig } from '#app'
+import { useRuntimeConfig } from '#imports'</code></pre></div>
+    <p>这些 <code>#app</code>、<code>#imports</code> 等别名指向的就是 VFS 中的虚拟模块。</p>
+
+    <h3 id="s19-5">19.5 DevTools 集成</h3>
+    <p>Nuxt DevTools 是官方提供的开发调试工具，可以：查看路由和导航历史、检查 payload 数据、查看模块和插件列表、监控服务器 API 请求、分析组件依赖关系、查看 Vite 构建信息。</p>
+
+    <hr>
+
+    <!-- ==================== 附录 ==================== -->
+    <h2 id="appendix">附录：关键术语速查表</h2>
+    <table>
+      <thead><tr><th>术语</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>Nitro</td><td>Nuxt 3 的服务器引擎，与平台无关</td></tr>
+        <tr><td>h3</td><td>Nitro 底层的 HTTP 框架</td></tr>
+        <tr><td>NuxtApp</td><td>运行时应用实例（每个请求一个，客户端全局一个）</td></tr>
+        <tr><td>NuxtSSRContext</td><td>SSR 时的请求上下文</td></tr>
+        <tr><td>Payload</td><td>服务端传递给客户端的序列化数据</td></tr>
+        <tr><td>Hydration</td><td>客户端接管服务端渲染的 DOM 的过程</td></tr>
+        <tr><td>Route Rules</td><td>路由级别的渲染策略配置</td></tr>
+        <tr><td>ISR</td><td>Incremental Static Regeneration，增量静态再生成</td></tr>
+        <tr><td>SWR</td><td>Stale-While-Revalidate，过期缓存策略</td></tr>
+        <tr><td>Islands</td><td>岛屿架构，部分组件客户端水合</td></tr>
+        <tr><td>useAsyncData</td><td>核心数据获取 composable</td></tr>
+        <tr><td>useFetch</td><td>useAsyncData + $fetch 的便捷封装</td></tr>
+        <tr><td>$fetch</td><td>底层 HTTP 客户端（ofetch）</td></tr>
+        <tr><td>navigateTo</td><td>编程式导航函数</td></tr>
+        <tr><td>definePageMeta</td><td>页面元信息编译器宏</td></tr>
+        <tr><td>defineNuxtModule</td><td>模块定义函数</td></tr>
+        <tr><td>defineNuxtPlugin</td><td>插件定义函数</td></tr>
+        <tr><td>defineEventHandler</td><td>服务器 API 处理函数定义</td></tr>
+        <tr><td>createError</td><td>创建结构化错误</td></tr>
+        <tr><td>useRuntimeConfig</td><td>访问运行时配置</td></tr>
+        <tr><td>useAppConfig</td><td>访问应用配置</td></tr>
+        <tr><td>useState</td><td>Nuxt 内置的跨端状态管理</td></tr>
+        <tr><td>useHead</td><td>管理 HTML head 标签</td></tr>
+        <tr><td>useCookie</td><td>SSR 安全的 Cookie 读写 composable</td></tr>
+        <tr><td>useRequestFetch</td><td>自动转发 SSR 原始请求头的 $fetch 实例</td></tr>
+        <tr><td>useRequestHeaders</td><td>获取 SSR 原始请求的请求头</td></tr>
+        <tr><td>unstorage</td><td>Nitro 内置的统一键值存储抽象</td></tr>
+        <tr><td>NuxtLink</td><td>增强的链接组件（预取 + 路由）</td></tr>
+        <tr><td>NuxtPage</td><td>路由出口组件</td></tr>
+        <tr><td>NuxtLayout</td><td>布局容器组件</td></tr>
+        <tr><td>preset</td><td>Nitro 的部署平台预设</td></tr>
+        <tr><td>unimport</td><td>自动导入的底层库</td></tr>
+        <tr><td>VFS</td><td>Virtual File System，虚拟文件系统</td></tr>
+        <tr><td>jiti</td><td>TypeScript 配置文件加载器</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <blockquote><p>本文档覆盖了 Nuxt 3 从架构设计到运行时数据流的核心知识。掌握这些内容后，面试中关于 Nuxt 的问题——无论是架构设计理念、SSR 原理、数据获取机制、模块系统、性能优化还是部署策略——都可以从容应对。</p></blockquote>
+
+  </div><!-- /.content -->
+</main><!-- /.main -->
+
+<!-- Back to Top Button -->
+<button class="back-to-top" id="backToTop" aria-label="Back to top">&#8593;</button>
+
+<script>
+(function() {
+  // --- Sidebar toggle ---
+  var hamburger = document.getElementById('hamburger');
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('overlay');
+
+  function toggleSidebar() {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+    hamburger.classList.toggle('open');
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+    hamburger.classList.remove('open');
+  }
+
+  hamburger.addEventListener('click', toggleSidebar);
+  overlay.addEventListener('click', closeSidebar);
+
+  // Close sidebar on nav click (mobile)
+  var navLinks = document.querySelectorAll('#sidebarNav a');
+  navLinks.forEach(function(link) {
+    link.addEventListener('click', function() {
+      if (window.innerWidth <= 900) { closeSidebar(); }
+    });
+  });
+
+  // --- Back to top ---
+  var backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 400) {
+      backToTop.classList.add('visible');
+    } else {
+      backToTop.classList.remove('visible');
+    }
+  });
+  backToTop.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // --- Active nav highlighting ---
+  var sections = [];
+  navLinks.forEach(function(link) {
+    var id = link.getAttribute('href').replace('#', '');
+    var el = document.getElementById(id);
+    if (el) { sections.push({ id: id, el: el, link: link }); }
+  });
+
+  function updateActiveNav() {
+    var scrollPos = window.scrollY + 80;
+    var current = null;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= scrollPos) {
+        current = sections[i];
+      }
+    }
+    navLinks.forEach(function(l) { l.classList.remove('active'); });
+    if (current) { current.link.classList.add('active'); }
+  }
+
+  window.addEventListener('scroll', updateActiveNav);
+  updateActiveNav();
+})();
+</script>
+</body>
+</html>

@@ -4,6 +4,10 @@
 
 ## 2026-06
 
+- [2026 前端 UI 方案对决：Radix Themes + Mantine vs shadcn/ui + Tailwind CSS](ui-framework-comparison/) `HTML`{target="_self"}
+- [Nuxt.js 面试速查卡片](nuxt-interview-cards/) `HTML`{target="_self"}
+- [Nuxt.js 深度解析 — 从架构到数据流](nuxt-deep-dive/) `HTML`{target="_self"}
+- [Agent 知识库全景图 · 2026](agent-memory-landscape/) `HTML`{target="_self"}
 - [当代码不再由你来写：工程师角色的一次硬着陆](engineer-role-shift/index.md)
 - [用 Issue 驱动开发：当瓶颈从 Agent 转向人](issue-driven-development/index.md)
 - [SIA：当 Agent 开始改写自己 —— 一篇关于自改进循环的实践笔记](self-improving-ai/) `HTML`{target="_self"}

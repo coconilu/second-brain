@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuxt.js 面试速查卡片</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --green:#00DC82;--green-d:#00b86b;--dark:#0f0f1a;--card-bg:#1a1a2e;
+    --card-front:#16213e;--card-back:#1a1a2e;--text:#e2e8f0;--text-dim:#94a3b8;
+    --accent-blue:#38bdf8;--accent-yellow:#fbbf24;--accent-red:#f87171;
+    --accent-purple:#a78bfa;--accent-pink:#f472b6;
+  }
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif;
+    background:var(--dark);color:var(--text);min-height:100vh;line-height:1.6}
+  
+  /* Header */
+  .header{text-align:center;padding:40px 20px 20px;position:relative}
+  .header h1{font-size:2.2rem;background:linear-gradient(135deg,var(--green),var(--accent-blue));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;letter-spacing:-0.5px}
+  .header p{color:var(--text-dim);margin-top:6px;font-size:0.95rem}
+  .header .badge-row{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+  .badge{padding:3px 12px;border-radius:20px;font-size:0.75rem;font-weight:600;border:1px solid}
+  .badge.g{color:var(--green);border-color:var(--green);background:rgba(0,220,130,.08)}
+  .badge.b{color:var(--accent-blue);border-color:var(--accent-blue);background:rgba(56,189,248,.08)}
+  .badge.y{color:var(--accent-yellow);border-color:var(--accent-yellow);background:rgba(251,191,36,.08)}
+
+  /* Filter */
+  .filter-bar{display:flex;justify-content:center;gap:8px;padding:16px 20px;flex-wrap:wrap;position:sticky;top:0;z-index:100;
+    background:rgba(15,15,26,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06)}
+  .filter-btn{padding:6px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:transparent;
+    color:var(--text-dim);cursor:pointer;font-size:0.82rem;transition:all .2s;font-family:inherit}
+  .filter-btn:hover{border-color:var(--green);color:var(--green)}
+  .filter-btn.active{background:var(--green);color:var(--dark);border-color:var(--green);font-weight:600}
+
+  /* Grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;padding:24px 28px 60px;max-width:1400px;margin:0 auto}
+  @media(max-width:480px){.grid{grid-template-columns:1fr;padding:16px 12px 60px}}
+
+  /* Card */
+  .card-wrapper{perspective:1000px;height:auto;min-height:220px}
+  .card-wrapper.hidden{display:none}
+  .card{position:relative;width:100%;min-height:220px;transition:transform .5s;transform-style:preserve-3d;cursor:pointer}
+  .card.flipped{transform:rotateY(180deg)}
+  .card-face{position:absolute;inset:0;border-radius:14px;padding:22px;backface-visibility:hidden;
+    display:flex;flex-direction:column;overflow:hidden}
+  .card-front{background:var(--card-front);border:1px solid rgba(255,255,255,.07)}
+  .card-back{background:var(--card-back);border:1px solid rgba(0,220,130,.2);transform:rotateY(180deg);overflow-y:auto}
+  .card-back::-webkit-scrollbar{width:4px}
+  .card-back::-webkit-scrollbar-thumb{background:var(--green);border-radius:4px}
+
+  .card-num{position:absolute;top:14px;right:16px;font-size:0.7rem;color:var(--text-dim);
+    background:rgba(255,255,255,.06);padding:2px 8px;border-radius:8px;font-weight:600}
+  .card-tag{display:inline-block;padding:2px 10px;border-radius:10px;font-size:0.68rem;font-weight:700;
+    margin-bottom:10px;letter-spacing:0.3px;align-self:flex-start}
+  .tag-arch{background:rgba(0,220,130,.12);color:var(--green)}
+  .tag-ssr{background:rgba(56,189,248,.12);color:var(--accent-blue)}
+  .tag-data{background:rgba(251,191,36,.12);color:var(--accent-yellow)}
+  .tag-perf{background:rgba(167,139,250,.12);color:var(--accent-purple)}
+  .tag-prac{background:rgba(244,114,182,.12);color:var(--accent-pink)}
+  .tag-basic{background:rgba(248,113,113,.12);color:var(--accent-red)}
+
+  .card-q{font-size:1.05rem;font-weight:700;line-height:1.5;flex:1;display:flex;align-items:center;margin-top:4px}
+  .card-hint{font-size:0.75rem;color:var(--text-dim);margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,.05);
+    display:flex;align-items:center;gap:4px}
+  .card-hint svg{width:14px;height:14px;fill:var(--text-dim)}
+
+  .card-back .ans-title{font-size:0.82rem;font-weight:700;color:var(--green);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+  .card-back .ans{font-size:0.88rem;line-height:1.7;color:var(--text)}
+  .card-back .ans strong{color:var(--green)}
+  .card-back .ans code{background:rgba(0,220,130,.1);color:var(--green);padding:1px 6px;border-radius:4px;font-size:0.82rem;font-family:"Cascadia Code",Consolas,monospace}
+  .card-back .ans ul{margin:4px 0 4px 18px}
+  .card-back .ans li{margin-bottom:3px}
+  .card-back .ans .keyword{display:inline-block;background:rgba(56,189,248,.1);color:var(--accent-blue);
+    padding:1px 7px;border-radius:4px;font-size:0.8rem;margin:2px 2px 2px 0;font-weight:600}
+  .card-back .flip-hint{font-size:0.7rem;color:var(--text-dim);margin-top:auto;padding-top:8px;text-align:right}
+
+  /* Stats bar */
+  .stats{text-align:center;padding:8px;color:var(--text-dim);font-size:0.8rem}
+  .stats span{color:var(--green);font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Nuxt.js 面试速查卡片</h1>
+  <p>点击卡片翻转查看答案 · 按分类快速筛选</p>
+  <div class="badge-row">
+    <span class="badge g">基于 Nuxt 3</span>
+    <span class="badge b">24 张核心卡片</span>
+    <span class="badge y">面试高频考点</span>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" data-filter="all">全部 (24)</button>
+  <button class="filter-btn" data-filter="basic">基础概念</button>
+  <button class="filter-btn" data-filter="arch">架构设计</button>
+  <button class="filter-btn" data-filter="ssr">渲染 & 水合</button>
+  <button class="filter-btn" data-filter="data">数据获取</button>
+  <button class="filter-btn" data-filter="perf">性能优化</button>
+  <button class="filter-btn" data-filter="prac">工程实践</button>
+</div>
+
+<div class="stats">已翻阅 <span id="count">0</span> / 24 张</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const cards = [
+  // ---- 基础概念 ----
+  {tag:"basic",q:"Nuxt.js 和纯 Vue SPA 有什么本质区别？",
+   a:`<strong>Nuxt 是 Vue 之上的元框架</strong>，在 Vue 组件渲染能力之上增加了五个核心能力：
+   <ul>
+   <li><strong>渲染策略</strong>：支持 SSR / SSG / ISR / 混合渲染，Vue SPA 只有客户端渲染</li>
+   <li><strong>文件系统路由</strong>：<code>pages/</code> 目录自动生成路由，无需手动配置 vue-router</li>
+   <li><strong>全栈能力</strong>：内置 Nitro 服务器，可直接写 API 端点和中间件</li>
+   <li><strong>数据协调</strong>：<code>useAsyncData</code> / <code>useFetch</code> 自动处理 SSR↔CSR 数据同步</li>
+   <li><strong>构建编排</strong>：自动代码分割、预取、资源优化，零配置</li>
+   </ul>`},
+
+  {tag:"basic",q:"Nuxt 3 相比 Nuxt 2 有哪些关键变化？",
+   a:`核心差异一览表：
+   <ul>
+   <li>服务器引擎：<code>Connect</code> → <strong>Nitro (h3 + Rollup)</strong>，支持跨平台部署</li>
+   <li>Vue 版本：Vue 2 → <strong>Vue 3</strong> Composition API</li>
+   <li>构建工具：Webpack → <strong>Vite</strong>（默认）</li>
+   <li>数据获取：<code>asyncData()</code> → <code>useAsyncData()</code> / <code>useFetch()</code></li>
+   <li>状态管理：Vuex → <strong>Pinia</strong> / <code>useState</code></li>
+   <li>语言：JavaScript → <strong>TypeScript</strong> 原生支持</li>
+   <li>混合渲染：不支持 → <strong>Route Rules</strong>（per-route SSR/SPA/ISR）</li>
+   </ul>`},
+
+  {tag:"basic",q:"Nuxt 的三大核心设计哲学是什么？",
+   a:`<ul>
+   <li><strong>约定优于配置</strong>：目录结构 = 功能声明。<code>pages/</code> → 路由，<code>components/</code> → 全局组件，<code>server/api/</code> → API 端点</li>
+   <li><strong>全栈一体</strong>：前后端在同一个项目中，共享类型定义和配置。前端 Vue + 后端 Nitro 共存</li>
+   <li><strong>通用渲染</strong>：同一套 Vue 组件既能在服务端渲染为 HTML，也能在客户端接管交互，Nuxt 负责协调状态同步</li>
+   </ul>`},
+
+  // ---- 架构设计 ----
+  {tag:"arch",q:"Nuxt 3 的四层架构是怎么分层的？",
+   a:`从上到下四层：
+   <ul>
+   <li><span class="keyword">开发者代码层</span> pages / layouts / components / server / plugins</li>
+   <li><span class="keyword">Nuxt 框架层</span> Nuxt Core · Kit · Schema · 自动导入 · 模块/插件/中间件系统</li>
+   <li><span class="keyword">引擎层</span> <strong>Nitro</strong>（Server）+ <strong>Vite</strong>（Build）+ h3 + vue-bundle-renderer</li>
+   <li><span class="keyword">平台层</span> Node.js / Cloudflare Workers / Deno / Vercel Edge / AWS Lambda / Static</li>
+   </ul>
+   核心特点：引擎层与平台层解耦，同一份代码可部署到任何平台。`},
+
+  {tag:"arch",q:"构建时（Build Time）和运行时（Runtime）分别做什么？",
+   a:`<strong>构建时</strong>（<code>nuxi build</code>）：
+   <ul>
+   <li>加载 <code>nuxt.config.ts</code> → 创建 Nuxt 实例</li>
+   <li>安装模块 → 扫描目录 → 生成 <code>.nuxt/</code> 虚拟文件</li>
+   <li>Vite 构建客户端 + 服务端 bundle，Nitro 构建服务器产物</li>
+   </ul>
+   <strong>运行时</strong>（<code>node .output/server/index.mjs</code>）：
+   <ul>
+   <li>Nitro 监听 HTTP → 按 Route Rules 选择渲染模式</li>
+   <li>SSR：服务端渲染 Vue → 生成 HTML + payload → 返回浏览器</li>
+   <li>客户端：加载 JS → 读取 payload → 水合 → 接管交互</li>
+   </ul>`},
+
+  {tag:"arch",q:"Nitro 是什么？为什么不继续用 Connect/Express？",
+   a:`<strong>Nitro 是与平台无关的 HTTP 应用引擎</strong>，底层基于 h3 框架。
+   <br><br>Nuxt 2 的 Connect 紧耦合于 Node.js，无法部署到 Edge Runtime（Cloudflare Workers 等）。Nitro 解决：
+   <ul>
+   <li><strong>跨平台</strong>：基于 Web Standards（Fetch API），通过 <code>unenv</code> 提供 Node API polyfill</li>
+   <li><strong>一次编写多平台部署</strong>：通过 preset 切换 Node / CF Workers / Lambda / Deno</li>
+   <li><strong>零配置优化</strong>：Rollup 打包 + tree-shaking，最小化部署体积</li>
+   <li><strong>Route Rules</strong>：同一应用内不同路由可用不同渲染策略（SSR/SPA/ISR/SWR）</li>
+   </ul>`},
+
+  {tag:"arch",q:"Nuxt 模块和 Vue 插件有什么区别？",
+   a:`两者工作在<strong>不同层面</strong>：
+   <ul>
+   <li><span class="keyword">Nuxt 模块</span> 工作在<strong>构建时</strong>——可修改配置、注册组件、添加服务器处理器、修改 Vite 配置。通过 <code>defineNuxtModule</code> + <code>@nuxt/kit</code> 开发</li>
+   <li><span class="keyword">Vue 插件</span> 工作在<strong>运行时</strong>——通过 <code>app.use()</code> 注册，添加全局组件/指令/混入。影响 Vue 应用的运行时行为</li>
+   </ul>
+   一个 Nuxt 模块通常会<code>addPlugin()</code>注册 Vue 插件，但它的职责远不止于此——它可以修改整个构建管线。`},
+
+  {tag:"arch",q:"自动导入是怎么实现的？有运行时开销吗？",
+   a:`<strong>零运行时开销</strong>。自动导入是<strong>构建时的静态分析 + 代码转换</strong>：
+   <ul>
+   <li>构建时用 <code>unimport</code> 扫描 Vue API、Nuxt composables、用户 <code>composables/</code> 和 <code>utils/</code> 目录</li>
+   <li>生成 import map，记录每个导出的来源</li>
+   <li>通过 Vite 插件对用户源码做 <strong>AST 分析</strong>：发现未导入的标识符 → 自动插入 import 语句</li>
+   <li>生成 <code>.nuxt/types/imports.d.ts</code> 提供 IDE 类型支持</li>
+   </ul>
+   最终产物就是普通的 ES module import，没有任何代理或运行时拦截。`},
+
+  // ---- 渲染 & 水合 ----
+  {tag:"ssr",q:"SSR 首次请求的完整流程是什么？",
+   a:`<strong>8 步流程</strong>：
+   <ul>
+   <li>① 浏览器发送 HTTP 请求</li>
+   <li>② Nitro 接收 → h3 路由匹配 → 检查 Route Rules → 创建 <code>NuxtSSRContext</code></li>
+   <li>③ Vue SSR：createSSRApp → 安装路由/插件 → 执行 setup() → <code>useAsyncData</code> 获取数据存入 payload</li>
+   <li>④ <code>renderToString</code> → HTML 字符串 + 收集 Head/Teleport</li>
+   <li>⑤ 拼接完整 HTML（head + SSR body + <code>&lt;script&gt;</code> payload + JS bundle 引用）</li>
+   <li>⑥ 浏览器收到 HTML → <strong>立即看到内容</strong>（不可交互）</li>
+   <li>⑦ 客户端 JS 加载 → 读取 payload → 水合（DOM 匹配 + 事件绑定 + 响应式激活）</li>
+   <li>⑧ 页面变为<strong>可交互</strong></li>
+   </ul>`},
+
+  {tag:"ssr",q:"什么是水合（Hydration）？水合不匹配怎么处理？",
+   a:`<strong>水合</strong> = Vue 在客户端"接管"服务端渲染的静态 DOM：DOM 匹配 → 事件绑定 → 响应式激活 → 状态同步。
+   <br><br><strong>不匹配常见原因</strong>：
+   <ul>
+   <li>时间/随机数在服务端和客户端产生不同值</li>
+   <li>使用了 <code>window</code> / <code>localStorage</code> 等浏览器 API</li>
+   <li>HTML 非法嵌套（如 <code>&lt;p&gt;</code> 嵌套 <code>&lt;div&gt;</code>，浏览器自动修正）</li>
+   </ul>
+   <strong>解决方案</strong>：
+   <ul>
+   <li><code>&lt;ClientOnly&gt;</code> 包裹仅客户端渲染的内容</li>
+   <li><code>onMounted</code> 延迟渲染 + <code>v-if</code> 切换</li>
+   <li><code>import.meta.client</code> 环境判断</li>
+   </ul>`},
+
+  {tag:"ssr",q:"SSR / SSG / ISR / SPA 渲染模式怎么选？",
+   a:`判断标准：<strong>内容变化频率</strong> + <strong>SEO/首屏需求</strong>
+   <ul>
+   <li><span class="keyword">SSR</span> 动态内容 + 需 SEO（商品详情、新闻） → 每次请求服务端渲染</li>
+   <li><span class="keyword">SSG</span> 内容变化少（博客、文档） → 构建时生成 HTML，部署到 CDN</li>
+   <li><span class="keyword">ISR</span> 偶尔变化但不需实时（商品列表） → 静态生成 + 定时后台再生成</li>
+   <li><span class="keyword">SPA</span> 不需 SEO（管理后台） → 纯客户端渲染，零服务器开销</li>
+   </ul>
+   Nuxt 3 的 <strong>Route Rules</strong> 可对不同路由混用不同策略，不必全局统一。`},
+
+  {tag:"ssr",q:"Payload 是怎么从服务端传到客户端的？",
+   a:`<strong>三个阶段</strong>：
+   <ul>
+   <li><strong>收集</strong>：SSR 时 <code>useAsyncData</code> 数据存入 <code>payload.data</code>，<code>useState</code> 存入 <code>payload.state</code></li>
+   <li><strong>序列化</strong>：自定义序列化器（支持 Date/Map/Set/RegExp 等）→ 嵌入 HTML <code>&lt;script&gt;</code> 标签</li>
+   <li><strong>恢复</strong>：客户端 JS 读取 payload → <code>useAsyncData</code> 检查有无对应 key 的数据 → 有则直接使用，<strong>不再发请求</strong></li>
+   </ul>
+   这就是 SSR 数据复用的核心：<strong>服务端获取一次，客户端直接使用，避免重复请求</strong>。新版 Nuxt 3 还支持将 payload 提取为独立 JSON 文件利用 HTTP 缓存。`},
+
+  {tag:"ssr",q:"客户端导航（点击 NuxtLink）时发生了什么？",
+   a:`<strong>7 步流程</strong>（不发完整 HTML 请求）：
+   <ul>
+   <li>① <code>NuxtLink</code> 拦截点击 → vue-router <code>push()</code> → History API 更新 URL</li>
+   <li>② 执行路由中间件（全局 → 页面级）</li>
+   <li>③ 动态 <code>import()</code> 目标页面的 JS chunk（自动代码分割）</li>
+   <li>④ 执行页面 <code>setup()</code> → <code>useAsyncData</code> 被调用</li>
+   <li>⑤ 如果 prefetch 已获取数据则直接用，否则发起 API 请求</li>
+   <li>⑥ 触发页面过渡动画 → Vue 更新 DOM</li>
+   <li>⑦ 导航完成</li>
+   </ul>`},
+
+  // ---- 数据获取 ----
+  {tag:"data",q:"useFetch 和 useAsyncData 该怎么选？",
+   a:`<code>useFetch</code> = <code>useAsyncData</code> + <code>$fetch</code> 的便捷封装：
+   <ul>
+   <li><span class="keyword">用 useFetch</span> 调用本站 API（<code>/api/xxx</code>），最简洁</li>
+   <li><span class="keyword">用 useAsyncData</span> 调用外部 API、GraphQL、或需要自定义异步逻辑</li>
+   <li><span class="keyword">用 $fetch</span> 在事件处理函数中（按钮点击等），不需要 SSR 数据同步</li>
+   </ul>
+   两者在 SSR 数据同步、去重、缓存行为<strong>完全一致</strong>。<code>useFetch</code> 额外支持 <code>method</code>/<code>query</code>/<code>body</code>/<code>headers</code> 等 HTTP 选项。`},
+
+  {tag:"data",q:"$fetch 和 useFetch 的区别是什么？",
+   a:`<ul>
+   <li><code>$fetch</code> 是<strong>纯函数式</strong> HTTP 客户端（基于 ofetch），不关心 SSR 数据同步。在服务端调用本站 API 时走 <strong>direct call</strong>（直接调 handler，零网络开销）</li>
+   <li><code>useFetch</code> = <code>useAsyncData</code> + <code>$fetch</code>，自动处理：<strong>SSR payload 传递</strong>、请求去重、响应式状态（<code>pending</code>/<code>error</code>）</li>
+   </ul>
+   <strong>最佳实践</strong>：在 <code>useAsyncData</code> 的 handler 中用 <code>$fetch</code>；在事件处理函数中直接用 <code>$fetch</code>。`},
+
+  {tag:"data",q:"SSR 中 Cookie 和认证信息怎么正确传递？",
+   a:`SSR 渲染时 <code>useFetch('/api/me')</code> 走 Nitro <strong>direct call</strong>，<strong>不会自动携带</strong>原始浏览器请求的 Cookie。
+   <br><br><strong>解决方案</strong>：
+   <ul>
+   <li><code>useRequestFetch()</code> —— 创建自动转发 SSR 请求头的 $fetch 实例（推荐）</li>
+   <li><code>useRequestHeaders(['cookie'])</code> —— 手动获取请求头并传递</li>
+   <li><code>useCookie()</code> —— SSR 安全的 Cookie 读写，服务端从请求头解析，写入通过 Set-Cookie 响应头</li>
+   </ul>
+   <code>useCookie</code> 返回响应式 Ref，修改 <code>.value</code> 自动写入。`},
+
+  {tag:"data",q:"useAsyncData 内部的去重和缓存机制是怎样的？",
+   a:`调用 <code>useAsyncData(key, handler)</code> 时的决策链：
+   <ul>
+   <li>① 检查 <code>NuxtApp._asyncDataPromises[key]</code> → 已有进行中请求？<strong>复用</strong>（去重）</li>
+   <li>② 检查 <code>payload.data[key]</code> → SSR 已获取？<strong>直接使用</strong>，不调用 handler</li>
+   <li>③ 都没有 → 调用 <code>handler()</code>：服务端结果存入 payload，客户端结果存入 data.value</li>
+   </ul>
+   去重策略可通过 <code>dedupe</code> 选项控制：<code>'cancel'</code>（默认，新请求取消旧请求）或 <code>'defer'</code>（复用进行中请求的结果）。相同 key 在多个组件中<strong>共享同一份数据</strong>。`},
+
+  {tag:"data",q:"Pinia 和 useState 在 SSR 中有什么区别？",
+   a:`<ul>
+   <li><code>useState</code>：Nuxt 内置，值<strong>自动</strong>通过 SSR payload 传递（存入 <code>payload.state</code>），无需额外配置</li>
+   <li><strong>Pinia</strong>：store 状态默认<strong>不会</strong>自动通过 payload 传递。但 <code>@pinia/nuxt</code> 模块已内置 SSR 状态桥接，安装后自动处理</li>
+   </ul>
+   手动桥接方式：SSR 时在 <code>app:rendered</code> 钩子序列化 pinia 状态到 <code>payload.state.pinia</code>；客户端水合时用 <code>$patch()</code> 恢复。
+   <br><br><strong>选择建议</strong>：简单跨组件状态用 <code>useState</code>；复杂业务状态（action、getter、devtools）用 Pinia。`},
+
+  // ---- 性能优化 ----
+  {tag:"perf",q:"Nuxt 的代码分割和预取策略是什么？",
+   a:`<strong>自动代码分割</strong>：
+   <ul>
+   <li>每个 <code>pages/</code> 页面 → 独立 chunk（<code>defineAsyncComponent</code>）</li>
+   <li><code>&lt;LazyMyComponent /&gt;</code> 语法糖 → 按需加载组件</li>
+   <li>动态 <code>import()</code> → 自动分割</li>
+   </ul>
+   <strong>NuxtLink 智能预取</strong>：
+   <ul>
+   <li><code>IntersectionObserver</code> 检测链接进入视口 → 动态 <code>import()</code> 目标页面 JS chunk</li>
+   <li>可选 payload 预提取（<code>payloadExtraction</code>）：同时预取页面 API 数据</li>
+   <li>浏览器空闲时下载，<strong>不阻塞当前页面</strong></li>
+   </ul>`},
+
+  {tag:"perf",q:"Nuxt 有哪些 SEO 和首屏性能优化手段？",
+   a:`<strong>SEO</strong>：<code>useHead()</code> / <code>useSeoMeta()</code> 管理 title / meta / og / canonical，SSR 时序列化到 HTML head。
+   <br><br><strong>首屏性能</strong>：
+   <ul>
+   <li><span class="keyword">Route Rules</span> 对不同路由选最优渲染策略</li>
+   <li><span class="keyword">NuxtImg</span> 自动 WebP/AVIF 转换 + 响应式 srcset + 懒加载 + LQIP 占位图</li>
+   <li><span class="keyword">@nuxt/fonts</span> 字体自托管 + 预加载 + 子集化 + font-display:swap</li>
+   <li><span class="keyword">Islands</span> 减少客户端 JS 体积和水合时间</li>
+   <li><span class="keyword">Suspense</span> 页面组件天然支持异步 setup</li>
+   <li><span class="keyword">Payload 提取</span> 独立文件利用 HTTP 缓存</li>
+   </ul>`},
+
+  // ---- 工程实践 ----
+  {tag:"prac",q:"definePageMeta 为什么是编译器宏而不是普通函数？",
+   a:`因为<strong>路由元信息需要在构建时提取</strong>，不能等到运行时：
+   <ul>
+   <li>构建时通过 AST 分析提取 <code>definePageMeta({...})</code> 的参数 → 转为 vue-router 的 <code>meta</code> 字段</li>
+   <li>如果是普通函数，只能在组件 <code>setup()</code> 执行时才知道 meta 信息</li>
+   <li>但路由守卫需要在导航<strong>发生之前</strong>就知道 meta（如 <code>requiresAuth: true</code>）来拦截导航</li>
+   </ul>
+   类似 Vue 的 <code>defineProps</code> / <code>defineEmits</code>，都是编译器宏设计。`},
+
+  {tag:"prac",q:"nuxt.config.ts 和 app.config.ts 的区别？",
+   a:`<ul>
+   <li><span class="keyword">nuxt.config.ts</span> <strong>构建时配置</strong>——影响构建过程（模块、构建器、Nitro 配置）。修改后需重新 build。回答"这个应用<strong>怎么构建</strong>"</li>
+   <li><span class="keyword">app.config.ts</span> <strong>应用级配置</strong>——编译进 bundle，运行时通过 <code>useAppConfig()</code> 访问。理论上可通过 Nitro 插件动态覆盖。回答"这个应用<strong>运行时的基础参数</strong>"</li>
+   </ul>
+   <code>nuxt.config</code> 存放工程配置，<code>app.config</code> 存放主题色、站点名等应用参数。`},
+
+  {tag:"prac",q:"路由中间件和服务端中间件有什么不同？",
+   a:`两者是<strong>完全不同的概念</strong>：
+   <ul>
+   <li><span class="keyword">路由中间件</span> <code>middleware/</code> —— 页面导航时执行，接收 <code>(to, from)</code> 路由对象。<strong>同时在 SSR 和客户端执行</strong>。用于权限验证、重定向。避免使用浏览器专有 API</li>
+   <li><span class="keyword">服务端中间件</span> <code>server/middleware/</code> —— 在 Nitro 上执行，对<strong>每个 HTTP 请求</strong>（API + SSR）都执行。接收 <code>H3Event</code> 对象。用于 API 认证、请求日志、CORS</li>
+   </ul>
+   全局路由中间件用 <code>.global</code> 后缀文件名；命名中间件需在 <code>definePageMeta</code> 中引用。`},
+
+  {tag:"prac",q:"Nuxt 的错误处理有哪些层级？",
+   a:`<strong>五层错误处理</strong>：
+   <ul>
+   <li><span class="keyword">组件级</span> <code>&lt;NuxtErrorBoundary&gt;</code> 捕获子组件错误</li>
+   <li><span class="keyword">数据级</span> <code>useFetch</code> / <code>useAsyncData</code> 返回 <code>error</code> ref</li>
+   <li><span class="keyword">应用级</span> <code>app:error</code> 钩子 + <code>vueApp.config.errorHandler</code></li>
+   <li><span class="keyword">全局</span> <code>error.vue</code> 显示未捕获错误</li>
+   <li><span class="keyword">API</span> <code>createError({ statusCode, statusMessage })</code> 抛出结构化错误</li>
+   </ul>
+   服务端还可通过 Nitro 的 error handler 统一处理。`},
+
+  {tag:"prac",q:"Nuxt 3 有哪些部署方式？环境变量怎么处理？",
+   a:`<strong>五种部署模式</strong>：Node.js Server / Static Hosting / Serverless / Edge / Docker，通过 <code>preset</code> 切换。
+   <br><br><strong>环境变量</strong>分两类：
+   <ul>
+   <li><span class="keyword">构建时</span> <code>nuxt.config.ts</code> 中的 <code>env</code> 或 <code>.env</code> 文件</li>
+   <li><span class="keyword">运行时</span> <code>runtimeConfig</code>：私有字段仅服务端可用，<code>public</code> 字段客户端也可访问。通过 <code>NUXT_</code> 前缀环境变量覆盖</li>
+   </ul>
+   代码中用 <code>useRuntimeConfig()</code> 访问。客户端只能看到 <code>config.public.xxx</code>。`}
+];
+
+const grid=document.getElementById('grid'),countEl=document.getElementById('count');
+const seen=new Set();
+const tagMap={basic:'基础概念',arch:'架构设计',ssr:'渲染 & 水合',data:'数据获取',perf:'性能优化',prac:'工程实践'};
+const tagClass={basic:'tag-basic',arch:'tag-arch',ssr:'tag-ssr',data:'tag-data',perf:'tag-perf',prac:'tag-prac'};
+
+cards.forEach((c,i)=>{
+  const w=document.createElement('div');
+  w.className='card-wrapper';w.dataset.tag=c.tag;
+  w.innerHTML=`<div class="card" onclick="flip(this,${i})">
+    <div class="card-face card-front">
+      <span class="card-num">#${String(i+1).padStart(2,'0')}</span>
+      <span class="card-tag ${tagClass[c.tag]}">${tagMap[c.tag]}</span>
+      <div class="card-q">${c.q}</div>
+      <div class="card-hint"><svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/></svg> 点击翻转查看答案</div>
+    </div>
+    <div class="card-face card-back">
+      <div class="ans-title">Answer</div>
+      <div class="ans">${c.a}</div>
+      <div class="flip-hint">点击翻回正面</div>
+    </div>
+  </div>`;
+  grid.appendChild(w);
+});
+
+function flip(el,i){
+  el.classList.toggle('flipped');
+  seen.add(i);countEl.textContent=seen.size;
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const f=btn.dataset.filter;
+    document.querySelectorAll('.card-wrapper').forEach(w=>{
+      w.classList.toggle('hidden',f!=='all'&&w.dataset.tag!==f);
+    });
+  });
+});
+</script>
+</body>
+</html>

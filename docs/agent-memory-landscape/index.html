@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 知识库全景图 · 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4ece0;
+    --paper-2:#efe5d6;
+    --ink:#2b2520;
+    --ink-soft:#5c5247;
+    --line:#c9bda9;
+    --accent:#b4451f;
+    --accent-2:#1f6f5c;
+    --accent-3:#9a7b1f;
+    --accent-4:#5a4a8a;
+    --card:#faf4ea;
+    --shadow:rgba(60,45,30,.13);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Noto Sans SC',sans-serif;
+    line-height:1.75;
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(180,69,31,.035), transparent 42%),
+      radial-gradient(circle at 88% 78%, rgba(31,111,92,.04), transparent 45%);
+    -webkit-font-smoothing:antialiased;
+  }
+  .grain{
+    position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.5;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+  }
+  .wrap{max-width:1160px;margin:0 auto;padding:0 28px;position:relative;z-index:2}
+
+  /* ---------- HEADER ---------- */
+  header{padding:78px 0 42px;border-bottom:2px solid var(--ink)}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.32em;
+    text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:22px;
+  }
+  h1{
+    font-family:'Fraunces',serif;font-weight:900;font-size:clamp(42px,7vw,82px);
+    line-height:.98;letter-spacing:-.02em;color:var(--ink);margin-bottom:26px;
+  }
+  h1 em{font-style:italic;color:var(--accent)}
+  .dek{
+    font-size:18px;max-width:680px;color:var(--ink-soft);
+    border-left:3px solid var(--accent-2);padding-left:20px;
+  }
+  .meta-row{
+    display:flex;flex-wrap:wrap;gap:26px;margin-top:34px;
+    font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--ink-soft);
+  }
+  .meta-row b{color:var(--ink);font-weight:600}
+
+  /* ---------- AXES ---------- */
+  .axes{padding:54px 0;border-bottom:1px solid var(--line)}
+  .section-label{
+    font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.25em;
+    text-transform:uppercase;color:var(--accent-2);font-weight:600;margin-bottom:26px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .section-label::after{content:"";flex:1;height:1px;background:var(--line)}
+  .axes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+  .axis{background:var(--paper);padding:20px 22px}
+  .axis .n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:600}
+  .axis h4{font-family:'Fraunces',serif;font-size:19px;font-weight:600;margin:6px 0 4px}
+  .axis p{font-size:13.5px;color:var(--ink-soft);line-height:1.6}
+
+  /* ---------- SCHOOLS ---------- */
+  .schools{padding:58px 0}
+  .intro-line{font-family:'Fraunces',serif;font-style:italic;font-size:22px;color:var(--ink-soft);max-width:720px;margin-bottom:48px;line-height:1.5}
+
+  .school{
+    position:relative;background:var(--card);border:1px solid var(--line);
+    border-radius:3px;padding:34px 34px 30px;margin-bottom:30px;
+    box-shadow:0 1px 0 var(--shadow), 0 12px 28px -22px var(--shadow);
+    overflow:hidden;
+  }
+  .school::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--bar,var(--accent))}
+  .school.s1{--bar:var(--accent)}
+  .school.s2{--bar:var(--accent-4)}
+  .school.s3{--bar:var(--accent-2)}
+  .school.s4{--bar:var(--accent-3)}
+  .school.s5{--bar:#c0612a}
+  .school.s6{--bar:#7a6b5a}
+  .school.s7{--bar:#4a6b8a}
+
+  .school-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:18px}
+  .school-num{
+    font-family:'Fraunces',serif;font-size:54px;font-weight:900;line-height:1;
+    color:var(--bar,var(--accent));opacity:.85;
+  }
+  .school-title h3{font-family:'Fraunces',serif;font-size:27px;font-weight:700;letter-spacing:-.01em;line-height:1.1}
+  .school-title .en{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-soft);letter-spacing:.04em;margin-top:6px}
+  .rep{
+    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;
+    background:var(--bar,var(--accent));color:#faf4ea;padding:7px 13px;border-radius:2px;
+    white-space:nowrap;align-self:flex-start;
+  }
+  .school p{font-size:15px;color:var(--ink);margin-bottom:13px}
+  .school p.muted{color:var(--ink-soft);font-size:14px}
+  .school strong{font-weight:700;color:var(--ink)}
+  .kpoint{
+    margin-top:16px;padding:14px 16px;background:var(--paper-2);
+    border-radius:2px;font-size:13.5px;color:var(--ink-soft);
+    border-left:3px solid var(--bar,var(--accent));
+  }
+  .kpoint b{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--bar,var(--accent));display:block;margin-bottom:5px;font-weight:700}
+  .tradeoff{
+    margin-top:12px;padding:12px 16px;border:1px dashed var(--line);border-radius:2px;
+    font-size:13px;color:var(--ink-soft);
+  }
+  .tradeoff b{color:var(--accent);font-weight:600}
+  /* sibling — 同派并列方案 */
+  .siblings{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+  .sib{
+    background:var(--paper-2);border:1px solid var(--line);border-radius:2px;padding:16px 18px;
+    border-top:3px solid var(--bar,var(--accent));
+  }
+  .sib .sib-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .sib .sib-name{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--ink)}
+  .sib .sib-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;padding:2px 7px;border-radius:2px;font-weight:600;white-space:nowrap}
+  .sib .sib-tag.oss{background:var(--accent-2);color:#faf4ea}
+  .sib .sib-tag.closed{background:var(--accent);color:#faf4ea}
+  .sib p{font-size:13px;color:var(--ink-soft);margin-bottom:0}
+  .sib p + p{margin-top:8px}
+  .sib b{color:var(--ink);font-weight:600}
+  .new-flag{
+    display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+    background:var(--bar,var(--accent));color:#faf4ea;padding:1px 6px;border-radius:2px;font-weight:700;
+    vertical-align:middle;margin-left:8px;
+  }
+
+  /* ---------- TABLE ---------- */
+  .tablewrap{padding:54px 0;border-top:1px solid var(--line)}
+  .scroll{overflow-x:auto;border:1px solid var(--ink);border-radius:3px}
+  table{border-collapse:collapse;width:100%;min-width:760px;font-size:13.5px}
+  th,td{padding:13px 15px;text-align:left;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
+  th{
+    background:var(--ink);color:var(--paper);font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+    position:sticky;top:0;
+  }
+  tbody tr:nth-child(even){background:var(--paper-2)}
+  tbody tr:hover{background:#f0e3cd}
+  td:first-child{font-weight:700;font-family:'Fraunces',serif;font-size:15px}
+  .yes{color:var(--accent-2);font-weight:700}
+  .no{color:var(--accent);font-weight:700}
+  .hl{font-weight:700;color:var(--ink);background:rgba(154,123,31,.16);padding:1px 6px;border-radius:2px}
+  td .en{display:block;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);font-weight:400}
+
+  /* ---------- TAKEAWAYS ---------- */
+  .takeaways{padding:54px 0 30px;border-top:2px solid var(--ink)}
+  .ta-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;margin-top:8px}
+  .ta{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:24px 26px;position:relative}
+  .ta .tag{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2);font-weight:700;margin-bottom:10px}
+  .ta h4{font-family:'Fraunces',serif;font-size:20px;font-weight:700;margin-bottom:10px;line-height:1.2}
+  .ta p{font-size:14px;color:var(--ink-soft)}
+  .ta.warn{border-color:var(--accent)}
+  .ta.warn .tag{color:var(--accent)}
+
+  footer{padding:42px 0 70px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-soft);line-height:1.9}
+  footer .src{margin-top:14px;font-size:10.5px;opacity:.8}
+
+  /* ---------- RECOMMEND ---------- */
+  .recommend{padding:56px 0;border-top:1px solid var(--line)}
+  .verdict{
+    background:var(--ink);color:var(--paper);border-radius:4px;padding:30px 34px;margin-bottom:26px;
+    position:relative;overflow:hidden;
+  }
+  .verdict::after{content:"\2605";position:absolute;right:24px;top:14px;font-size:90px;opacity:.07;font-family:'Fraunces',serif}
+  .verdict .label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#e0a060;font-weight:600;margin-bottom:12px}
+  .verdict h3{font-family:'Fraunces',serif;font-size:30px;font-weight:700;margin-bottom:12px;line-height:1.1}
+  .verdict h3 .pick{color:#e0a060}
+  .verdict p{font-size:15px;color:#d8cdbd;max-width:760px}
+  .rank{display:flex;flex-direction:column;gap:12px}
+  .rank-item{
+    display:flex;gap:18px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+    border-radius:3px;padding:18px 22px;border-left:5px solid var(--rc,var(--accent));
+  }
+  .rank-item .pos{font-family:'Fraunces',serif;font-size:30px;font-weight:900;color:var(--rc,var(--accent));line-height:1;min-width:42px}
+  .rank-item .body h4{font-family:'Fraunces',serif;font-size:19px;font-weight:700;margin-bottom:3px}
+  .rank-item .body .scene{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent-2);letter-spacing:.05em;margin-bottom:7px;font-weight:600}
+  .rank-item .body p{font-size:14px;color:var(--ink-soft)}
+  .rank-item.r1{--rc:var(--accent-2)}
+  .rank-item.r2{--rc:#c0612a}
+  .rank-item.r3{--rc:var(--accent-4)}
+  .rank-item.r4{--rc:#7a6b5a}
+  .caveat{margin-top:18px;font-size:13.5px;color:var(--ink-soft);font-style:italic;font-family:'Fraunces',serif;padding-left:18px;border-left:2px solid var(--accent)}
+
+  /* ---------- QODER ---------- */
+  .qoder{padding:56px 0;border-top:1px solid var(--line)}
+  .q-verdict{
+    display:inline-flex;align-items:center;gap:12px;background:var(--accent-3);color:#faf4ea;
+    padding:9px 18px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;margin-bottom:26px;
+  }
+  .q-lead{font-size:16px;max-width:760px;margin-bottom:30px;color:var(--ink)}
+  .q-lead b{font-weight:700}
+  .triad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+  .tri{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:20px;border-top:4px solid var(--tc,var(--accent))}
+  .tri.t1{--tc:var(--accent)}.tri.t2{--tc:var(--accent-2)}.tri.t3{--tc:var(--accent-3)}
+  .tri .ti{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;color:var(--tc);font-weight:700;margin-bottom:8px}
+  .tri h4{font-family:'Fraunces',serif;font-size:18px;font-weight:700;margin-bottom:8px}
+  .tri p{font-size:13px;color:var(--ink-soft)}
+  .ascii{
+    font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.5;color:var(--ink-soft);
+    background:var(--paper-2);border:1px solid var(--line);border-radius:3px;padding:20px 22px;
+    white-space:pre;overflow-x:auto;margin:22px 0;
+  }
+  .q-layers{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+  .q-layer{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:18px 20px}
+  .q-layer .ln{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:600;letter-spacing:.05em;margin-bottom:6px}
+  .q-layer h4{font-family:'Fraunces',serif;font-size:17px;font-weight:700;margin-bottom:6px}
+  .q-layer p{font-size:13.5px;color:var(--ink-soft)}
+  .q-school{
+    margin-top:24px;background:var(--ink);color:var(--paper);border-radius:4px;padding:26px 30px;
+  }
+  .q-school .label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#7fc4b0;font-weight:600;margin-bottom:12px}
+  .q-school p{font-size:14.5px;color:#d8cdbd;max-width:780px}
+  .q-school p + p{margin-top:10px}
+  .q-school b{color:#fff;font-weight:700}
+
+  @media(max-width:760px){
+    .axes-grid{grid-template-columns:1fr}
+    .ta-grid{grid-template-columns:1fr}
+    .school-num{font-size:40px}
+    header{padding:54px 0 34px}
+    .siblings{grid-template-columns:1fr}
+    .triad{grid-template-columns:1fr}
+    .q-layers{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Landscape · 流派全景 · 2026</div>
+    <h1>Agent 知识库<br>的<em>七大流派</em></h1>
+    <p class="dek">从"记忆即外挂层"到"Agent 自主管理记忆即操作系统"——给 Agent 持久记忆的方案，正沿着几条互不相容的哲学路线分裂。这是一张面向工程实践者的全景地图。</p>
+    <div class="meta-row">
+      <span><b>开源 + 商业</b> 全覆盖</span>
+      <span><b>7</b> 大流派 · <b>14+</b> 代表方案</span>
+      <span>截至 <b>2026.06</b></span>
+    </div>
+  </header>
+
+  <!-- AXES -->
+  <section class="axes">
+    <div class="section-label">六条评估轴 · How to Read the Map</div>
+    <div class="axes-grid">
+      <div class="axis"><div class="n">01</div><h4>形态</h4><p>独立记忆层（外挂） vs 内嵌 Runtime（接管 Agent 循环）</p></div>
+      <div class="axis"><div class="n">02</div><h4>存储架构</h4><p>向量 / 知识图谱 / KV / 混合，决定能回答什么样的查询</p></div>
+      <div class="axis"><div class="n">03</div><h4>记忆控制权</h4><p>系统被动累积+自动编辑 vs Agent 用函数调用自主策展</p></div>
+      <div class="axis"><div class="n">04</div><h4>时间建模</h4><p>是否把"事实随时间变化"作为一等公民来追踪</p></div>
+      <div class="axis"><div class="n">05</div><h4>自托管 / 开源</h4><p>注意：自托管 ≠ 开源，部分方案自托管需企业协议</p></div>
+      <div class="axis"><div class="n">06</div><h4>模型无关性</h4><p>能否在不同 LLM / 框架间迁移，关系到锁定风险</p></div>
+    </div>
+  </section>
+
+  <!-- SCHOOLS -->
+  <section class="schools">
+    <div class="section-label">七大流派 · The Schools</div>
+    <p class="intro-line">"记忆"在不同流派里意味着完全不同的东西：对话缓冲、向量库、知识图谱，还是一整套抽取引擎。</p>
+
+    <!-- 1 -->
+    <div class="school s1">
+      <div class="school-head">
+        <div style="display:flex;gap:22px;align-items:flex-start">
+          <div class="school-num">01</div>
+          <div class="school-title">
+            <h3>独立记忆层派</h3>
+            <div class="en">Memory-as-a-Layer · 框架无关可插拔</div>
+          </div>
+        </div>
+        <div class="rep">Mem0</div>
+      </div>
+      <p>核心哲学是<strong>框架无关的可插拔层</strong>——不接管你的 Agent 循环，import SDK 指向它即可，编排、工具、Agent 逻辑全部留在原处。无论 Agent 跑在 LangChain、CrewAI、AutoGen 还是自定义循环里都通用。</p>
+      <p class="muted">架构上提供 user / session / agent 三层作用域，底层是向量 + 图关系 + KV 的混合存储；事实冲突时自我编辑而非追加重复项，保持记忆精简。生态最大，约 4.8 万 GitHub stars，是采用最广的独立记忆层。</p>
+      <div class="tradeoff"><b>open-core 注意 · </b>开源版只提供基础向量 + KV 记忆；最先进的 Graph Memory、无限检索、分析仅在托管云 Pro（$249/月）或企业版提供。自托管时需评估开源核够不够用。</div>
+      <div class="kpoint"><b>对 harness-agent 的意义</b>与"最小核 + 可组合"偏好一致，可作为外挂记忆层而不侵入 Claude Code runtime。</div>
+    </div>
+
+    <!-- 2 -->
+    <div class="school s2">
+      <div class="school-head">
+        <div style="display:flex;gap:22px;align-items:flex-start">
+          <div class="school-num">02</div>
+          <div class="school-title">
+            <h3>OS 隐喻 / 自主记忆派</h3>
+            <div class="en">Agent-Managed Memory · Runtime 形态</div>
+          </div>
+        </div>
+        <div class="rep">Letta · EverOS</div>
+      </div>
+      <p>最具架构辨识度的一派，把 Agent 记忆建模成<strong>操作系统</strong>。但内部分两个子类型：一类强调"Agent 自主用函数调用管理记忆"（Letta），一类强调"自演化生命周期 + 文件即真相源"（EverOS）。</p>
+
+      <div class="siblings">
+        <div class="sib">
+          <div class="sib-head"><span class="sib-name">Letta (MemGPT)</span><span class="sib-tag oss">OSS · Runtime</span></div>
+          <p>主上下文是 RAM（快、有限），外部存储是磁盘（慢、无限），Agent 自己决定何时换入换出。三层 Core / Recall / Archival memory。</p>
+          <p><b>关键 · </b>它不是记忆层，是 <b>Agent Runtime</b>——Agent 运行在 Letta 里面，框架接管 Agent 循环、工具执行与状态持久化。</p>
+        </div>
+        <div class="sib">
+          <div class="sib-head"><span class="sib-name">EverOS<span class="new-flag">新增</span></span><span class="sib-tag oss">OSS · Python</span></div>
+          <p><b>Markdown 即真相源</b>——所有记忆存为纯 .md 文件，可 grep、用 Git 版本化、在 Obsidian 里查看，无黑盒数据库锁定。三件套：Markdown + SQLite + LanceDB，不需要 Mongo/ES/Milvus/Redis/Kafka。</p>
+          <p><b>程序性记忆 · </b>完成的任务被捕获为 Case，重复成功的自我提升为可复用 Skill，在 agent 团队间共享。兼容 Claude Code / Codex / OpenClaw / Hermes / MCP。</p>
+        </div>
+      </div>
+
+      <div class="tradeoff"><b>权衡 · </b>Letta 的自我编辑更自适应，但记忆质量完全取决于模型判断——模型没存就是丢了。EverOS 的 benchmark（LoCoMo 称 93%、LongMemEval-S 称 83%）为厂商自报，未经独立验证。</div>
+      <div class="kpoint"><b>对 harness-agent 的意义</b>Letta 接管整个 runtime，与以 Claude Code 为底座冲突，是路线竞争者。<strong>EverOS 反而值得重点看</strong>：Markdown 真相源契合你的 HTML/Markdown 输出偏好，"Case → Skill 自演化"直接呼应 SIA 自改进思路，且不锁定存储后端。</div>
+    </div>
+
+    <!-- 3 -->
+    <div class="school s3">
+      <div class="school-head">
+        <div style="display:flex;gap:22px;align-items:flex-start">
+          <div class="school-num">03</div>
+          <div class="school-title">
+            <h3>时序知识图谱派</h3>
+            <div class="en">Temporal Knowledge Graph · 时间是一等公民</div>
+          </div>
+        </div>
+        <div class="rep">Zep / Graphiti</div>
+      </div>
+      <p>把<strong>时间作为一等维度</strong>，这是平面向量库做不到的事。每个事实带 valid_from、valid_to、invalid_at 标记，可以查询"一月份时什么是真的"或"它何时改变的"。底层 Graphiti 约 2.48 万 stars，支持 Neo4j、FalkorDB、Kuzu、Neptune 多种图后端。</p>
+      <p class="muted">典型价值场景：当用户公司被收购、角色变化、或既有偏好被更新时，图谱保留历史关系同时正确呈现当前状态。性能上报告 200ms 检索延迟，在 LongMemEval 上比竞品高 15 分。</p>
+      <div class="tradeoff"><b>权衡 · </b>自托管需同时运行 Graphiti 加一个图数据库，基础设施复杂度更高。Graphiti 开源，Zep Cloud 为托管服务。</div>
+    </div>
+
+    <!-- 4 -->
+    <div class="school s4">
+      <div class="school-head">
+        <div style="display:flex;gap:22px;align-items:flex-start">
+          <div class="school-num">04</div>
+          <div class="school-title">
+            <h3>KG / RAG 融合派</h3>
+            <div class="en">Pipeline-oriented · 摄入→抽取→建图→检索</div>
+          </div>
+        </div>
+        <div class="rep">Cognee</div>
+      </div>
+      <p>把记忆当<strong>流水线</strong>而非即插即用：摄入原始数据 → 抽取结构 → 构建知识图谱 → 精确检索，模糊了 RAG 与 Agent 记忆的边界。强项是自动从非结构化数据（文档、对话、外部源）构建知识图谱，检索时结合图遍历与向量搜索，理解概念间关系而非仅文本相似度。</p>
+      <p class="muted">差异化定位：完全本地部署，对有严格数据驻留要求或气隙环境的团队是真正的差异化优势；代价是没有托管基础设施、合规认证或企业支持。开源（Apache 2.0），有托管云。</p>
+      <div class="kpoint"><b>对 harness-agent 的意义</b>适合 codebase context management 那一层——institutional knowledge base 性质的记忆。</div>
+    </div>
+
+    <!-- 5 -->
+    <div class="school s5">
+      <div class="school-head">
+        <div style="display:flex;gap:22px;align-items:flex-start">
+          <div class="school-num">05</div>
+          <div class="school-title">
+            <h3>编码 Agent 原生派</h3>
+            <div class="en">Coding-Agent-Native · MCP + Claude Code 集成</div>
+          </div>
+        </div>
+        <div class="rep">Supermemory · agentmemory</div>
+      </div>
+      <p>与 harness-agent 最直接相关的一派——记忆方案直接以编码 Agent 为目标，通过 MCP 挂进 Claude Code、Codex、Cursor 等。内部分闭源商业与开源两条路线。</p>
+
+      <div class="siblings">
+        <div class="sib">
+          <div class="sib-head"><span class="sib-name">Supermemory</span><span class="sib-tag closed">闭源 · 企业</span></div>
+          <p>单一记忆 API，涵盖事实抽取、用户画像、矛盾消解与选择性遗忘；MCP server + Claude Code / OpenCode 插件。</p>
+          <p><b>注意 · </b>闭源，自托管需企业协议（自托管 ≠ 开源）。称在 LongMemEval / LoCoMo / ConvoMem 领先，但为自报、未独立验证。</p>
+        </div>
+        <div class="sib">
+          <div class="sib-head"><span class="sib-name">agentmemory<span class="new-flag">新增</span></span><span class="sib-tag oss">OSS · MCP</span></div>
+          <p>开源对位方案，为 Claude Code、Copilot CLI、Cursor、Gemini CLI、Codex CLI、Hermes、OpenClaw、<b>pi</b>、OpenCode 及任意 MCP 客户端提供持久记忆。</p>
+          <p><b>架构亲和 · </b>建在 iii-engine 的 Worker/Function/Trigger 三原语 + 文件型 SQLite 之上；一个本地 server 可被多 Agent 共享，pi 集成直接挂 agent 生命周期（非 MCP）。</p>
+        </div>
+      </div>
+
+      <div class="kpoint"><b>对 harness-agent 的意义</b>Supermemory 闭源 + 自报 benchmark 与你"自托管 + 模型无关 + 标记未验证声明"冲突，宜作竞品。<strong>agentmemory 是更值得跟进的一个</strong>：开源、MCP 原生、pi 集成，且"最小核 + Trigger 组合"的架构哲学与 harness-agent 同源。</div>
+    </div>
+
+    <!-- 6 -->
+    <div class="school s6">
+      <div class="school-head">
+        <div style="display:flex;gap:22px;align-items:flex-start">
+          <div class="school-num">06</div>
+          <div class="school-title">
+            <h3>框架内嵌派</h3>
+            <div class="en">Framework-Coupled · 记忆作为大框架的模块</div>
+          </div>
+        </div>
+        <div class="rep">LangMem / LlamaIndex / Semantic Kernel</div>
+      </div>
+      <p>记忆作为大框架的一个模块，强在生态整合、弱在可移植性。最大风险是<strong>锁定</strong>：LangMem 主要为 LangGraph 设计，在其之外价值有限；LlamaIndex Memory 绑定 LlamaIndex。若将来可能换框架，应选独立记忆系统。</p>
+      <p class="muted">Semantic Kernel 偏企业存量系统：假设你已有 CRM、数据库、内部 API，需要不重建一切就把 LLM 接上去；插件模型是包装现有代码而非替换。对已在跑 .NET 或 Java 栈的企业是阻力最小的路径。</p>
+    </div>
+
+    <!-- 7 -->
+    <div class="school s7">
+      <div class="school-head">
+        <div style="display:flex;gap:22px;align-items:flex-start">
+          <div class="school-num">07</div>
+          <div class="school-title">
+            <h3>基础设施 / 存储后端</h3>
+            <div class="en">Storage Backend · 上面各派的底座</div>
+          </div>
+        </div>
+        <div class="rep">Redis Agent Memory Server</div>
+      </div>
+      <p>这一层是上面各派的<strong>底座</strong>，单独不构成完整记忆策略。Redis Agent Memory Server 适合已在用 Redis、需要低延迟存储后端的团队。各类向量库 / 图库同属此层。</p>
+    </div>
+  </section>
+
+  <!-- TABLE -->
+  <section class="tablewrap">
+    <div class="section-label">全景速查表 · At a Glance</div>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>流派</th><th>代表</th><th>形态</th><th>存储架构</th><th>记忆控制权</th><th>时间建模</th><th>开源</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>独立记忆层<span class="en">Memory Layer</span></td><td>Mem0</td><td>外挂层</td><td>向量+图+KV 混合</td><td>系统自我编辑</td><td>弱</td><td class="yes">✓</td></tr>
+          <tr><td>OS 隐喻 / 自主<span class="en">Agent-Managed</span></td><td>Letta (MemGPT)</td><td>Runtime</td><td>三层 RAM/磁盘</td><td><span class="hl">Agent 自主</span></td><td>弱</td><td class="yes">✓</td></tr>
+          <tr><td>OS 隐喻 / 自演化<span class="en">Self-Evolving</span></td><td>EverOS</td><td>框架</td><td>Markdown+SQLite+LanceDB</td><td>系统（生命周期）</td><td>中</td><td class="yes">✓</td></tr>
+          <tr><td>时序知识图谱<span class="en">Temporal KG</span></td><td>Zep / Graphiti</td><td>层（引擎）</td><td>时序知识图谱</td><td>系统</td><td><span class="hl">一等公民</span></td><td class="yes">✓ 引擎</td></tr>
+          <tr><td>KG / RAG 融合<span class="en">Pipeline</span></td><td>Cognee</td><td>流水线</td><td>知识图谱+向量</td><td>系统</td><td>中</td><td class="yes">✓</td></tr>
+          <tr><td>编码 Agent 原生<span class="en">Coding-Native</span></td><td>Supermemory</td><td>API + MCP</td><td>混合</td><td>系统</td><td>中</td><td class="no">✗</td></tr>
+          <tr><td>编码 Agent 原生<span class="en">Coding-Native</span></td><td>agentmemory</td><td>Server + MCP</td><td>iii-engine + SQLite</td><td>系统</td><td>中</td><td class="yes">✓</td></tr>
+          <tr><td>框架内嵌<span class="en">Framework-Coupled</span></td><td>LangMem / LlamaIndex / SK</td><td>模块</td><td>各异</td><td>系统</td><td>弱</td><td class="yes">✓</td></tr>
+          <tr><td>存储后端<span class="en">Backend</span></td><td>Redis Memory Server</td><td>底座</td><td>KV / 向量</td><td>—</td><td>—</td><td class="yes">✓</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- RECOMMEND -->
+  <section class="recommend">
+    <div class="section-label">编程场景推荐 · For Coding Agents</div>
+
+    <div class="verdict">
+      <div class="label">Bottom Line · 一句话结论</div>
+      <h3>跟编程最相关，首选 <span class="pick">agentmemory</span></h3>
+      <p>如果约束是"开源 + 自托管 + 模型无关 + 直接挂进 Claude Code / Codex / pi"——agentmemory 是当前唯一同时满足全部条件的编码 Agent 原生记忆层。EverOS 是强力第二，若你更看重"记忆可被 Git/Obsidian 直接审阅"与 Skill 自演化，可对调顺序。</p>
+    </div>
+
+    <div class="rank">
+      <div class="rank-item r1">
+        <div class="pos">1</div>
+        <div class="body">
+          <h4>agentmemory</h4>
+          <div class="scene">开源 · MCP 原生 · 跨 Agent 共享 · pi 生命周期集成</div>
+          <p>编码 Agent 原生派的开源代表。一个本地 server 即可被 Claude Code、Codex CLI、Cursor、Gemini CLI、pi、OpenClaw 共享，记忆跨工具复用。iii-engine 的 Worker/Function/Trigger 三原语 + 文件型 SQLite，与 harness-agent "最小核 + Trigger 组合"哲学同源。<b>对你而言迁移成本最低、锁定风险最小。</b></p>
+        </div>
+      </div>
+      <div class="rank-item r2">
+        <div class="pos">2</div>
+        <div class="body">
+          <h4>EverOS</h4>
+          <div class="scene">开源 · Markdown 真相源 · Case→Skill 自演化</div>
+          <p>记忆存为纯 .md，可 grep、Git 版本化、Obsidian 查看，无数据库锁定；完成的任务沉淀为 Case，重复成功自我提升为可复用 Skill。最契合 spec-first 与 SIA 自改进思路。代价是它偏框架形态、需自己接入，且 benchmark 为自报。</p>
+        </div>
+      </div>
+      <div class="rank-item r3">
+        <div class="pos">3</div>
+        <div class="body">
+          <h4>Mem0</h4>
+          <div class="scene">通用层 · 生态最大 · open-core</div>
+          <p>不是编码原生，但框架无关、生态成熟，作为"跨 session 偏好与决策"的通用记忆层很稳。注意开源版只有基础向量+KV，Graph Memory 等需云端付费——纯自托管前要确认够用。</p>
+        </div>
+      </div>
+      <div class="rank-item r4">
+        <div class="pos">4</div>
+        <div class="body">
+          <h4>Supermemory</h4>
+          <div class="scene">编码原生 · 但闭源 · 自托管需企业协议</div>
+          <p>编码 Agent 集成度高，但闭源 + 自报 benchmark 与你的评估轴直接冲突。仅建议作竞品研究，不宜作依赖。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="caveat">注意：harness-agent 的记忆需求其实分两类——「codebase / 工程知识」（图谱+wiki 形态，见下文 Qoder 的做法）与「跨 session 的偏好与 spec 决策」（自我编辑层）。上面的排序针对后者；前者更应参考 Cognee / Qoder 式的 Repo Wiki + 混合检索，两者很可能不该用同一个方案。</div>
+  </section>
+
+  <!-- QODER -->
+  <section class="qoder">
+    <div class="section-label">案例剖析 · Qoder 知识引擎</div>
+    <div class="q-verdict">流派归属 · KG/RAG 融合派 ＋ 自演化生命周期（混合形态）</div>
+    <p class="q-lead">Qoder（阿里）的「知识引擎」不属于任何单一流派，而是<b>把三种记忆源合并成一个团队级知识引擎</b>，再用一套混合检索把它喂给 Agent。它最像第 4 派（KG/RAG 融合，Cognee 那类），但叠加了第 2 派的自演化生命周期——这正是它被你列为"持久记忆即护城河"的原因。</p>
+
+    <h4 style="font-family:'Fraunces',serif;font-size:20px;margin-bottom:14px;">① 三源合一的知识引擎</h4>
+    <div class="triad">
+      <div class="tri t1">
+        <div class="ti">USER MEMORY</div>
+        <h4>用户记忆</h4>
+        <p>沟通模式、技术偏好、团队约定、历史决策。对应"跨 session 偏好/决策"那类记忆。</p>
+      </div>
+      <div class="tri t2">
+        <div class="ti">REPO WIKI</div>
+        <h4>仓库 Wiki</h4>
+        <p>架构知识与模块关系，<b>从代码库自动构建</b>。对应"codebase / 工程知识"那类记忆——这是编码场景的核心。</p>
+      </div>
+      <div class="tri t3">
+        <div class="ti">KNOWLEDGE CARDS</div>
+        <h4>知识卡片</h4>
+        <p>编码规范与技术栈知识。结构化、可由团队成员共同贡献和精炼。</p>
+      </div>
+    </div>
+    <p style="font-size:13.5px;color:var(--ink-soft);">三源被统一管理、在 Agent 运行时被持续调用；每个团队成员都能贡献和精炼，知识存于云端并带企业级治理与审计——把个人 know-how 沉淀为组织能力。</p>
+
+    <h4 style="font-family:'Fraunces',serif;font-size:20px;margin:30px 0 8px;">② 混合检索架构（Hybrid Retrieval）</h4>
+    <div class="ascii">  query
+    │
+    ▼
+┌─────────────────────────────────────────────┐
+│            Hybrid Retrieval Engine            │
+├───────────────┬───────────────┬───────────────┤
+│  向量检索      │   代码图谱     │  预索引知识库  │
+│  Vector Search │  Code Graph   │  Pre-indexed   │
+│  (语义相似)    │  (依赖/调用)   │  (Wiki/Cards)  │
+└───────┬───────┴───────┬───────┴───────┬───────┘
+        └───────────────┼───────────────┘
+                        ▼
+              融合排序 → 注入 Agent 上下文</div>
+    <p style="font-size:13.5px;color:var(--ink-soft);">不同于"只看代码"的传统工具，Qoder 把向量搜索、代码图谱、预索引知识库三路并联再融合排序。代码图谱让它理解结构、依赖与设计意图，从而支持跨文件搜索、重构与架构级决策——这是平面向量库做不到的。</p>
+
+    <h4 style="font-family:'Fraunces',serif;font-size:20px;margin:30px 0 12px;">③ 为什么是"自演化"</h4>
+    <div class="q-layers">
+      <div class="q-layer">
+        <div class="ln">SELF-EVOLVING</div>
+        <h4>知识随 Agent 运行而增长</h4>
+        <p>Repo Wiki 自动从代码库构建并保持更新；团队成员持续贡献精炼，Agent 越跑越准。知识不是静态库，而是持续演化的生命周期——这点与第 2 派 EverOS 的 Case→Skill 思路同源。</p>
+      </div>
+      <div class="q-layer">
+        <div class="ln">SPEC-FIRST</div>
+        <h4>Spec 既是任务也是知识资产</h4>
+        <p>开发者写 Spec，Agent 自主规划交付（Quest Mode）。Spec 不只是任务描述，还会沉淀进团队知识库——把"人定义 spec，Agent 实现"做成了记忆闭环。</p>
+      </div>
+    </div>
+
+    <div class="q-school">
+      <div class="label">流派定位小结 · For harness-agent</div>
+      <p>Qoder 的知识引擎 = <b>KG/RAG 融合派的工程化落地</b>（Repo Wiki + 代码图谱 + 混合检索）<b>＋ 自演化生命周期</b>（云端治理、团队共建、随运行增长）。它没有走 Letta 式"Agent 自主管理记忆"的路，而是走"系统主动构建并治理知识、Agent 消费"的路。</p>
+      <p>对你最有借鉴价值的两点：<b>(1)</b> 把 codebase 知识做成可自动构建、可被多 Agent 复用的 Repo Wiki，正是 harness-agent "codebase context management" 那一层该有的形态；<b>(2)</b> 三源分治——把"工程知识"和"用户偏好/决策"显式拆开管理，印证了前面推荐里"两类记忆不该用同一方案"的判断。注意 Qoder 本体闭源、知识存云端，与你的自托管诉求冲突，宜借鉴架构而非直接依赖。</p>
+    </div>
+  </section>
+
+  <!-- TAKEAWAYS -->
+  <section class="takeaways">
+    <div class="section-label">给 harness-agent 的提炼 · Takeaways</div>
+    <div class="ta-grid">
+      <div class="ta">
+        <div class="tag">契合最小核</div>
+        <h4>独立记忆层契合你的哲学</h4>
+        <p>Mem0 / Cognee 不侵入 Claude Code runtime，符合"小核 + 环境扩展"。Letta 是路线竞争者——它要接管整个 runtime，与以 Claude Code 为底座冲突。</p>
+      </div>
+      <div class="ta">
+        <div class="tag">被低估的维度</div>
+        <h4>时序维度被严重低估</h4>
+        <p>harness-agent 跑长流水线、跨多次 acceptance review，"某个 spec 决策何时被推翻"是真实需求——正是 Zep/Graphiti 解决而向量库做不到的。state persistence 层值得借鉴此思路。</p>
+      </div>
+      <div class="ta">
+        <div class="tag">新发现 · 最对味</div>
+        <h4>EverOS + agentmemory 是两个意外契合点</h4>
+        <p>EverOS 的 Markdown 真相源 + Case→Skill 自演化，呼应你的输出偏好与 SIA 思路；agentmemory 开源 + MCP 原生 + pi 集成 + iii-engine 三原语，架构哲学与 harness-agent 同源。两者都不锁定存储后端。</p>
+      </div>
+      <div class="ta">
+        <div class="tag">值得 Spike</div>
+        <h4>你的记忆需求其实是两类</h4>
+        <p>"codebase / institutional context"（适合 Cognee 式 KG 流水线）与"跨 session 的 spec 决策与偏好"（适合 Mem0 式自我编辑层）——很可能不该用同一个方案。</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    AGENT MEMORY LANDSCAPE · 2026.06 · 面向工程实践者的全景梳理
+    <div class="src">数据来源：Mem0 State of AI Agent Memory 2026 · Vectorize · Atlan · DEV Community · Gamgee · AgentMarketCap · GitHub（rohitg00/agentmemory、EverMind-AI/EverOS）· EverMind 官方博客等公开资料。部分 benchmark 为厂商自报，使用前请按自身 workload 独立验证。</div>
+  </footer>
+
+</div>
+</body>
+</html>

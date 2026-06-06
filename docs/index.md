@@ -18,6 +18,7 @@
 
 ## Agent 架构与协作
 
+- [Agent 知识库全景图 · 2026](agent-memory-landscape/) `HTML`{target="_self"} — 从记忆类型、知识库形态和工程落地维度梳理 Agent 长期记忆生态。
 - [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"} — 讨论单 Agent 如何动态规划、委派、回收上下文，并协同一组专门化子 Agent 完成复杂任务。
 - [Agent 设计模式互动教学稿](agent-design-patterns/) `HTML`{target="_self"} — 用交互式单页讲解感知、记忆、推理、行动、反思、协作六类 Agent 模式。
 - [从 sub-agent 到 agent-team：三个台阶，三套心智模型](claude-sub-agent/sub-agent-and-agent-team.md) — 偏概念和心智模型。
@@ -26,6 +27,7 @@
 
 ## 对比与选型
 
+- [2026 前端 UI 方案对决：Radix Themes + Mantine vs shadcn/ui + Tailwind CSS](ui-framework-comparison/) `HTML`{target="_self"} — 对比两类前端 UI 技术栈的设计哲学、工程成本和适用场景。
 - [2026 终端工具选型：Ghostty、cmux、tmux、Zellij、Warp 怎么选](terminal-tools-2026/index.md) — 对比 Ghostty、cmux、tmux、Zellij、Warp、WezTerm、Kitty、Solo 等工具的定位和适用场景。
 - [OpenCode vs Claude Code](opencode-vs-claudecode/index.md) — 终端 AI 编程助手的功能、生态和体验对比。
 - [scan-reviewer 与开源社区同类方案的对比](scan-reviewer/comparison.md) — 对比 repo map、RAG、代码图谱等上下文方案。
@@ -43,6 +45,8 @@
 - [React 框架系统学习：架构、运行机制、核心数据结构与面试资料](react-deep-dive/) `HTML`{target="_self"} — 系统梳理 React 架构、运行机制、核心数据结构和面试要点。
 - [Vue 框架深度解析 · 面试通关手册](vue-deep-dive/) `HTML`{target="_self"} — 面向 Vue 原理、响应式机制和面试复盘的深度学习资料。
 - [Next.js 系统精讲 · 架构 · 运行 · 数据结构 · 数据流](nextjs-complete-guide/) `HTML`{target="_self"} — 从架构、运行时、数据结构和数据流理解 Next.js。
+- [Nuxt.js 深度解析 — 从架构到数据流](nuxt-deep-dive/) `HTML`{target="_self"} — 系统拆解 Nuxt.js 的架构、渲染模式、路由、数据获取和运行机制。
+- [Nuxt.js 面试速查卡片](nuxt-interview-cards/) `HTML`{target="_self"} — 用可翻转卡片快速复盘 Nuxt 架构、SSR、数据流、性能和实践问题。
 - [Nuxt 框架深度教学 · 架构 / 运行时 / 数据结构 / 数据流](nuxt-guide/) `HTML`{target="_self"} — 围绕 Nuxt 架构、运行时和数据流展开的系统讲义。
 
 ## 前端工程实践
@@ -74,6 +78,10 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
+- [2026 前端 UI 方案对决：Radix Themes + Mantine vs shadcn/ui + Tailwind CSS](ui-framework-comparison/) `HTML`{target="_self"}
+- [Nuxt.js 面试速查卡片](nuxt-interview-cards/) `HTML`{target="_self"}
+- [Nuxt.js 深度解析 — 从架构到数据流](nuxt-deep-dive/) `HTML`{target="_self"}
+- [Agent 知识库全景图 · 2026](agent-memory-landscape/) `HTML`{target="_self"}
 - [SIA：当 Agent 开始改写自己 —— 一篇关于自改进循环的实践笔记](self-improving-ai/) `HTML`{target="_self"}
 - [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"}
 - [大模型术语图鉴](llm-glossary/) `HTML`{target="_self"}
