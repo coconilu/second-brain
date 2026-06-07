@@ -4,6 +4,7 @@
 
 ## 工具操作指南
 
+- [Qoder CLI 完全指南：从零开始的 AI 编程助手之旅](qoder-cli-overview/) `HTML`{target="_self"} — 介绍 Qoder CLI 的安装、TUI、权限系统和 AI 编程助手使用流程。
 - [LM Studio 开发者文档 · 教案](lmstudio-teaching/) `HTML`{target="_self"} — 面向开发者系统讲解本地模型加载、API 调用、结构化输出和工具调用等 LM Studio 工作流。
 - [2026 终端工具选型：Ghostty、cmux、tmux、Zellij、Warp 怎么选](terminal-tools-2026/index.md) — 按终端模拟器、复用器、AI agent 工作台和进程管理四层梳理终端工具组合。
 - [tmux：从一个例子开始](tmux/index.md) — 用会话、窗口、面板搭建稳定的终端工作台。
@@ -35,6 +36,8 @@
 
 ## AI 工具生态
 
+- [Claude Cowork:把 Claude Code 的 Agent 能力搬进桌面](claude-cowork-blog/) `HTML`{target="_self"} — 介绍 Claude Cowork 如何把 Claude Code 的 Agent 协作能力迁移到桌面工作流。
+- [读懂大模型榜单：一张能力地图的使用说明](llm-leaderboard-guide/) `HTML`{target="_self"} — 从评测维度和能力地图角度解读大模型榜单的正确使用方式。
 - [大模型术语图鉴](llm-glossary/) `HTML`{target="_self"} — 以可检索图鉴形式解释大模型基础术语、训练推理概念和工程实践关键词。
 - [CodeGraph：给 AI 编程助手的本地代码知识图谱](codegraph/index.md) — 用本地知识图谱和 MCP 帮助 Agent 理解代码库、追踪调用链和分析影响范围。
 - [前端工程师的 AI 工具兵器谱：Skills、MCP、Agent、Plugin 全解析](ai-toolkit-for-frontend/index.md) — 面向 Claude Code/OpenCode 的深度工具指南，含完整配置示例。
@@ -78,10 +81,13 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
-- [2026 前端 UI 方案对决：Radix Themes + Mantine vs shadcn/ui + Tailwind CSS](ui-framework-comparison/) `HTML`{target="_self"}
-- [Nuxt.js 面试速查卡片](nuxt-interview-cards/) `HTML`{target="_self"}
-- [Nuxt.js 深度解析 — 从架构到数据流](nuxt-deep-dive/) `HTML`{target="_self"}
+- [Qoder CLI 完全指南：从零开始的 AI 编程助手之旅](qoder-cli-overview/) `HTML`{target="_self"}
+- [读懂大模型榜单：一张能力地图的使用说明](llm-leaderboard-guide/) `HTML`{target="_self"}
+- [Claude Cowork:把 Claude Code 的 Agent 能力搬进桌面](claude-cowork-blog/) `HTML`{target="_self"}
 - [Agent 知识库全景图 · 2026](agent-memory-landscape/) `HTML`{target="_self"}
+- [Nuxt.js 深度解析 — 从架构到数据流](nuxt-deep-dive/) `HTML`{target="_self"}
+- [Nuxt.js 面试速查卡片](nuxt-interview-cards/) `HTML`{target="_self"}
+- [2026 前端 UI 方案对决：Radix Themes + Mantine vs shadcn/ui + Tailwind CSS](ui-framework-comparison/) `HTML`{target="_self"}
 - [SIA：当 Agent 开始改写自己 —— 一篇关于自改进循环的实践笔记](self-improving-ai/) `HTML`{target="_self"}
 - [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"}
 - [大模型术语图鉴](llm-glossary/) `HTML`{target="_self"}

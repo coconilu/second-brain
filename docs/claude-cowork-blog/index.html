@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Cowork:把 Claude Code 的 Agent 能力搬进桌面</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4ece0;
+    --paper-dark:#ece1d0;
+    --ink:#26211a;
+    --ink-soft:#4a4137;
+    --muted:#7a6f5f;
+    --rule:#d8cab2;
+    --accent:#b5491f;
+    --accent-soft:#c9683a;
+    --gold:#9a7b27;
+    --teal:#2f6b5e;
+    --card:#fbf6ee;
+    --code-bg:#2a241c;
+    --code-ink:#e9ddc7;
+    --maxw:880px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(181,73,31,.04) 0, transparent 45%),
+      radial-gradient(circle at 88% 92%, rgba(47,107,94,.04) 0, transparent 45%);
+    color:var(--ink);
+    font-family:"Noto Sans SC","Fraunces",serif;
+    font-size:18px;
+    line-height:1.78;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* grain overlay */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.35;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+  }
+  .wrap{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;padding:0 28px;}
+
+  /* ---------- header ---------- */
+  header.masthead{
+    padding:88px 0 48px;
+    border-bottom:3px double var(--rule);
+    margin-bottom:8px;
+  }
+  .kicker{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12.5px;letter-spacing:.32em;text-transform:uppercase;
+    color:var(--accent);font-weight:500;margin-bottom:26px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .kicker::after{content:"";flex:1;height:1px;background:var(--rule);}
+  h1{
+    font-family:"Fraunces",serif;
+    font-weight:600;font-size:clamp(38px,6.2vw,68px);
+    line-height:1.06;margin:0 0 22px;letter-spacing:-.015em;
+    color:var(--ink);
+  }
+  h1 em{font-style:italic;color:var(--accent);}
+  .dek{
+    font-family:"Fraunces",serif;font-style:italic;
+    font-size:clamp(19px,2.6vw,24px);line-height:1.5;color:var(--ink-soft);
+    max-width:42ch;font-weight:400;
+  }
+  .byline{
+    margin-top:34px;font-family:"JetBrains Mono",monospace;
+    font-size:12.5px;color:var(--muted);letter-spacing:.04em;
+    display:flex;flex-wrap:wrap;gap:8px 22px;
+  }
+  .byline span{display:inline-flex;gap:7px;align-items:center;}
+  .byline b{color:var(--ink-soft);font-weight:500;}
+
+  /* ---------- typography ---------- */
+  section{padding:46px 0;border-bottom:1px solid var(--rule);}
+  section:last-of-type{border-bottom:none;}
+  h2{
+    font-family:"Fraunces",serif;font-weight:600;
+    font-size:clamp(27px,3.8vw,38px);line-height:1.15;
+    margin:0 0 8px;letter-spacing:-.01em;
+    display:flex;align-items:baseline;gap:16px;
+  }
+  h2 .num{
+    font-family:"JetBrains Mono",monospace;font-size:14px;font-weight:500;
+    color:var(--accent);letter-spacing:.05em;flex:none;
+    border:1px solid var(--accent);border-radius:50%;
+    width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;
+    transform:translateY(-3px);
+  }
+  h3{
+    font-family:"Fraunces",serif;font-weight:600;font-size:21px;
+    margin:32px 0 6px;color:var(--ink);
+  }
+  p{margin:14px 0;color:var(--ink-soft);}
+  .lead{font-size:19.5px;color:var(--ink);}
+  strong{color:var(--ink);font-weight:600;}
+  em.term{font-style:normal;color:var(--accent);font-weight:500;}
+  code{
+    font-family:"JetBrains Mono",monospace;font-size:.85em;
+    background:var(--paper-dark);padding:2px 7px;border-radius:4px;
+    color:var(--accent);border:1px solid var(--rule);
+  }
+  a{color:var(--teal);text-decoration:none;border-bottom:1px solid rgba(47,107,94,.35);}
+  a:hover{border-bottom-color:var(--teal);}
+
+  /* ---------- callouts ---------- */
+  .callout{
+    border-left:4px solid;padding:18px 22px;margin:26px 0;border-radius:0 8px 8px 0;
+    font-size:16.5px;line-height:1.65;
+  }
+  .callout .tag{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;
+    text-transform:uppercase;font-weight:700;display:block;margin-bottom:6px;
+  }
+  .callout.warn{background:rgba(181,73,31,.07);border-color:var(--accent);}
+  .callout.warn .tag{color:var(--accent);}
+  .callout.note{background:rgba(47,107,94,.07);border-color:var(--teal);}
+  .callout.note .tag{color:var(--teal);}
+  .callout.key{background:rgba(154,123,39,.09);border-color:var(--gold);}
+  .callout.key .tag{color:var(--gold);}
+  .callout p{margin:6px 0;color:var(--ink-soft);}
+
+  /* ---------- cards ---------- */
+  .grid{display:grid;gap:16px;margin:28px 0;}
+  .grid.two{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
+  .grid.three{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));}
+  .card{
+    background:var(--card);border:1px solid var(--rule);border-radius:12px;
+    padding:22px 22px 24px;position:relative;overflow:hidden;
+    transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 12px 30px -16px rgba(38,33,26,.35);}
+  .card .ico{
+    font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:700;
+    letter-spacing:.1em;color:var(--accent);margin-bottom:10px;display:block;
+  }
+  .card h4{
+    font-family:"Fraunces",serif;font-size:18.5px;font-weight:600;
+    margin:0 0 8px;color:var(--ink);
+  }
+  .card p{font-size:15px;margin:0;color:var(--muted);line-height:1.6;}
+
+  /* ---------- ascii diagram ---------- */
+  .diagram{
+    background:var(--code-bg);color:var(--code-ink);
+    border-radius:12px;padding:26px 22px;margin:28px 0;overflow-x:auto;
+    font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.6;
+    box-shadow:0 18px 40px -22px rgba(38,33,26,.6);
+  }
+  .diagram pre{margin:0;white-space:pre;}
+  .diagram .c-acc{color:#e8915f;}
+  .diagram .c-teal{color:#6fc4b0;}
+  .diagram .c-gold{color:#d9b85a;}
+  .diagram .c-dim{color:#8a8170;}
+
+  /* ---------- table ---------- */
+  .table-wrap{overflow-x:auto;margin:28px 0;border:1px solid var(--rule);border-radius:12px;}
+  table{border-collapse:collapse;width:100%;font-size:15px;background:var(--card);}
+  th,td{padding:13px 16px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top;}
+  th{
+    font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);background:var(--paper-dark);font-weight:700;
+  }
+  td{color:var(--ink-soft);}
+  td:first-child{font-weight:600;color:var(--ink);font-family:"Fraunces",serif;}
+  tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(154,123,39,.05);}
+
+  /* ---------- steps ---------- */
+  ol.flow{counter-reset:step;list-style:none;padding:0;margin:26px 0;}
+  ol.flow li{
+    position:relative;padding:4px 0 22px 56px;
+  }
+  ol.flow li::before{
+    counter-increment:step;content:counter(step);
+    position:absolute;left:0;top:0;
+    width:38px;height:38px;border-radius:50%;
+    background:var(--accent);color:var(--paper);
+    font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  ol.flow li:not(:last-child)::after{
+    content:"";position:absolute;left:18px;top:42px;bottom:0;width:1.5px;
+    background:var(--rule);
+  }
+  ol.flow li b{font-family:"Fraunces",serif;font-size:17.5px;color:var(--ink);}
+
+  ul.clean{list-style:none;padding:0;margin:18px 0;}
+  ul.clean li{position:relative;padding:6px 0 6px 26px;color:var(--ink-soft);}
+  ul.clean li::before{
+    content:"▸";position:absolute;left:0;color:var(--accent);font-weight:700;
+  }
+
+  /* ---------- pull quote ---------- */
+  blockquote{
+    margin:36px 0;padding:0;border:none;text-align:center;
+  }
+  blockquote p{
+    font-family:"Fraunces",serif;font-style:italic;font-weight:500;
+    font-size:clamp(22px,3.4vw,30px);line-height:1.4;color:var(--ink);max-width:24ch;margin:0 auto;
+  }
+  blockquote p::before{content:"“";color:var(--accent);}
+  blockquote p::after{content:"”";color:var(--accent);}
+
+  /* ---------- footer ---------- */
+  footer{
+    padding:54px 0 80px;text-align:center;
+    font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--muted);
+    letter-spacing:.04em;line-height:1.9;
+  }
+  footer .rule{width:60px;height:1px;background:var(--accent);margin:0 auto 28px;}
+  footer a{color:var(--muted);}
+
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in{opacity:1;transform:none;}
+
+  @media(max-width:600px){
+    body{font-size:16.5px;}
+    .wrap{padding:0 20px;}
+    header.masthead{padding:60px 0 38px;}
+    h2 .num{width:32px;height:32px;font-size:12px;}
+    ol.flow li{padding-left:48px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="kicker">Agentic Tooling · 深度解读</div>
+    <h1>Claude Cowork:把 Claude Code 的<br><em>Agent 引擎</em>搬出终端</h1>
+    <p class="dek">一个面向知识工作者的桌面 Agent ——不写代码,也能让 Claude 接管你的文件、浏览器与连接服务,把"描述结果"变成"交付成品"。</p>
+    <div class="byline">
+      <span><b>主题</b> Claude Cowork 产品与架构</span>
+      <span><b>来源</b> Anthropic 官方文档</span>
+      <span><b>更新</b> 2026</span>
+    </div>
+  </header>
+
+  <!-- 1 -->
+  <section class="reveal">
+    <h2><span class="num">01</span>它到底是什么</h2>
+    <p class="lead">一句话:<strong>Cowork 是 Claude Code 的同款 Agent 架构,被搬进了 Claude 桌面客户端,并卸掉了"必须打开终端"这道门槛。</strong></p>
+    <p>过去 Claude Code 把"自主多步执行"这件事局限在开发者的命令行里。Cowork 做的事情,是把同一套<em class="term">agentic 架构</em>(规划→分解→执行→交付)开放给所有知识工作者——不只是程序员。<a href="https://support.claude.com/en/articles/13345190-get-started-with-claude-cowork">官方将其定位为</a>"把 Claude Code 的 agentic 能力带到 Claude Desktop,用于编码之外的知识工作"。</p>
+    <p>它和普通聊天最本质的区别在于交互模型:聊天是一问一答,而 Cowork 让你<strong>描述一个产出(outcome)、转身离开、回来时拿到成品</strong>——格式化文档、整理好的文件、综合好的研究报告。</p>
+    <div class="callout key">
+      <span class="tag">核心心智模型</span>
+      <p>Chat = 对话伙伴(turn-by-turn);Cowork = 会替你动手的同事(task-by-task)。前者产出"回答",后者产出"工件"。</p>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="reveal">
+    <h2><span class="num">02</span>能力清单</h2>
+    <p>Cowork 的能力可以归为五个维度,每一个都对应着"普通聊天做不到"的事:</p>
+    <div class="grid two">
+      <div class="card">
+        <span class="ico">FILE I/O</span>
+        <h4>本地文件直读直写</h4>
+        <p>无需手动上传下载,Claude 直接读写你授权的本地文件夹——这是它能"动手"的物理前提。</p>
+      </div>
+      <div class="card">
+        <span class="ico">SUB-AGENT</span>
+        <h4>子代理并行编排</h4>
+        <p>把复杂任务拆成子任务,必要时协调多条工作流并行推进,而非单线程逐步执行。</p>
+      </div>
+      <div class="card">
+        <span class="ico">OUTPUT</span>
+        <h4>专业级交付物</h4>
+        <p>生成带可用公式的 Excel、PowerPoint、格式化文档——不是需要返工的裸 CSV。</p>
+      </div>
+      <div class="card">
+        <span class="ico">LONG-RUN</span>
+        <h4>长任务执行</h4>
+        <p>不受会话超时与上下文窗口限制打断,可在复杂任务上持续工作较长时间。</p>
+      </div>
+      <div class="card">
+        <span class="ico">SCHEDULE</span>
+        <h4>定时任务</h4>
+        <p><code>/schedule</code> 让任务按设定节奏自动运行——这是聊天模式完全没有的能力。</p>
+      </div>
+      <div class="card">
+        <span class="ico">PROJECTS</span>
+        <h4>项目工作区</h4>
+        <p>把相关任务归入持久化、自包含的工作区,带独立的文件、链接、指令与记忆。</p>
+      </div>
+    </div>
+    <div class="callout note">
+      <span class="tag">移动端遥控</span>
+      <p>Pro/Max 用户可以从手机给 Claude 派活,它在你的桌面上用本地文件和连接器干活,结果回传到同一对话——<strong>手机本质上成了桌面资源的远程遥控器</strong>。这点在后文的风险章节会再提。</p>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="reveal">
+    <h2><span class="num">03</span>一个任务怎么跑起来</h2>
+    <p>当你在 Cowork 里发起一个任务,Claude 的执行链路是这样的:</p>
+    <ol class="flow">
+      <li><b>分析与规划</b><br>解析你的请求,先生成一个执行计划。</li>
+      <li><b>任务分解</b><br>需要时把复杂工作拆成若干子任务。</li>
+      <li><b>隔离执行</b><br>在你电脑上的隔离虚拟机(VM)里运行代码与 shell 命令。</li>
+      <li><b>并行编排</b><br>适合的场景下协调多条工作流同时推进。</li>
+      <li><b>交付落盘</b><br>把成品直接写入你的文件系统。</li>
+    </ol>
+    <p>整个过程<strong>对你保持可见</strong>:进度指示、推理过程都会展示出来,你可以中途插手纠偏(steering),也可以放手让它独立跑完。</p>
+  </section>
+
+  <!-- 4 -->
+  <section class="reveal">
+    <h2><span class="num">04</span>架构:两个执行环境</h2>
+    <p>这是 Cowork 工程设计上最值得讲的一点。它在每台设备上跑着<strong>两个泾渭分明的执行环境</strong>,二者的信任边界完全不同:</p>
+
+    <div class="diagram">
+<pre><span class="c-dim">┌─────────────────────────────────────────────────────────┐</span>
+<span class="c-dim">│</span>  <span class="c-acc">① AGENT LOOP — 原生运行在设备上</span>                          <span class="c-dim">│</span>
+<span class="c-dim">│</span>  对话处理 · 文件读写(授权文件夹)· web fetch · 本地 MCP   <span class="c-dim">│</span>
+<span class="c-dim">│</span>  <span class="c-gold">守门人:应用层权限系统</span>                                <span class="c-dim">│</span>
+<span class="c-dim">│</span>  ├─ 强制执行你的"已连接文件夹"规则                       <span class="c-dim">│</span>
+<span class="c-dim">│</span>  └─ 强制执行组织的网络 egress 设置                        <span class="c-dim">│</span>
+<span class="c-dim">└────────────────────────────┬────────────────────────────┘</span>
+                             <span class="c-dim">│</span> 写代码 / 跑命令时下沉
+<span class="c-dim">┌────────────────────────────▼────────────────────────────┐</span>
+<span class="c-dim">│</span>  <span class="c-teal">② CODE EXECUTION — 隔离虚拟机(VM)</span>                     <span class="c-dim">│</span>
+<span class="c-dim">│</span>  专用 Linux VM,由平台 hypervisor 与宿主系统隔离          <span class="c-dim">│</span>
+<span class="c-dim">│</span>  macOS → Apple Virtualization.framework                  <span class="c-dim">│</span>
+<span class="c-dim">│</span>  Windows → Hyper-V                                       <span class="c-dim">│</span>
+<span class="c-dim">│</span>  <span class="c-gold">VM 自带:网络 egress 过滤 · syscall 限制 · 会话级用户隔离</span> <span class="c-dim">│</span>
+<span class="c-dim">└─────────────────────────────────────────────────────────┘</span></pre>
+    </div>
+
+    <p>这个分层的工程含义很清晰:<strong>代码执行被关在沙箱里,但 Agent 对你文件的真实改动并不在沙箱里</strong>。换句话说,VM 保护的是"Claude 写的代码不会乱碰你的操作系统",但"Claude 决定删/改你授权文件夹里的文件"这件事,靠的是应用层权限,而非 VM 隔离。</p>
+
+    <div class="callout warn">
+      <span class="tag">值得记住的边界</span>
+      <p>VM 故障时,文件与 web 工具<strong>仍可继续运行</strong>,只有 shell / 代码执行会报 "workspace unavailable"。这说明文件操作的信任根在应用层,与 VM 解耦。</p>
+      <p>另外:VM 对宿主侧的 EDR 安全工具<strong>不可见</strong>——这是设计如此。若你的合规依赖端点可见性,需在铺开前评估。</p>
+    </div>
+
+    <h3>用一个四层视角去看</h3>
+    <p>如果套用"编排 / 执行环境 / 行动接口 / 代理身份"这套分层框架,Cowork 的位置就很清楚了:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>层</th><th>Cowork 的对应实现</th></tr></thead>
+        <tbody>
+          <tr><td>编排</td><td>原生 Agent loop + 子代理并行协调</td></tr>
+          <tr><td>执行环境</td><td>隔离 Linux VM(代码) + 宿主原生进程(文件 / web)</td></tr>
+          <tr><td>行动接口</td><td>本地文件 I/O、web fetch、MCP、插件、computer use、Excel/PPT 加载项</td></tr>
+          <tr><td>代理身份</td><td>沿用你的 Claude 账号与已授予的连接器 / 权限,Project 内带独立记忆</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="reveal">
+    <h2><span class="num">05</span>权限模型与两种工作模式</h2>
+    <p>Cowork 的权限沿用聊天的那一套,你掌控两件事:连接哪些 <code>MCP</code> 及其询问频率,以及 Claude 的<a href="https://claude.ai/settings/capabilities">联网范围</a>。在此之上,有一个决定"自主程度"的模式选择器:</p>
+    <div class="grid two">
+      <div class="card">
+        <span class="ico">SAFE</span>
+        <h4>Ask before acting</h4>
+        <p>每个动作都暂停等你批准。面对新工具、陌生文件、或任何想盯紧的场景时推荐使用。</p>
+      </div>
+      <div class="card">
+        <span class="ico">FAST</span>
+        <h4>Act without asking</h4>
+        <p>不暂停、连续执行。对定义明确的任务更快,但<strong>显著放大 prompt injection 风险</strong>——出问题时你没有中途叫停的机会。</p>
+      </div>
+    </div>
+    <div class="callout note">
+      <span class="tag">两种模式都不变的一条线</span>
+      <p>无论哪种模式,<strong>永久删除文件之前 Claude 都会要求显式授权</strong>——你必须点 "Allow" 它才能执行删除。这是写死在产品里的一道硬闸。</p>
+    </div>
+    <p>"Act without asking" 的安全使用三条件值得抄下来:你在主动盯着任务、你只对接可信的文件/站点/工具、你能在不对劲时立刻叫停。三者缺一,就回到 Ask 模式。</p>
+  </section>
+
+  <!-- 6 -->
+  <section class="reveal">
+    <h2><span class="num">06</span>风险面:Agent + 联网带来的新攻击向量</h2>
+    <p>能动手的 Agent 本质上扩大了攻击面。官方把核心风险点列得很直白,这里按"攻击如何抵达 Claude"重新组织一下:</p>
+
+    <h3>主要威胁:Prompt Injection</h3>
+    <p>恶意指令可以藏在<strong>网页、邮件、文档</strong>里,Claude 访问到就可能被诱导执行你没打算做的动作。Web 内容是头号注入向量。Anthropic 的对策是多层防御:用 RL 训练模型识别并拒绝看似权威/紧急的恶意指令、用内容分类器扫描进入上下文的不可信内容。但官方也坦白——<strong>攻击成功率非零</strong>。</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>风险面</th><th>为什么危险</th><th>怎么收敛</th></tr></thead>
+        <tbody>
+          <tr><td>文件访问</td><td>Claude 能读、写、永久删授权文件</td><td>建专用工作文件夹而非授予宽泛访问;备份重要文件;别给敏感财务/凭证</td></tr>
+          <tr><td>Computer use</td><td>直接点击/输入/操作屏幕,<strong>无沙箱</strong>,不走其他工具的权限闸</td><td>从低风险任务起步;屏蔽银行/医疗等敏感 app;注意它会截屏</td></tr>
+          <tr><td>定时任务</td><td>自动运行,你不在场无法实时监控</td><td>从摘要类低风险任务起;别让它碰敏感数据或发消息/付款;定期复查输出</td></tr>
+          <tr><td>浏览器/Web</td><td>注入的主要入口</td><td>只对可信站点放行;默认网络访问刻意收紧,谨慎扩展</td></tr>
+          <tr><td>陌生 MCP/插件</td><td>插件打包 skills+连接器+子代理,装一个就大幅扩展行动范围</td><td>只用官方目录里的可信扩展;装前审权限</td></tr>
+          <tr><td>跨应用数据流</td><td>Excel↔PPT 加载项间数据可能在你没明确指示下流动</td><td>Cowork 活跃时避免在这些加载项里处理敏感信息</td></tr>
+          <tr><td>移动端访问</td><td>手机成为桌面资源的远程入口;若公司管控你的电脑,等于延伸到个人手机</td><td>复查授予 Claude 的访问范围是否适合从手机触达</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <span class="tag">监控原则</span>
+      <p>官方建议:<strong>盯任务,而不是盯每条命令</strong>。你不可能校验每个命令,该警惕的是异常模式——Claude 是否访问了你没提过的文件/网站?任务范围是否在悄悄蔓延?感觉不对就立刻停。若它突然聊起无关话题、试图访问意外资源或主动索要敏感信息,停下并上报。</p>
+    </div>
+
+    <h3>合规盲区</h3>
+    <p>当前 Cowork 活动<strong>不</strong>进入 Compliance API、审计日志或数据导出。Team/Enterprise 管理员可以通过 <em class="term">OpenTelemetry</em> 把 Cowork 事件流到自己的 SIEM 与可观测性工具里;托管设备上还有两个 MDM 键(<code>isLocalDevMcpEnabled</code> / <code>isDesktopExtensionEnabled</code>)可禁用本地 MCP 与桌面扩展。</p>
+  </section>
+
+  <blockquote class="reveal">
+    <p>它强大,正因为它能真的动手;它需要被监督,也正因为它能真的动手。</p>
+  </blockquote>
+
+  <!-- 7 -->
+  <section class="reveal">
+    <h2><span class="num">07</span>它适合干什么</h2>
+    <p>Cowork 的甜区是"<strong>多步骤、需要文件访问、需要较长执行时间</strong>"的工作。几类典型场景:</p>
+    <div class="grid three">
+      <div class="card">
+        <span class="ico">FILES</span>
+        <h4>文件与文档管理</h4>
+        <p>按类型和日期整理下载夹;把一堆收据整理成报销单;批量按 YYYY-MM-DD 重命名。</p>
+      </div>
+      <div class="card">
+        <span class="ico">RESEARCH</span>
+        <h4>研究与分析</h4>
+        <p>把搜索、论文、笔记综合成连贯报告;从会议记录/访谈里抽主题与待办;笔记知识综合。</p>
+      </div>
+      <div class="card">
+        <span class="ico">CREATE</span>
+        <h4>文档创建</h4>
+        <p>带 VLOOKUP/条件格式/多 Tab 的 Excel;从粗略笔记生成幻灯片;把语音备忘变成成稿。</p>
+      </div>
+      <div class="card">
+        <span class="ico">DATA</span>
+        <h4>数据分析</h4>
+        <p>离群检测、交叉表、时间序列;基于你的数据出图;清洗与转换数据集。</p>
+      </div>
+    </div>
+    <div class="callout key">
+      <span class="tag">用量提醒</span>
+      <p>Cowork 比聊天消耗多得多的额度——多步任务计算密集、吃 token。简单任务用普通聊天,把 Cowork 留给真正需要文件访问和长执行的复杂工作;相关工作尽量批进同一会话。</p>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="reveal">
+    <h2><span class="num">08</span>当前边界与责任归属</h2>
+    <h3>已知限制</h3>
+    <ul class="clean">
+      <li>记忆仅在 Project 内保留,不跨独立会话延续</li>
+      <li>不支持会话或工件分享</li>
+      <li>必须桌面客户端(Pro/Max 可手机派活,但活在桌面上跑)</li>
+      <li>客户端必须保持打开、电脑保持唤醒,否则任务中断;定时任务同理</li>
+      <li>仅限付费计划(Pro / Max / Team / Enterprise),macOS 与 Windows</li>
+    </ul>
+    <div class="callout warn">
+      <span class="tag">责任不转移</span>
+      <p>你对 Claude 代你执行的<strong>一切动作负责</strong>:发布的内容、发出的消息、采购与交易、访问或修改的数据、定时任务的行为、computer use 的操作,以及遵守第三方网站服务条款(含对自动化访问的限制)。Agent 替你干活,但责任仍在你身上。</p>
+    </div>
+  </section>
+
+  <!-- closing -->
+  <section class="reveal">
+    <h2><span class="num">09</span>一句话收束</h2>
+    <p class="lead">Cowork 是 Anthropic 把"自主 Agent"从开发者终端推向通用知识工作的一步:<strong>同一套 Claude Code 引擎,换上了文件直访、子代理编排、定时任务和项目记忆的外壳,并配了一套"代码进 VM、文件靠权限闸"的双环境信任模型。</strong></p>
+    <p>它的价值与风险来自同一个根源——它能真的在你的机器上动手。把它当成一个能力很强、但需要逐步建立信任的新同事来用:从低风险任务起步、给专用文件夹、盯任务模式而非命令、敏感场景留在 Ask 模式。这样,你既拿到"转身离开、回来收成品"的杠杆,又不把自己暴露在不必要的攻击面下。</p>
+  </section>
+
+  <footer>
+    <div class="rule"></div>
+    基于 Anthropic 官方文档整理 · Claude Help Center<br>
+    <a href="https://support.claude.com/en/articles/13345190-get-started-with-claude-cowork">Get started with Cowork</a> ·
+    <a href="https://support.claude.com/en/articles/13364135-use-claude-cowork-safely">Use Cowork safely</a> ·
+    <a href="https://support.claude.com/en/articles/14479288-claude-cowork-desktop-architecture-overview">Architecture overview</a><br>
+    内容仅供技术参考,具体能力与限制以官方最新文档为准。
+  </footer>
+
+</div>
+
+<script>
+  const io = new IntersectionObserver((es)=>{
+    es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

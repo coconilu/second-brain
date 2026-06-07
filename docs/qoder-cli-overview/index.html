@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qoder CLI 完全指南：从零开始的 AI 编程助手之旅</title>
+  <style>
+    /* ===== CSS Reset & Base ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #0f0f13;
+      --bg-secondary: #16161d;
+      --bg-card: #1c1c26;
+      --bg-code: #1a1a2e;
+      --text-primary: #e8e8ed;
+      --text-secondary: #a0a0b0;
+      --text-muted: #6b6b80;
+      --accent-blue: #5b8cff;
+      --accent-cyan: #38d9c5;
+      --accent-purple: #a78bfa;
+      --accent-green: #4ade80;
+      --accent-orange: #fb923c;
+      --accent-pink: #f472b6;
+      --border-color: #2a2a3a;
+      --gradient-hero: linear-gradient(135deg, #0f0f13 0%, #1a1030 50%, #0f0f13 100%);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.8;
+      font-size: 16px;
+    }
+
+    /* ===== Typography ===== */
+    h1, h2, h3, h4 { font-weight: 700; line-height: 1.3; color: var(--text-primary); }
+    h1 { font-size: 2.8rem; }
+    h2 { font-size: 2rem; margin-bottom: 1rem; }
+    h3 { font-size: 1.4rem; margin-bottom: 0.75rem; }
+    p { margin-bottom: 1rem; color: var(--text-secondary); }
+    a { color: var(--accent-blue); text-decoration: none; transition: color 0.2s; }
+    a:hover { color: var(--accent-cyan); }
+
+    /* ===== Layout ===== */
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+    .wide-container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* ===== Navigation ===== */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(15, 15, 19, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 0;
+    }
+    .nav .container {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo {
+      font-size: 1.2rem; font-weight: 700; color: var(--text-primary);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-logo .logo-icon {
+      width: 28px; height: 28px; background: var(--accent-blue);
+      border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: white;
+    }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a { color: var(--text-muted); font-size: 0.9rem; }
+    .nav-links a:hover { color: var(--text-primary); }
+
+    /* ===== Hero Section ===== */
+    .hero {
+      padding: 160px 0 80px;
+      background: var(--gradient-hero);
+      position: relative; overflow: hidden;
+      text-align: center;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse at 50% 50%, rgba(91, 140, 255, 0.08) 0%, transparent 70%);
+    }
+    .hero-image {
+      max-width: 100%; width: 800px; border-radius: var(--radius);
+      margin-bottom: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .hero h1 {
+      margin-bottom: 1.2rem;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero .subtitle {
+      font-size: 1.25rem; color: var(--text-secondary);
+      max-width: 640px; margin: 0 auto 2rem;
+    }
+    .hero-badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 20px;
+      font-size: 0.85rem; font-weight: 500;
+      background: rgba(91, 140, 255, 0.12); color: var(--accent-blue);
+      border: 1px solid rgba(91, 140, 255, 0.2);
+    }
+    .badge.green { background: rgba(74, 222, 128, 0.12); color: var(--accent-green); border-color: rgba(74, 222, 128, 0.2); }
+    .badge.purple { background: rgba(167, 139, 250, 0.12); color: var(--accent-purple); border-color: rgba(167, 139, 250, 0.2); }
+    .badge.orange { background: rgba(251, 146, 60, 0.12); color: var(--accent-orange); border-color: rgba(251, 146, 60, 0.2); }
+
+    /* ===== Table of Contents ===== */
+    .toc {
+      margin: 60px 0;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      padding: 32px;
+    }
+    .toc h2 { font-size: 1.3rem; margin-bottom: 16px; color: var(--accent-cyan); }
+    .toc-list { list-style: none; }
+    .toc-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(42, 42, 58, 0.5);
+    }
+    .toc-list li:last-child { border-bottom: none; }
+    .toc-list a {
+      color: var(--text-secondary); font-size: 0.95rem;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .toc-list a:hover { color: var(--accent-blue); }
+    .toc-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border-radius: 6px;
+      background: rgba(91, 140, 255, 0.1); color: var(--accent-blue);
+      font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+    }
+
+    /* ===== Section ===== */
+    .section { padding: 60px 0; }
+    .section-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 2rem;
+    }
+    .section-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; flex-shrink: 0;
+    }
+    .section-icon.blue { background: rgba(91, 140, 255, 0.15); }
+    .section-icon.cyan { background: rgba(56, 217, 197, 0.15); }
+    .section-icon.purple { background: rgba(167, 139, 250, 0.15); }
+    .section-icon.green { background: rgba(74, 222, 128, 0.15); }
+    .section-icon.orange { background: rgba(251, 146, 60, 0.15); }
+    .section-icon.pink { background: rgba(244, 114, 182, 0.15); }
+
+    .section-img {
+      width: 100%; border-radius: var(--radius);
+      margin: 24px 0;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    /* ===== Code Blocks ===== */
+    .code-block {
+      background: var(--bg-code);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      margin: 16px 0 24px;
+      overflow: hidden;
+    }
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.8rem; color: var(--text-muted);
+    }
+    .code-header .lang-tag {
+      background: rgba(91, 140, 255, 0.15); color: var(--accent-blue);
+      padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;
+    }
+    .code-block pre {
+      padding: 16px; overflow-x: auto;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.88rem; line-height: 1.7;
+      color: var(--text-secondary);
+    }
+    .code-block code { color: var(--text-primary); }
+    .code-block .comment { color: #5c6370; font-style: italic; }
+    .code-block .cmd { color: var(--accent-green); }
+    .code-block .flag { color: var(--accent-orange); }
+    .code-block .string { color: var(--accent-cyan); }
+    .code-block .keyword { color: var(--accent-purple); }
+
+    /* ===== Info Cards ===== */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 16px 0;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .card-grid .card { margin: 0; }
+    .card h4 {
+      margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ===== Callout / Tip ===== */
+    .callout {
+      padding: 16px 20px;
+      border-radius: var(--radius-sm);
+      margin: 20px 0;
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .callout.tip {
+      background: rgba(74, 222, 128, 0.08);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+    }
+    .callout.warning {
+      background: rgba(251, 146, 60, 0.08);
+      border: 1px solid rgba(251, 146, 60, 0.2);
+    }
+    .callout.info {
+      background: rgba(91, 140, 255, 0.08);
+      border: 1px solid rgba(91, 140, 255, 0.2);
+    }
+    .callout-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+    .callout p { margin: 0; font-size: 0.92rem; }
+
+    /* ===== Tables ===== */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+    }
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    thead { background: rgba(255,255,255,0.03); }
+    th {
+      padding: 12px 16px; text-align: left;
+      color: var(--text-primary); font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+    }
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(42, 42, 58, 0.4);
+      color: var(--text-secondary);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    td code {
+      background: var(--bg-code); padding: 2px 6px;
+      border-radius: 4px; font-size: 0.85rem;
+      color: var(--accent-cyan);
+    }
+
+    /* ===== Flow Diagram ===== */
+    .flow-diagram {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; flex-wrap: wrap;
+      padding: 30px 20px;
+      margin: 24px 0;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+    }
+    .flow-step {
+      background: rgba(91, 140, 255, 0.1);
+      border: 1px solid rgba(91, 140, 255, 0.25);
+      border-radius: var(--radius-sm);
+      padding: 12px 18px;
+      text-align: center; font-size: 0.88rem; font-weight: 500;
+      color: var(--accent-blue);
+    }
+    .flow-arrow { color: var(--text-muted); font-size: 1.2rem; }
+
+    /* ===== Divider ===== */
+    .divider {
+      border: none; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+      margin: 40px 0;
+    }
+
+    /* ===== Feature Highlight ===== */
+    .feature-highlight {
+      display: flex; gap: 32px; align-items: center;
+      margin: 32px 0;
+    }
+    .feature-highlight.reverse { flex-direction: row-reverse; }
+    .feature-highlight .feature-text { flex: 1; }
+    .feature-highlight .feature-visual {
+      flex: 1;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      padding: 24px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ===== Footer ===== */
+    .footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+    .footer a { color: var(--accent-blue); }
+
+    /* ===== Inline Code ===== */
+    p code, li code, td code {
+      background: var(--bg-code);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.88em;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      color: var(--accent-cyan);
+      border: 1px solid rgba(42, 42, 58, 0.6);
+    }
+
+    /* ===== List ===== */
+    ul, ol { margin: 8px 0 16px 24px; color: var(--text-secondary); }
+    li { margin-bottom: 6px; }
+
+    /* ===== Step Number ===== */
+    .step-number {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: white; font-size: 0.85rem; font-weight: 700;
+      margin-right: 10px; flex-shrink: 0;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.6rem; }
+      .hero { padding: 120px 0 60px; }
+      .feature-highlight, .feature-highlight.reverse { flex-direction: column; }
+      .nav-links { display: none; }
+      .card-grid { grid-template-columns: 1fr; }
+      .flow-diagram { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+    }
+
+    /* ===== Animated Gradient Border ===== */
+    .glow-border {
+      position: relative;
+    }
+    .glow-border::after {
+      content: '';
+      position: absolute; inset: -1px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple), var(--accent-cyan));
+      z-index: -1;
+      opacity: 0.3;
+    }
+
+    /* ===== Tag / Chip ===== */
+    .tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .tag.allow { background: rgba(74, 222, 128, 0.15); color: var(--accent-green); }
+    .tag.ask { background: rgba(251, 146, 60, 0.15); color: var(--accent-orange); }
+    .tag.deny { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="container">
+      <div class="nav-logo">
+        <div class="logo-icon">Q</div>
+        Qoder CLI Blog
+      </div>
+      <div class="nav-links">
+        <a href="#installation">安装</a>
+        <a href="#auth">认证</a>
+        <a href="#tui">TUI 模式</a>
+        <a href="#permissions">权限</a>
+        <a href="#mcp">MCP</a>
+        <a href="#memory">记忆</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <img src="images/hero.png" alt="Qoder CLI Hero" class="hero-image">
+      <h1>Qoder CLI 完全指南</h1>
+      <p class="subtitle">
+        从零开始，带你深入了解 Qoder CLI —— 一款将 AI 能力无缝融入终端工作流的编程助手。
+        安装、认证、交互模式、权限系统、MCP 扩展，一文全掌握。
+      </p>
+      <div class="hero-badges">
+        <span class="badge">macOS</span>
+        <span class="badge green">Linux</span>
+        <span class="badge purple">Windows</span>
+        <span class="badge orange">arm64 & amd64</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="container">
+
+    <!-- Table of Contents -->
+    <div class="toc">
+      <h2>&#128218; 目录</h2>
+      <ol class="toc-list">
+        <li><a href="#what-is"><span class="toc-num">01</span> 什么是 Qoder CLI</a></li>
+        <li><a href="#installation"><span class="toc-num">02</span> 三种方式快速安装</a></li>
+        <li><a href="#auth"><span class="toc-num">03</span> 身份认证与登录</a></li>
+        <li><a href="#tui"><span class="toc-num">04</span> TUI 交互模式详解</a></li>
+        <li><a href="#print-mode"><span class="toc-num">05</span> Print 模式：非交互式自动化</a></li>
+        <li><a href="#worktree"><span class="toc-num">06</span> Worktree 并行开发</a></li>
+        <li><a href="#permissions"><span class="toc-num">07</span> 权限系统深度解析</a></li>
+        <li><a href="#mcp"><span class="toc-num">08</span> MCP 服务扩展</a></li>
+        <li><a href="#memory"><span class="toc-num">09</span> AGENTS.md 记忆系统</a></li>
+        <li><a href="#upgrade"><span class="toc-num">10</span> 升级与维护</a></li>
+        <li><a href="#best-practices"><span class="toc-num">11</span> 最佳实践与总结</a></li>
+      </ol>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Section 1: What is Qoder CLI -->
+    <section class="section" id="what-is">
+      <div class="section-header">
+        <div class="section-icon blue">&#128640;</div>
+        <h2>什么是 Qoder CLI</h2>
+      </div>
+
+      <p>
+        Qoder CLI（命令行工具 <code>qodercli</code>）是 Qoder 产品家族中面向开发者的核心工具。
+        它直接运行在你的终端中，将 AI 编程助手的能力带入命令行工作流，让你无需离开熟悉的开发环境就能获得智能代码生成、项目分析、自动化任务等能力。
+      </p>
+
+      <p>
+        与传统的 IDE 插件不同，Qoder CLI 天然支持无头（headless）运行，可以轻松集成到 CI/CD 流水线、脚本自动化和远程服务器环境中。
+        它支持 macOS、Linux 和 Windows 三大平台，覆盖 arm64 和 amd64 两种 CPU 架构。
+      </p>
+
+      <div class="card-grid">
+        <div class="card">
+          <h4>&#9889; 智能对话</h4>
+          <p>在终端中与 AI 自然语言对话，描述需求即可生成代码、调试问题或获取建议。</p>
+        </div>
+        <div class="card">
+          <h4>&#128295; 内置工具链</h4>
+          <p>自带 Grep、Read、Write、Bash 等工具，AI 可以直接读取和修改你的项目文件。</p>
+        </div>
+        <div class="card">
+          <h4>&#128268; MCP 扩展</h4>
+          <p>通过 Model Context Protocol 连接外部服务和数据源，无限扩展 AI 的能力边界。</p>
+        </div>
+        <div class="card">
+          <h4>&#128737; 精细权限</h4>
+          <p>多层权限模型精确控制 AI 的每个操作，确保安全和可控。</p>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- Section 2: Installation -->
+    <section class="section" id="installation">
+      <div class="section-header">
+        <div class="section-icon cyan">&#128230;</div>
+        <h2>三种方式快速安装</h2>
+      </div>
+
+      <img src="images/install.png" alt="Installation Methods" class="section-img">
+
+      <p>
+        Qoder CLI 提供了三种主流安装方式，满足不同开发者的偏好。无论你习惯使用包管理器还是直接通过脚本安装，都能快速上手。
+      </p>
+
+      <h3>方式一：cURL 一键安装（推荐）</h3>
+      <p>最快捷的方式，适合 macOS 和 Linux 用户。一行命令即可完成下载安装：</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span>Terminal</span>
+          <span class="lang-tag">Shell</span>
+        </div>
+        <pre><code><span class="cmd">curl</span> <span class="flag">-fsSL</span> <span class="string">https://qoder.com/install</span> | <span class="cmd">bash</span></code></pre>
+      </div>
+
+      <h3>方式二：Homebrew 安装</h3>
+      <p>如果你已经在用 Homebrew 管理工具链，这种方式最符合你的工作流：</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span>Terminal</span>
+          <span class="lang-tag">Shell</span>
+        </div>
+        <pre><code><span class="cmd">brew</span> install qoderai/qoder/qodercli <span class="flag">--cask</span></code></pre>
+      </div>
+
+      <h3>方式三：NPM 安装</h3>
+      <p>跨平台方案，macOS、Linux 和 Windows 用户均可使用：</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span>Terminal</span>
+          <span class="lang-tag">Shell</span>
+        </div>
+        <pre><code><span class="cmd">npm</span> install <span class="flag">-g</span> <span class="string">@qoder-ai/qodercli</span></code></pre>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">&#9989;</span>
+        <p><strong>验证安装</strong>：安装完成后，运行 <code>qodercli --version</code> 确认安装成功。如果能正常打印版本号，说明一切就绪。</p>
+      </div>
+
+      <div class="callout warning">
+        <span class="callout-icon">&#9888;&#65039;</span>
+        <p><strong>注意</strong>：Windows arm64 平台暂时还不受支持。Windows 用户请通过 NPM 方式安装，并使用 Windows Terminal 以获得最佳体验。</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- Section 3: Authentication -->
+    <section class="section" id="auth">
+      <div class="section-header">
+        <div class="section-icon purple">&#128274;</div>
+        <h2>身份认证与登录</h2>
+      </div>
+
+      <p>
+        安装完成后，下一步是完成身份验证。Qoder CLI 提供了两种登录方式，分别面向交互式使用和自动化场景。
+      </p>
+
+      <div class="flow-diagram">
+        <div class="flow-step">安装 CLI</div>
+        <span class="flow-arrow">&#10132;</span>
+        <div class="flow-step">运行 qodercli</div>
+        <span class="flow-arrow">&#10132;</span>
+        <div class="flow-step">/login</div>
+        <span class="flow-arrow">&#10132;</span>
+        <div class="flow-step">选择认证方式</div>
+        <span class="flow-arrow">&#10132;</span>
+        <div class="flow-step">开始使用</div>
+      </div>
+
+      <h3><span class="step-number">1</span> 交互式登录（推荐日常使用）</h3>
+      <p>启动 CLI 后，输入 <code>/login</code> 命令即可进入登录界面。你可以选择两种方式：</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span>Terminal - TUI 交互</span>
+          <span class="lang-tag">Shell</span>
+        </div>
+        <pre><code><span class="comment"># 启动 Qoder CLI</span>
+<span class="cmd">qodercli</span>
+
+<span class="comment"># 在交互式提示符中输入 /login</span>
+<span class="cmd">/login</span>
+
+<span class="comment"># 选择登录方式：</span>
+<span class="comment">#   - login with browser    → 打开浏览器完成认证</span>
+<span class="comment">#   - login with personal access token → 粘贴 Token</span></code></pre>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">&#128161;</span>
+        <p><strong>获取 Token</strong>：访问 <a href="https://qoder.com/account/integrations" target="_blank">qoder.com/account/integrations</a> 即可生成 Personal Access Token。</p>
+      </div>
+
+      <h3><span class="step-number">2</span> 环境变量登录（适合 CI/CD）</h3>
+      <p>在自动化脚本或 CI/CD 流水线中，通过设置环境变量完成无交互认证：</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span>Linux / macOS</span>
+          <span class="lang-tag">Shell</span>
+        </div>
+        <pre><code><span class="keyword">export</span> QODER_PERSONAL_ACCESS_TOKEN=<span class="string">"your_personal_access_token_here"</span></code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span>Windows (Command Prompt)</span>
+          <span class="lang-tag">Shell</span>
+        </div>
+        <pre><code><span class="keyword">set</span> QODER_PERSONAL_ACCESS_TOKEN=<span class="string">"your_personal_access_token_here"</span></code></pre>
+      </div>
+
+      <div class="callout warning">
+        <span class="callout-icon">&#9888;&#65039;</span>
+        <p><strong>优先级</strong>：如果同时通过 <code>/login</code> 和环境变量设置了有效令牌，<code>/login</code> 提供的令牌优先生效。</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- Section 4: TUI Mode -->
+    <section class="section" id="tui">
+      <div class="section-header">
+        <div class="section-icon green">&#128187;</div>
+        <h2>TUI 交互模式详解</h2>
+      </div>
+
+      <img src="images/tui.png" alt="TUI Mode" class="section-img">
+
+      <p>
+        TUI（Terminal User Interface）是 Qoder CLI 的默认运行模式。在任意项目根目录运行 <code>qodercli</code> 即可进入，你会看到一个交互式的对话界面，可以通过文本与 AI 进行自然语言交流。
+      </p>
+
+      <h3>四种输入模式</h3>
+      <p>TUI 内置了四种输入模式，通过不同的前缀符号快速切换：</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>前缀</th><th>模式</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>&gt;</code></td>
+              <td>对话模式</td>
+              <td>默认模式，输入任意文本与 AI 对话</td>
+            </tr>
+            <tr>
+              <td><code>!</code></td>
+              <td>Bash 模式</td>
+              <td>直接运行 Shell 命令，无需离开 TUI</td>
+            </tr>
+            <tr>
+              <td><code>/</code></td>
+              <td>斜杠命令</td>
+              <td>执行内置功能命令</td>
+            </tr>
+            <tr>
+              <td><code>\</code> + Enter</td>
+              <td>多行输入</td>
+              <td>按 Enter 开始多行文本编辑</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>内置斜杠命令速查</h3>
+      <p>以下是最常用的斜杠命令，掌握它们可以大幅提升你的使用效率：</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>命令</th><th>功能</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>/login</code></td><td>登录 Qoder 账号</td></tr>
+            <tr><td><code>/help</code></td><td>显示 TUI 帮助信息</td></tr>
+            <tr><td><code>/init</code></td><td>在项目中初始化或更新 AGENTS.md 记忆文件</td></tr>
+            <tr><td><code>/memory</code></td><td>打开记忆管理器，管理各级记忆文件</td></tr>
+            <tr><td><code>/quest</code></td><td>执行基于 Spec 的委派任务</td></tr>
+            <tr><td><code>/review</code></td><td>对本地代码改动进行 AI 代码评审</td></tr>
+            <tr><td><code>/resume</code></td><td>查看并恢复历史会话</td></tr>
+            <tr><td><code>/compact</code></td><td>压缩总结当前会话历史上下文</td></tr>
+            <tr><td><code>/status</code></td><td>查看 CLI 状态（版本、模型、连通性等）</td></tr>
+            <tr><td><code>/config</code></td><td>查看系统配置</td></tr>
+            <tr><td><code>/usage</code></td><td>显示 Credits 使用情况</td></tr>
+            <tr><td><code>/vim</code></td><td>调用外部编辑器编辑输入内容</td></tr>
+            <tr><td><code>/quit</code></td><td>退出 TUI</td></tr>
+            <tr><td><code>/logout</code></td><td>退出 Qoder 账号</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>高级启动选项</h3>
+      <p>启动 CLI 时可以通过参数定制行为，以下是最实用的几个选项：</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span>常用启动方式</span>
+          <span class="lang-tag">Shell</span>
+        </div>
+        <pre><code><span class="comment"># 指定工作区目录启动</span>
+<span class="cmd">qodercli</span> <span class="flag">-w</span> <span class="string">/Users/demo/projects/my-app</span>
+
+<span class="comment"># 继续上次的会话</span>
+<span class="cmd">qodercli</span> <span class="flag">-c</span>
+
+<span class="comment"># 恢复指定会话</span>
+<span class="cmd">qodercli</span> <span class="flag">-r</span> <span class="string">xxxxxxxx-c09a-40a9-82a7-a565413fa393</span>
+
+<span class="comment"># 仅允许指定工具（限制 AI 能力范围）</span>
+<span class="cmd">qodercli</span> <span class="flag">--allowed-tools</span>=<span class="string">Read,Write</span>
+
+<span class="comment"># 设置最大对话轮数</span>
+<span class="cmd">qodercli</span> <span class="flag">--max-turns</span>=<span class="string">10</span>
+
+<span class="comment"># 跳过权限检查（仅在可信环境使用）</span>
+<span class="cmd">qodercli</span> <span class="flag">--yolo</span></code></pre>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- Section 5: Print Mode -->
+    <section class="section" id="print-mode">
+      <div class="section-header">
+        <div class="section-icon orange">&#9881;</div>
+        <h2>Print 模式：非交互式自动化</h2>
+      </div>
+
+      <p>
+        Print 模式是 Qoder CLI 的非交互式运行模式，特别适合脚本集成和自动化流水线。
+        通过 <code>--print</code> 参数激活，输出会按指定格式打印到标准输出，方便其他程序解析。
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span>Print 模式用法</span>
+          <span class="lang-tag">Shell</span>
+        </div>
+        <pre><code><span class="comment"># 基本的非交互式运行</span>
+<span class="cmd">qodercli</span> <span class="flag">-q -p</span> <span class="string">"分析这个项目的主要架构"</span>
+
+<span class="comment"># 指定 JSON 格式输出</span>
+<span class="cmd">qodercli</span> <span class="flag">--print</span> <span class="flag">--output-format</span>=<span class="string">json</span> <span class="flag">-p</span> <span class="string">"列出所有 TODO 注释"</span>
+
+<span class="comment"># 指定 stream-json 实时流式输出</span>
+<span class="cmd">qodercli</span> <span class="flag">--print</span> <span class="flag">--output-format</span>=<span class="string">stream-json</span> <span class="flag">-p</span> <span class="string">"重构这个函数"</span></code></pre>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>输出格式</th><th>适用场景</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>text</code></td><td>纯文本输出，适合人阅读或简单管道处理</td></tr>
+            <tr><td><code>json</code></td><td>结构化 JSON 输出，适合程序解析和 API 集成</td></tr>
+            <tr><td><code>stream-json</code></td><td>流式 JSON 输出，适合实时展示处理进度</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">&#128161;</span>
+        <p><strong>CI/CD 集成提示</strong>：在自动化环境中，建议搭配环境变量认证和 <code>--output-format=json</code> 使用，并将结果通过管道传递给后续处理步骤。</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- Section 6: Worktree -->
+    <section class="section" id="worktree">
+      <div class="section-header">
+        <div class="section-icon pink">&#127795;</div>
+        <h2>Worktree 并行开发</h2>
+      </div>
+
+      <p>
+        当你需要在同一个代码仓库中并行处理多个任务时，<code>--worktree</code> 参数是你的好帮手。
+        它利用 Git worktree 功能，为每个 AI 会话创建独立的工作目录，避免多个任务互相干扰。
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span>Worktree 用法</span>
+          <span class="lang-tag">Shell</span>
+        </div>
+        <pre><code><span class="comment"># 在名为 feature-a 的 worktree 中启动会话</span>
+<span class="cmd">qodercli</span> <span class="flag">--worktree</span> <span class="string">feature-a</span>
+
+<span class="comment"># 直接指定任务</span>
+<span class="cmd">qodercli</span> <span class="flag">--worktree</span> <span class="string">feature-a</span> <span class="string">"Implement the login fix"</span>
+
+<span class="comment"># 自动生成 worktree 名称</span>
+<span class="cmd">qodercli</span> <span class="flag">--worktree</span></code></pre>
+      </div>
+
+      <p>
+        会话结束时，CLI 会打印 worktree 的路径以及恢复会话的命令。当你完成工作后，可以用 <code>git worktree remove</code> 清理不再需要的 worktree。
+      </p>
+
+      <div class="callout info">
+        <span class="callout-icon">&#128196;</span>
+        <p><strong>前提条件</strong>：必须在 Git 仓库中运行该命令，并确保本地已安装 Git。</p>
+      </div>
+
+      <div class="feature-highlight">
+        <div class="feature-text">
+          <h3>典型并行开发场景</h3>
+          <p>
+            假设你正在开发一个 Web 应用，需要同时修复一个登录 Bug、实现新的搜索功能、以及重构数据库层。
+            你可以开三个终端窗口，分别用不同的 worktree 名称启动 Qoder CLI，每个会话在独立的目录中工作，互不干扰。
+          </p>
+          <div class="code-block">
+            <div class="code-header"><span>Terminal 1</span><span class="lang-tag">Shell</span></div>
+            <pre><code><span class="cmd">qodercli</span> <span class="flag">--worktree</span> <span class="string">fix-login</span> <span class="string">"修复登录超时问题"</span></code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>Terminal 2</span><span class="lang-tag">Shell</span></div>
+            <pre><code><span class="cmd">qodercli</span> <span class="flag">--worktree</span> <span class="string">search</span> <span class="string">"实现全文搜索功能"</span></code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>Terminal 3</span><span class="lang-tag">Shell</span></div>
+            <pre><code><span class="cmd">qodercli</span> <span class="flag">--worktree</span> <span class="string">db-refactor</span> <span class="string">"重构数据库连接池"</span></code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- Section 7: Permissions -->
+    <section class="section" id="permissions">
+      <div class="section-header">
+        <div class="section-icon orange">&#128737;</div>
+        <h2>权限系统深度解析</h2>
+      </div>
+
+      <img src="images/permissions.png" alt="Permission System" class="section-img">
+
+      <p>
+        安全性是 Qoder CLI 的核心设计理念之一。每次工具调用前，CLI 都会执行权限检查，确保 AI 的每个操作都在你的控制之下。权限判定有三种结果：
+      </p>
+
+      <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="card" style="border-left: 3px solid var(--accent-green);">
+          <h4><span class="tag allow">ALLOW</span> 允许</h4>
+          <p>立即执行工具，无需确认。</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--accent-orange);">
+          <h4><span class="tag ask">ASK</span> 询问</h4>
+          <p>在交互会话中弹出确认提示。</p>
+        </div>
+        <div class="card" style="border-left: 3px solid #ef4444;">
+          <h4><span class="tag deny">DENY</span> 拒绝</h4>
+          <p>阻止本次工具调用。</p>
+        </div>
+      </div>
+
+      <h3>六种权限模式</h3>
+      <p>通过 <code>--permission-mode</code> 参数选择适合当前场景的权限模式：</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>模式</th><th>适用场景</th><th>行为说明</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>default</code></td>
+              <td>常规交互式使用</td>
+              <td>安全操作自动执行；敏感操作请求确认</td>
+            </tr>
+            <tr>
+              <td><code>accept_edits</code></td>
+              <td>日常编码任务</td>
+              <td>自动批准工作目录内的安全文件编辑</td>
+            </tr>
+            <tr>
+              <td><code>plan</code></td>
+              <td>代码评审与规划</td>
+              <td>可读取分析项目，写入仍需批准</td>
+            </tr>
+            <tr>
+              <td><code>auto</code></td>
+              <td>自动化运行</td>
+              <td>不弹确认框，安全操作允许，风险操作拒绝</td>
+            </tr>
+            <tr>
+              <td><code>bypass_permissions</code></td>
+              <td>可信本地实验</td>
+              <td>跳过大部分审批，但危险命令仍可能拦截</td>
+            </tr>
+            <tr>
+              <td><code>dont_ask</code></td>
+              <td>严格 headless 流程</td>
+              <td>从不询问，需询问的动作直接拒绝</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>自定义权限规则</h3>
+      <p>你可以在 settings 文件中编写精细的权限规则，精确控制每个工具的行为。规则支持路径匹配、命令前缀和 glob 模式：</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span>~/.qoder/settings.json</span>
+          <span class="lang-tag">JSON</span>
+        </div>
+        <pre><code>{
+  <span class="string">"permissions"</span>: {
+    <span class="string">"allow"</span>: [
+      <span class="string">"Read(/src/**)"</span>,           <span class="comment">// 允许读取 src 目录下所有文件</span>
+      <span class="string">"Edit(/src/**)"</span>,           <span class="comment">// 允许编辑 src 目录下所有文件</span>
+      <span class="string">"Bash(npm run test:*)"</span>,   <span class="comment">// 允许运行测试命令</span>
+      <span class="string">"mcp__context7__*"</span>        <span class="comment">// 允许 context7 MCP 所有工具</span>
+    ],
+    <span class="string">"ask"</span>: [
+      <span class="string">"Bash(npm publish:*)"</span>,    <span class="comment">// 发布包前需要确认</span>
+      <span class="string">"WebFetch"</span>                <span class="comment">// 网络请求需要确认</span>
+    ],
+    <span class="string">"deny"</span>: [
+      <span class="string">"Read(*.pem)"</span>,            <span class="comment">// 禁止读取密钥文件</span>
+      <span class="string">"Bash(rm -rf:*)"</span>,         <span class="comment">// 禁止危险删除</span>
+      <span class="string">"Edit(/.git/**)"</span>          <span class="comment">// 禁止修改 Git 内部文件</span>
+    ]
+  }
+}</code></pre>
+      </div>
+
+      <h3>权限评估优先级</h3>
+      <p>Qoder CLI 按照固定的顺序评估权限规则，理解这个流程有助于你正确配置权限：</p>
+
+      <div class="flow-diagram">
+        <div class="flow-step">Deny 规则检查</div>
+        <span class="flow-arrow">&#10132;</span>
+        <div class="flow-step">Ask 规则检查</div>
+        <span class="flow-arrow">&#10132;</span>
+        <div class="flow-step">安全检查</div>
+        <span class="flow-arrow">&#10132;</span>
+        <div class="flow-step">Allow 规则</div>
+        <span class="flow-arrow">&#10132;</span>
+        <div class="flow-step">模式默认</div>
+      </div>
+
+      <div class="callout warning">
+        <span class="callout-icon">&#9888;&#65039;</span>
+        <p><strong>安全提醒</strong>：<code>--dangerously-skip-permissions</code> 等价于 <code>--permission-mode bypass_permissions</code>，只在你完全信任当前工作区和任务时才使用。即使如此，部分危险 Shell 命令仍可能要求确认。</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- Section 8: MCP Servers -->
+    <section class="section" id="mcp">
+      <div class="section-header">
+        <div class="section-icon cyan">&#128268;</div>
+        <h2>MCP 服务扩展</h2>
+      </div>
+
+      <p>
+        Model Context Protocol（MCP）是 Qoder CLI 的扩展机制，允许你连接外部工具和数据源。
+        添加 MCP 服务后，其中的工具会自动注册到 AI 的工具链中，在交互和非交互会话中均可使用。
+      </p>
+
+      <h3>快速添加 MCP 服务</h3>
+      <p>使用 <code>qodercli mcp add</code> 命令添加服务，<code>--</code> 后面跟启动命令：</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span>添加 MCP 服务</span>
+          <span class="lang-tag">Shell</span>
+        </div>
+        <pre><code><span class="comment"># 添加 Playwright 浏览器自动化服务</span>
+<span class="cmd">qodercli</span> mcp add playwright <span class="flag">--</span> <span class="string">npx -y @playwright/mcp@latest</span>
+
+<span class="comment"># 添加 Context7 知识库服务</span>
+<span class="cmd">qodercli</span> mcp add context7 <span class="flag">--</span> <span class="string">npx -y @upstash/context7-mcp@latest</span>
+
+<span class="comment"># 添加 DeepWiki 服务</span>
+<span class="cmd">qodercli</span> mcp add deepwiki <span class="flag">--</span> <span class="string">npx -y mcp-deepwiki@latest</span>
+
+<span class="comment"># 管理服务</span>
+<span class="cmd">qodercli</span> mcp list    <span class="comment"># 列出所有已配置的服务</span>
+<span class="cmd">qodercli</span> mcp remove playwright  <span class="comment"># 移除服务</span></code></pre>
+      </div>
+
+      <h3>四种传输类型</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>类型</th><th>说明</th><th>适用场景</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>stdio</code></td><td>MCP 服务作为本地子进程运行</td><td>本地开发，最常见</td></tr>
+            <tr><td><code>sse</code></td><td>通过 Server-Sent Events 连接</td><td>远程服务</td></tr>
+            <tr><td><code>http</code></td><td>通过 HTTP 端点连接</td><td>REST 风格服务</td></tr>
+            <tr><td><code>ws</code></td><td>通过 WebSocket 连接</td><td>实时双向通信</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>三种作用域</h3>
+      <p>MCP 服务配置支持三个级别的作用域，控制配置的共享范围：</p>
+
+      <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="card">
+          <h4>&#128100; User 级</h4>
+          <p>保存在 <code>~/.qoder/settings.json</code>，所有项目可用。</p>
+        </div>
+        <div class="card">
+          <h4>&#128187; Local 级</h4>
+          <p>保存在 <code>.qoder/settings.local.json</code>，仅本机当前项目可用（默认）。</p>
+        </div>
+        <div class="card">
+          <h4>&#128230; Project 级</h4>
+          <p>保存在 <code>.mcp.json</code>，可随项目代码共享给团队。</p>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">&#128260;</span>
+        <p><strong>热重载</strong>：如果 CLI 已经在运行中添加了新 MCP 服务，执行 <code>/mcp reload</code> 即可重新发现服务和工具，无需重启。</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- Section 9: Memory -->
+    <section class="section" id="memory">
+      <div class="section-header">
+        <div class="section-icon purple">&#129504;</div>
+        <h2>AGENTS.md 记忆系统</h2>
+      </div>
+
+      <p>
+        Qoder CLI 使用 <code>AGENTS.md</code> 文件作为项目记忆。这些 Markdown 文件的内容会自动加载到 CLI 中，作为指导 AI 理解项目上下文的"说明书"。
+        你可以在其中记录开发规范、系统架构、技术栈说明等任何有助于 AI 理解项目的信息。
+      </p>
+
+      <h3>三级记忆层次</h3>
+      <p>记忆系统分为三个层级，从全局到本地逐级细化：</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span>记忆文件路径</span>
+          <span class="lang-tag">Shell</span>
+        </div>
+        <pre><code><span class="comment"># 用户级 - 适用于所有项目的全局记忆</span>
+<span class="string">~/.qoder/AGENTS.md</span>
+
+<span class="comment"># 项目级 - 适用于当前项目，通常提交到 Git</span>
+<span class="string">${project}/AGENTS.md</span>
+
+<span class="comment"># 本地项目级 - 仅在当前机器生效，通常加入 .gitignore</span>
+<span class="string">${project}/AGENTS.local.md</span></code></pre>
+      </div>
+
+      <h3>自动生成记忆</h3>
+      <p>在项目中启动 TUI 后，输入 <code>/init</code> 命令，Qoder CLI 会自动分析项目结构并生成初始的 <code>AGENTS.md</code> 文件。你也可以通过 <code>/memory</code> 命令手动管理各级记忆文件。</p>
+
+      <div class="callout tip">
+        <span class="callout-icon">&#128221;</span>
+        <p><strong>最佳实践</strong>：在项目根目录维护一份 <code>AGENTS.md</code>，记录项目的技术栈、代码规范、目录结构说明、关键设计决策等信息。这样每次新会话都能快速理解项目上下文，显著提升 AI 的输出质量。</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- Section 10: Upgrade -->
+    <section class="section" id="upgrade">
+      <div class="section-header">
+        <div class="section-icon green">&#128260;</div>
+        <h2>升级与维护</h2>
+      </div>
+
+      <p>Qoder CLI 默认启用自动升级，确保你始终使用最新版本。你也可以通过以下方式手动升级：</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span>升级方式</span>
+          <span class="lang-tag">Shell</span>
+        </div>
+        <pre><code><span class="comment"># 方式一：使用内置更新命令（最简单）</span>
+<span class="cmd">qodercli</span> update
+
+<span class="comment"># 方式二：通过 cURL 重新安装</span>
+<span class="cmd">curl</span> <span class="flag">-fsSL</span> <span class="string">https://qoder.com/install</span> | <span class="cmd">bash</span> <span class="flag">-s -- --force</span>
+
+<span class="comment"># 方式三：通过 Homebrew 升级</span>
+<span class="cmd">brew</span> update && <span class="cmd">brew</span> upgrade
+
+<span class="comment"># 方式四：通过 NPM 升级</span>
+<span class="cmd">npm</span> install <span class="flag">-g</span> <span class="string">@qoder-ai/qodercli</span></code></pre>
+      </div>
+
+      <h3>禁用自动升级</h3>
+      <p>如果你希望手动控制升级节奏，可以在配置文件中关闭自动更新：</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span>~/.qoder/settings.json</span>
+          <span class="lang-tag">JSON</span>
+        </div>
+        <pre><code>{
+  <span class="string">"general"</span>: {
+    <span class="string">"enableAutoUpdate"</span>: <span class="keyword">false</span>
+  }
+}</code></pre>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- Section 11: Best Practices -->
+    <section class="section" id="best-practices">
+      <div class="section-header">
+        <div class="section-icon blue">&#127942;</div>
+        <h2>最佳实践与总结</h2>
+      </div>
+
+      <p>经过对 Qoder CLI 各核心模块的详细讲解，这里总结一些日常使用中的最佳实践建议：</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <h4>&#128203; 维护好 AGENTS.md</h4>
+          <p>
+            把它当成给 AI 同事的 onboarding 文档。项目结构、技术栈、编码规范、常见坑点——这些信息越完善，AI 的输出质量越高。
+          </p>
+        </div>
+        <div class="card">
+          <h4>&#128272; 精细化权限配置</h4>
+          <p>
+            不要一味使用 <code>--yolo</code> 或 bypass 模式。为常用操作配置 allow 规则，为危险操作设置 deny 规则，安全和效率可以兼得。
+          </p>
+        </div>
+        <div class="card">
+          <h4>&#128640; 善用 Worktree</h4>
+          <p>
+            并行处理多个任务时，用 worktree 隔离工作环境。每个任务独立运行，不会产生文件冲突。
+          </p>
+        </div>
+        <div class="card">
+          <h4>&#128268; 拓展 MCP 生态</h4>
+          <p>
+            根据项目需要添加 MCP 服务：浏览器自动化、知识库查询、数据库操作等，让 AI 的能力远超纯代码生成。
+          </p>
+        </div>
+      </div>
+
+      <h3>快速命令速查表</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>场景</th><th>命令</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>验证安装</td><td><code>qodercli --version</code></td></tr>
+            <tr><td>交互模式启动</td><td><code>qodercli</code></td></tr>
+            <tr><td>指定项目目录</td><td><code>qodercli -w /path/to/project</code></td></tr>
+            <tr><td>继续上次会话</td><td><code>qodercli -c</code></td></tr>
+            <tr><td>非交互式运行</td><td><code>qodercli -q -p "your prompt"</code></td></tr>
+            <tr><td>JSON 格式输出</td><td><code>qodercli --print --output-format=json -p "prompt"</code></td></tr>
+            <tr><td>并行任务</td><td><code>qodercli --worktree feature-name</code></td></tr>
+            <tr><td>添加 MCP 服务</td><td><code>qodercli mcp add name -- command</code></td></tr>
+            <tr><td>升级 CLI</td><td><code>qodercli update</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info" style="margin-top: 32px;">
+        <span class="callout-icon">&#128214;</span>
+        <p><strong>延伸阅读</strong>：本文基于 Qoder CLI 官方文档编写。获取最新的完整文档，请访问 <a href="https://docs.qoder.com/zh/cli/quick-start" target="_blank">docs.qoder.com</a>。如有问题或建议，欢迎到 <a href="https://forum.qoder.com" target="_blank">Qoder 论坛</a> 参与讨论。</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p style="margin-bottom: 8px;">
+        基于 <a href="https://docs.qoder.com/zh/cli/quick-start" target="_blank">Qoder 官方文档</a> 编写 &nbsp;|&nbsp;
+        <a href="https://qoder.com" target="_blank">Qoder 官网</a> &nbsp;|&nbsp;
+        <a href="https://forum.qoder.com" target="_blank">社区论坛</a>
+      </p>
+      <p>Published on June 7, 2026</p>
+    </div>
+  </footer>
+
+</body>
+</html>
