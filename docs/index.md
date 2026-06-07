@@ -6,6 +6,7 @@
 
 - [Warp：当 Rust、GPU 与 AI Agent 重塑开发者终端](warp-tech-blog/) `HTML`{target="_self"} — 拆解 Warp 终端的 Rust/GPU 架构、AI Agent 能力和团队协作工作流。
 - [Qoder CLI 完全指南：从零开始的 AI 编程助手之旅](qoder-cli-overview/) `HTML`{target="_self"} — 介绍 Qoder CLI 的安装、TUI、权限系统和 AI 编程助手使用流程。
+- [从 Cursor 到 Qoder：AI 编程界面的四次范式迁移](ide-evolution/) `HTML`{target="_self"} — 梳理 AI 编程界面从补全、聊天、Agent 到工程化 IDE 的演进路径。
 - [LM Studio 开发者文档 · 教案](lmstudio-teaching/) `HTML`{target="_self"} — 面向开发者系统讲解本地模型加载、API 调用、结构化输出和工具调用等 LM Studio 工作流。
 - [2026 终端工具选型：Ghostty、cmux、tmux、Zellij、Warp 怎么选](terminal-tools-2026/index.md) — 按终端模拟器、复用器、AI agent 工作台和进程管理四层梳理终端工具组合。
 - [tmux：从一个例子开始](tmux/index.md) — 用会话、窗口、面板搭建稳定的终端工作台。
@@ -21,6 +22,7 @@
 ## Agent 架构与协作
 
 - [OpenHands 深度解析：开源 AI 软件工程师的崛起](openhands-tech-blog/) `HTML`{target="_self"} — 从架构、工具生态和工作流角度解析 OpenHands 这类开源 AI 软件工程师。
+- [OpenHands 完全教程 · AI 软件开发智能体](openhands-tutorial/) `HTML`{target="_self"} — 从安装、配置、运行和实践场景系统讲解 OpenHands 的使用方式。
 - [Agent 知识库全景图 · 2026](agent-memory-landscape/) `HTML`{target="_self"} — 从记忆类型、知识库形态和工程落地维度梳理 Agent 长期记忆生态。
 - [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"} — 讨论单 Agent 如何动态规划、委派、回收上下文，并协同一组专门化子 Agent 完成复杂任务。
 - [Agent 设计模式互动教学稿](agent-design-patterns/) `HTML`{target="_self"} — 用交互式单页讲解感知、记忆、推理、行动、反思、协作六类 Agent 模式。
@@ -52,6 +54,7 @@
 - [Next.js 系统精讲 · 架构 · 运行 · 数据结构 · 数据流](nextjs-complete-guide/) `HTML`{target="_self"} — 从架构、运行时、数据结构和数据流理解 Next.js。
 - [Nuxt.js 深度解析 — 从架构到数据流](nuxt-deep-dive/) `HTML`{target="_self"} — 系统拆解 Nuxt.js 的架构、渲染模式、路由、数据获取和运行机制。
 - [Nuxt.js 面试速查卡片](nuxt-interview-cards/) `HTML`{target="_self"} — 用可翻转卡片快速复盘 Nuxt 架构、SSR、数据流、性能和实践问题。
+- [Nuxt 4 相对于 Nuxt 3 的提升](nuxt4-vs-nuxt3/) `HTML`{target="_self"} — 对比 Nuxt 4 与 Nuxt 3 在目录结构、数据层和工程体验上的变化。
 - [Nuxt 框架深度教学 · 架构 / 运行时 / 数据结构 / 数据流](nuxt-guide/) `HTML`{target="_self"} — 围绕 Nuxt 架构、运行时和数据流展开的系统讲义。
 
 ## 前端工程实践
@@ -83,6 +86,9 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
+- [OpenHands 完全教程 · AI 软件开发智能体](openhands-tutorial/) `HTML`{target="_self"}
+- [Nuxt 4 相对于 Nuxt 3 的提升](nuxt4-vs-nuxt3/) `HTML`{target="_self"}
+- [从 Cursor 到 Qoder：AI 编程界面的四次范式迁移](ide-evolution/) `HTML`{target="_self"}
 - [OpenHands 深度解析：开源 AI 软件工程师的崛起](openhands-tech-blog/) `HTML`{target="_self"}
 - [Warp：当 Rust、GPU 与 AI Agent 重塑开发者终端](warp-tech-blog/) `HTML`{target="_self"}
 - [Claude Cowork:把 Claude Code 的 Agent 能力搬进桌面](claude-cowork-blog/) `HTML`{target="_self"}

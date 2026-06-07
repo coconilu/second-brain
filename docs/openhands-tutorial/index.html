@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenHands 完全教程 · AI 软件开发智能体</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4ece0;
+    --paper-2:#ece1d0;
+    --ink:#221a12;
+    --ink-soft:#4b3f30;
+    --rust:#b5481f;
+    --rust-deep:#8a3414;
+    --gold:#c08a2d;
+    --olive:#6b6233;
+    --teal:#2f6b62;
+    --line:#cbb89c;
+    --card:#fbf6 ec;
+    --code-bg:#241c14;
+    --code-ink:#ecdcc4;
+    --shadow:rgba(60,40,20,.18);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 12% 8%, #f9f1e4 0%, transparent 55%),
+      radial-gradient(circle at 88% 92%, #efe3cf 0%, transparent 50%),
+      var(--paper);
+    color:var(--ink);
+    font-family:"Noto Sans SC",system-ui,sans-serif;
+    line-height:1.85;
+    font-size:17px;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.45;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:0 26px;position:relative;z-index:2;}
+
+  /* ---------- HERO ---------- */
+  header.hero{
+    padding:78px 0 54px;
+    border-bottom:3px double var(--line);
+    position:relative;
+  }
+  .kicker{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12.5px;letter-spacing:.32em;text-transform:uppercase;
+    color:var(--rust);font-weight:600;margin-bottom:22px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .kicker::after{content:"";flex:1;height:1px;background:var(--line);}
+  h1.title{
+    font-family:"Fraunces",serif;
+    font-weight:900;font-size:clamp(44px,8vw,86px);
+    line-height:.98;margin:0 0 8px;letter-spacing:-.02em;
+    color:var(--ink);
+  }
+  h1.title em{font-style:italic;color:var(--rust);font-weight:600;}
+  .subtitle{
+    font-family:"Fraunces",serif;font-style:italic;font-weight:400;
+    font-size:clamp(20px,3vw,27px);color:var(--ink-soft);
+    margin:18px 0 30px;max-width:660px;
+  }
+  .hero-meta{
+    display:flex;flex-wrap:wrap;gap:10px;font-family:"JetBrains Mono",monospace;font-size:12.5px;
+  }
+  .tag{
+    background:var(--paper-2);border:1px solid var(--line);
+    padding:5px 13px;border-radius:2px;color:var(--ink-soft);
+  }
+  .tag.hot{background:var(--rust);color:#fff;border-color:var(--rust);}
+
+  /* ---------- TOC ---------- */
+  nav.toc{
+    margin:46px 0;padding:30px 34px;
+    background:linear-gradient(135deg,#fbf6ec,#f0e6d4);
+    border:1px solid var(--line);border-left:5px solid var(--rust);
+    box-shadow:6px 6px 0 var(--shadow);
+  }
+  nav.toc h2{
+    font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--rust);margin:0 0 18px;
+  }
+  nav.toc ol{margin:0;padding:0;counter-reset:toc;list-style:none;
+    columns:2;column-gap:40px;}
+  nav.toc li{counter-increment:toc;margin:0 0 11px;break-inside:avoid;}
+  nav.toc a{
+    color:var(--ink);text-decoration:none;font-size:15px;
+    display:flex;gap:11px;align-items:baseline;transition:color .15s;
+  }
+  nav.toc a::before{
+    content:counter(toc,decimal-leading-zero);
+    font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--gold);font-weight:600;
+  }
+  nav.toc a:hover{color:var(--rust);}
+
+  /* ---------- SECTIONS ---------- */
+  section{padding:48px 0;border-bottom:1px solid var(--line);}
+  .sec-num{
+    font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--rust);
+    font-weight:600;letter-spacing:.18em;
+  }
+  h2.sec{
+    font-family:"Fraunces",serif;font-weight:700;
+    font-size:clamp(30px,5vw,44px);line-height:1.08;margin:6px 0 22px;
+    letter-spacing:-.015em;color:var(--ink);
+  }
+  h3{
+    font-family:"Fraunces",serif;font-weight:600;font-size:25px;
+    margin:38px 0 14px;color:var(--rust-deep);letter-spacing:-.01em;
+  }
+  h4{
+    font-family:"JetBrains Mono",monospace;font-size:14px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--olive);margin:26px 0 10px;
+  }
+  p{margin:0 0 17px;}
+  a{color:var(--rust);}
+  strong{color:var(--ink);font-weight:700;}
+  em.lead{font-family:"Fraunces",serif;font-style:italic;font-size:20px;color:var(--ink-soft);}
+
+  /* ---------- CODE ---------- */
+  pre{
+    background:var(--code-bg);color:var(--code-ink);
+    font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.7;
+    padding:20px 22px;border-radius:6px;overflow-x:auto;
+    margin:18px 0;border:1px solid #3a2e22;
+    box-shadow:0 4px 18px rgba(40,28,16,.25);
+    position:relative;
+  }
+  pre::before{
+    content:attr(data-lang);position:absolute;top:0;right:0;
+    background:var(--rust);color:#fff;font-size:10px;letter-spacing:.15em;
+    padding:3px 11px;border-bottom-left-radius:6px;text-transform:uppercase;font-weight:600;
+  }
+  pre .c{color:#8a9b7a;}      /* comment */
+  pre .k{color:#e89a5e;}      /* keyword */
+  pre .s{color:#c7d49a;}      /* string */
+  pre .f{color:#7fb8c4;}      /* function */
+  code.inline{
+    background:var(--paper-2);font-family:"JetBrains Mono",monospace;
+    font-size:.86em;padding:2px 7px;border-radius:3px;color:var(--rust-deep);
+    border:1px solid var(--line);
+  }
+
+  /* ---------- TABLE ---------- */
+  .tbl-wrap{overflow-x:auto;margin:22px 0;}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;background:var(--card);
+    box-shadow:4px 4px 0 var(--shadow);}
+  th{
+    background:var(--ink);color:var(--paper);font-family:"JetBrains Mono",monospace;
+    font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+    padding:13px 15px;text-align:left;font-weight:600;
+  }
+  td{padding:12px 15px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  tr:nth-child(even) td{background:rgba(203,184,156,.13);}
+  td code{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--rust-deep);}
+
+  /* ---------- CALLOUT ---------- */
+  .callout{
+    margin:24px 0;padding:18px 22px 18px 26px;border-radius:4px;
+    border-left:4px solid;font-size:15.5px;position:relative;
+  }
+  .callout .lbl{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;font-weight:700;display:block;margin-bottom:6px;
+  }
+  .callout p:last-child{margin-bottom:0;}
+  .tip{background:#e8f0e4;border-color:var(--teal);} .tip .lbl{color:var(--teal);}
+  .warn{background:#f6e6d5;border-color:var(--rust);} .warn .lbl{color:var(--rust);}
+  .note{background:#f0ead9;border-color:var(--gold);} .note .lbl{color:var(--olive);}
+
+  /* ---------- DIAGRAM ---------- */
+  .diagram{
+    background:var(--code-bg);color:var(--code-ink);
+    font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.55;
+    padding:26px 24px;border-radius:6px;overflow-x:auto;margin:22px 0;
+    white-space:pre;border:1px solid #3a2e22;
+  }
+  .diagram .hl{color:#e89a5e;}
+  .diagram .gn{color:#8fc99b;}
+  .diagram .bl{color:#7fb8c4;}
+  .diagram .dim{color:#6f6353;}
+
+  /* ---------- CARDS ---------- */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:24px 0;}
+  .card{
+    background:var(--card);border:1px solid var(--line);padding:20px 22px;
+    border-radius:5px;box-shadow:4px 4px 0 var(--shadow);transition:transform .18s;
+  }
+  .card:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--shadow);}
+  .card .ico{font-family:"Fraunces",serif;font-size:30px;color:var(--rust);font-weight:900;line-height:1;}
+  .card h4{margin:12px 0 6px;color:var(--ink);text-transform:none;font-size:16px;letter-spacing:0;font-family:"Fraunces",serif;font-weight:600;}
+  .card p{font-size:14px;color:var(--ink-soft);margin:0;line-height:1.65;}
+
+  /* ---------- FOOTER ---------- */
+  footer{padding:50px 0 70px;text-align:center;color:var(--ink-soft);}
+  footer .mark{font-family:"Fraunces",serif;font-style:italic;font-size:22px;color:var(--rust);margin-bottom:10px;}
+  footer .links{font-family:"JetBrains Mono",monospace;font-size:13px;margin-top:12px;}
+  footer a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid var(--line);}
+  footer a:hover{color:var(--rust);}
+
+  ul.clean{list-style:none;padding:0;margin:16px 0;}
+  ul.clean li{padding:7px 0 7px 26px;position:relative;border-bottom:1px dashed var(--line);}
+  ul.clean li::before{content:"▸";position:absolute;left:0;color:var(--rust);font-weight:700;}
+  ul.clean li:last-child{border-bottom:none;}
+
+  .pill{display:inline-block;background:var(--olive);color:#fff;font-family:"JetBrains Mono",monospace;
+    font-size:10.5px;letter-spacing:.1em;padding:2px 9px;border-radius:10px;text-transform:uppercase;vertical-align:middle;}
+
+  @media(max-width:640px){
+    nav.toc ol{columns:1;}
+    body{font-size:16px;}
+    .wrap{padding:0 18px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="kicker">完全指南 · AI-Driven Development</div>
+    <h1 class="title">Open<em>Hands</em></h1>
+    <p class="subtitle">一套开源的 AI 软件开发智能体框架 —— 从一行命令的终端体验，到可编排上千个智能体的云端基础设施。</p>
+    <div class="hero-meta">
+      <span class="tag hot">开源 · MIT License</span>
+      <span class="tag">CLI</span>
+      <span class="tag">Software Agent SDK</span>
+      <span class="tag">Local GUI</span>
+      <span class="tag">Cloud / Enterprise</span>
+      <span class="tag">前身 OpenDevin</span>
+    </div>
+  </header>
+
+  <!-- ============ TOC ============ -->
+  <nav class="toc">
+    <h2>// 目录</h2>
+    <ol>
+      <li><a href="#intro">OpenHands 是什么</a></li>
+      <li><a href="#products">五种使用形态</a></li>
+      <li><a href="#concepts">核心概念词汇表</a></li>
+      <li><a href="#cli">CLI 安装与上手</a></li>
+      <li><a href="#cli-modes">CLI 的五种运行模式</a></li>
+      <li><a href="#sdk">用 SDK 写第一个智能体</a></li>
+      <li><a href="#arch">SDK 架构剖析</a></li>
+      <li><a href="#loop">推理-行动循环</a></li>
+      <li><a href="#sandbox">沙箱：代码在哪里执行</a></li>
+      <li><a href="#deploy">三种部署模式</a></li>
+      <li><a href="#extend">扩展：技能 · 工具 · MCP</a></li>
+      <li><a href="#usecases">典型应用场景</a></li>
+      <li><a href="#tips">提示词最佳实践</a></li>
+      <li><a href="#summary">总结与资源</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 INTRO ============ -->
+  <section id="intro">
+    <span class="sec-num">01 / 概述</span>
+    <h2 class="sec">OpenHands 是什么</h2>
+    <p><strong>OpenHands</strong>（前身为 OpenDevin）是一个聚焦于「AI 驱动开发」的开源社区与软件框架。它的核心目标，是让一个 AI 智能体能够像人类工程师一样实际操作开发环境——<strong>执行 bash 命令、读写与编辑文件、浏览网页、调用工具</strong>，从而自主完成编程任务，而不只是停留在「聊天给建议」的层面。</p>
+    <p>与单纯的代码补全工具不同，OpenHands 提供的是一整套<strong>从研究原型到生产部署</strong>的连续光谱：你既可以在终端里像使用 Claude Code、Codex 那样直接对话编程，也可以用它的 Python SDK 在代码里定义智能体、扩展到云端并行运行成千上万个 agent。</p>
+    <p>所有核心代码都在 <a href="https://github.com/OpenHands/OpenHands">MIT 许可证</a>下开放，仅 <code class="inline">enterprise/</code> 目录采用商业许可。核心 <code class="inline">openhands</code> 与 <code class="inline">agent-server</code> 镜像同样完全 MIT 授权。</p>
+
+    <div class="callout note">
+      <span class="lbl">为什么值得关注</span>
+      <p>OpenHands 把「智能体能力」沉淀成了一个可组合的工程框架。SDK 是引擎，CLI / GUI / Cloud 都只是消费 SDK API 的不同界面——这意味着无论你从哪种形态入门，底层的智能体语义都是一致的。</p>
+    </div>
+  </section>
+
+  <!-- ============ 2 PRODUCTS ============ -->
+  <section id="products">
+    <span class="sec-num">02 / 产品矩阵</span>
+    <h2 class="sec">五种使用形态</h2>
+    <p>OpenHands 不是单一产品，而是同一引擎的五层封装。理解这张图，就理解了整个项目的版图：</p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="ico">①</div>
+        <h4>Software Agent SDK</h4>
+        <p>可组合的 Python 库，封装了全部智能体技术。是驱动下面一切的「引擎」。在代码里定义 agent，本地运行或扩展到云端千级并发。</p>
+      </div>
+      <div class="card">
+        <div class="ico">②</div>
+        <h4>OpenHands CLI</h4>
+        <p>最简单的上手方式。体验类似 Claude Code / Codex，可由 Claude、GPT 或任意 LLM 驱动。</p>
+      </div>
+      <div class="card">
+        <div class="ico">③</div>
+        <h4>Local GUI</h4>
+        <p>在笔记本上跑智能体的本地图形界面，自带 REST API 与单页 React 应用。体验类似 Devin、Jules。</p>
+      </div>
+      <div class="card">
+        <div class="ico">④</div>
+        <h4>OpenHands Cloud</h4>
+        <p>GUI 的托管商业部署。用 GitHub 账号登录即可免费试用，深度集成 GitHub/GitLab/Bitbucket 与 Slack/Jira/Linear。</p>
+      </div>
+      <div class="card">
+        <div class="ico">⑤</div>
+        <h4>Enterprise</h4>
+        <p>在企业自有 VPC 内通过 Kubernetes 自托管 Cloud，source-available，超过一个月需购买许可，含扩展支持与研究团队访问。</p>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="lbl">如何选择</span>
+      <p><strong>想零配置最快体验</strong> → OpenHands Cloud（限时免费 MiniMax M2.5）。<strong>想本地自动化 / 脚本化</strong> → CLI。<strong>想完全掌控环境</strong> → Local GUI（自带 LLM 与密钥）。<strong>想在代码里编排智能体</strong> → SDK。</p>
+    </div>
+  </section>
+
+  <!-- ============ 3 CONCEPTS ============ -->
+  <section id="concepts">
+    <span class="sec-num">03 / 词汇表</span>
+    <h2 class="sec">核心概念</h2>
+    <p>在动手之前，先建立四个基础概念的心智模型。它们贯穿 CLI、SDK 与整个架构：</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>概念</th><th>定义</th><th>类比</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Agent 智能体</strong></td><td>能进行推理、规划，并通过工具执行行动的 AI 实体。</td><td>负责做决策的「大脑」</td></tr>
+          <tr><td><strong>Tools 工具</strong></td><td>执行 bash 命令、编辑文件、浏览网页等具体能力。</td><td>大脑能调用的「双手」</td></tr>
+          <tr><td><strong>Workspace 工作区</strong></td><td>智能体实际运行的执行环境（本地 / Docker / 远程）。</td><td>工作的「车间」</td></tr>
+          <tr><td><strong>Conversation 会话</strong></td><td>管理你与智能体之间交互生命周期的容器。</td><td>整场「对话记录」</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>// 基础工作流</h4>
+    <p>无论用哪种形态，一次完整的智能体运行都遵循这条主线：</p>
+    <div class="diagram"><span class="dim">①</span> <span class="hl">配置 LLM</span>   选择模型 + 提供 API Key
+<span class="dim">②</span> <span class="hl">创建 Agent</span>  使用预设或自定义配置
+<span class="dim">③</span> <span class="hl">添加 Tools</span>  启用能力（bash、文件编辑……）
+<span class="dim">④</span> <span class="hl">建立 Conversation</span>  创建会话上下文
+<span class="dim">⑤</span> <span class="hl">发送 Message</span>  描述任务
+<span class="dim">⑥</span> <span class="hl">运行 Agent</span>   <span class="gn">执行直到任务完成或停止</span>
+<span class="dim">⑦</span> <span class="hl">获取结果</span>   审阅输出与行动记录</div>
+  </section>
+
+  <!-- ============ 4 CLI INSTALL ============ -->
+  <section id="cli">
+    <span class="sec-num">04 / 上手</span>
+    <h2 class="sec">CLI 安装与第一次对话</h2>
+    <p>CLI 是门槛最低的入口。它需要 <strong>Python 3.12+</strong>，官方推荐用 <a href="https://docs.astral.sh/uv/">uv</a> 包管理器安装。</p>
+
+    <div class="callout warn">
+      <span class="lbl">Windows 用户注意</span>
+      <p>CLI 需要在 <strong>WSL（Ubuntu）</strong>终端中运行，原生 Windows 不受官方支持。在 PowerShell 里用 <code class="inline">wsl -d Ubuntu</code>，或在开始菜单搜索 "Ubuntu" 进入终端。</p>
+    </div>
+
+    <h4>// 方式一：uv（推荐）</h4>
+    <pre data-lang="bash"><span class="c"># 安装</span>
+uv tool install openhands --python 3.12
+
+<span class="c"># 运行</span>
+openhands
+
+<span class="c"># 升级</span>
+uv tool upgrade openhands --python 3.12</pre>
+
+    <h4>// 方式二：可执行二进制</h4>
+    <pre data-lang="bash">curl -fsSL https://install.openhands.dev/install.sh | sh
+openhands</pre>
+    <p class="" style="font-size:14.5px;color:var(--ink-soft)">macOS 首次运行若提示「无法验证开发者」，到「系统设置 → 隐私与安全性 → 安全性」点击「仍要打开」即可。</p>
+
+    <h4>// 方式三：Docker</h4>
+    <pre data-lang="bash">docker run -it --pull=always \
+    -e AGENT_SERVER_IMAGE_REPOSITORY=ghcr.io/openhands/agent-server \
+    -e AGENT_SERVER_IMAGE_TAG=1.19.1-python \
+    -e SANDBOX_USER_ID=$(id -u) \
+    -e SANDBOX_VOLUMES=$SANDBOX_VOLUMES \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v ~/.openhands:/root/.openhands \
+    --add-host host.docker.internal:host-gateway \
+    python:3.12-slim \
+    bash -c "pip install uv && uv tool install openhands --python 3.12 && openhands"</pre>
+    <p>其中 <code class="inline">SANDBOX_USER_ID=$(id -u)</code> 让沙箱用户与宿主机权限对齐，避免智能体在挂载目录里创建 root 属主的文件。</p>
+
+    <h4>// 第一次运行</h4>
+    <p>首次运行时，CLI 会引导你配置 LLM。配置会保存在 <code class="inline">~/.openhands/settings.json</code>，会话历史保存在 <code class="inline">~/.openhands/conversations</code>。</p>
+    <pre data-lang="bash"><span class="c"># 选项 A：登录 OpenHands Cloud（推荐，自动拉取设置）</span>
+openhands login
+
+<span class="c"># 选项 B：手动配置 —— 首次运行时按提示填写 LLM 提供商与 API Key</span>
+openhands</pre>
+
+    <p>进入交互界面后，输入一个任务即可，例如：</p>
+    <pre data-lang="text">Create a Python script that prints "Hello, World!"</pre>
+    <p>智能体会理解需求、探索项目、创建文件并展示结果。</p>
+
+    <h4>// 交互快捷键</h4>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>快捷键</th><th>作用</th></tr></thead>
+        <tbody>
+          <tr><td><code>Ctrl+P</code></td><td>打开命令面板（进入设置、查看 MCP 状态）</td></tr>
+          <tr><td><code>Esc</code></td><td>暂停正在运行的智能体</td></tr>
+          <tr><td><code>Ctrl+Q</code> / <code>/exit</code></td><td>退出 CLI</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>// 带任务启动 & 恢复会话</h4>
+    <pre data-lang="bash"><span class="c"># 直接带任务启动</span>
+openhands -t "Fix the bug in auth.py"
+openhands -f task.txt          <span class="c"># 从文件读取任务</span>
+
+<span class="c"># 恢复历史会话</span>
+openhands --resume             <span class="c"># 列出最近会话并选择</span>
+openhands --resume --last      <span class="c"># 恢复最近一次</span>
+openhands --resume abc123def   <span class="c"># 按 ID 恢复</span></pre>
+  </section>
+
+  <!-- ============ 5 CLI MODES ============ -->
+  <section id="cli-modes">
+    <span class="sec-num">05 / CLI</span>
+    <h2 class="sec">CLI 的五种运行模式</h2>
+    <p>同一个 <code class="inline">openhands</code> 命令通过不同子命令，可以化身为五种截然不同的工具：</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>模式</th><th>命令</th><th>最适合</th></tr></thead>
+        <tbody>
+          <tr><td>Terminal（交互式）</td><td><code>openhands</code></td><td>日常交互开发</td></tr>
+          <tr><td>Headless（无界面）</td><td><code>openhands --headless</code></td><td>脚本与自动化、CI/CD</td></tr>
+          <tr><td>Web Interface</td><td><code>openhands web</code></td><td>浏览器内的终端式 UI</td></tr>
+          <tr><td>GUI Server</td><td><code>openhands serve</code></td><td>完整的 Web 图形界面</td></tr>
+          <tr><td>IDE Integration</td><td><code>openhands acp</code></td><td>Zed、VS Code、JetBrains</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>IDE 集成通过 <strong>ACP（Agent Client Protocol）</strong>实现，意味着你可以在自己喜欢的编辑器里直接调用 OpenHands 智能体，而 Headless 模式则让它能无缝嵌入流水线脚本。</p>
+  </section>
+
+  <!-- ============ 6 SDK ============ -->
+  <section id="sdk">
+    <span class="sec-num">06 / SDK</span>
+    <h2 class="sec">用 SDK 写第一个智能体</h2>
+    <p>如果你想在代码里完全掌控智能体，SDK 才是核心。它是一个<strong>模块化、类型安全</strong>的框架，让 agent 能够操作代码、文件与系统命令。</p>
+
+    <h4>// 前置条件与安装</h4>
+    <pre data-lang="bash"><span class="c"># 1. 安装 uv 包管理器（0.8.13+）</span>
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+<span class="c"># 2. 安装 SDK + 内置工具（务必同一条命令，保证版本对齐）</span>
+pip install -U openhands-sdk openhands-tools
+
+<span class="c"># 可选：沙箱工作区（Docker / 远程服务器）</span>
+pip install -U openhands-sdk openhands-tools openhands-workspace openhands-agent-server</pre>
+
+    <div class="callout warn">
+      <span class="lbl">版本对齐陷阱</span>
+      <p><code class="inline">openhands-sdk</code> 与 <code class="inline">openhands-tools</code> 是配套发布的——它们在同一版本号下构建测试，且 tools 直接引用 sdk 内部实现。<strong>必须在同一条 pip 命令里安装/升级</strong>，否则可能出现新版 tools 配旧版 sdk，导入时报 <code class="inline">ModuleNotFoundError</code>。需固定版本时两者用同一号：<code class="inline">pip install "openhands-sdk==1.22.1" "openhands-tools==1.22.1"</code>。</p>
+    </div>
+
+    <h4>// 配置 API Key</h4>
+    <p>SDK 通过 LiteLLM 支持数十家提供商。三种取得 Key 的途径：</p>
+    <ul class="clean">
+      <li><strong>直连提供商</strong>——自带 Anthropic / OpenAI 等 Key，模型名用提供商前缀，如 <code class="inline">anthropic/claude-sonnet-4-5-20250929</code></li>
+      <li><strong>OpenHands Cloud（推荐）</strong>——在云端充值后取得 OpenHands LLM Key，模型名用 <code class="inline">openhands/</code> 前缀，无加价</li>
+      <li><strong>ChatGPT 订阅</strong>——用 <code class="inline">LLM.subscription_login()</code> 以 ChatGPT Plus/Pro 账号访问 Codex 模型，不消耗 API 额度</li>
+    </ul>
+    <pre data-lang="bash">export LLM_API_KEY="your-api-key-here"
+export LLM_MODEL="openhands/claude-sonnet-4-5-20250929"   <span class="c"># 若用云端</span></pre>
+
+    <h4>// Hello World：完整示例</h4>
+    <pre data-lang="python"><span class="k">import</span> os
+<span class="k">from</span> openhands.sdk <span class="k">import</span> LLM, Agent, Conversation, Tool
+<span class="k">from</span> openhands.tools.file_editor <span class="k">import</span> FileEditorTool
+<span class="k">from</span> openhands.tools.task_tracker <span class="k">import</span> TaskTrackerTool
+<span class="k">from</span> openhands.tools.terminal <span class="k">import</span> TerminalTool
+
+<span class="c"># 1) 配置 LLM</span>
+llm = <span class="f">LLM</span>(
+    model=os.getenv(<span class="s">"LLM_MODEL"</span>, <span class="s">"anthropic/claude-sonnet-4-5-20250929"</span>),
+    api_key=os.getenv(<span class="s">"LLM_API_KEY"</span>),
+    base_url=os.getenv(<span class="s">"LLM_BASE_URL"</span>, <span class="k">None</span>),
+)
+
+<span class="c"># 2) 创建 Agent，并挂载三个工具</span>
+agent = <span class="f">Agent</span>(
+    llm=llm,
+    tools=[
+        <span class="f">Tool</span>(name=TerminalTool.name),
+        <span class="f">Tool</span>(name=FileEditorTool.name),
+        <span class="f">Tool</span>(name=TaskTrackerTool.name),
+    ],
+)
+
+<span class="c"># 3) 建立会话，工作区设为当前目录</span>
+cwd = os.getcwd()
+conversation = <span class="f">Conversation</span>(agent=agent, workspace=cwd)
+
+<span class="c"># 4) 发送任务并运行</span>
+conversation.<span class="f">send_message</span>(<span class="s">"Write 3 facts about the current project into FACTS.txt."</span>)
+conversation.<span class="f">run</span>()
+<span class="f">print</span>(<span class="s">"All done!"</span>)</pre>
+
+    <pre data-lang="bash"><span class="c"># 运行</span>
+uv run python examples/01_standalone_sdk/01_hello_world.py</pre>
+    <p>你会看到智能体理解请求、探索项目、并创建出包含项目事实的文件。官方仓库还附带 24+ 个示例（自定义工具、激活技能、异步会话等），位于 <code class="inline">examples/01_standalone_sdk/</code>。</p>
+  </section>
+
+  <!-- ============ 7 ARCH ============ -->
+  <section id="arch">
+    <span class="sec-num">07 / 架构</span>
+    <h2 class="sec">SDK 架构剖析</h2>
+    <p class=""><em class="lead">设计哲学：无状态（statelessness）、可组合（composability）、研究与部署之间边界清晰。</em></p>
+    <p>SDK 是 OpenHands 中<strong>「智能体的唯一真理来源」</strong>。GUI、CLI、Cloud 都只是消费 SDK API 的界面——它们从持久化的设置中「水合」出 SDK 组件，再通过 SDK 接口编排执行。这保证了所有形态下配置与默认值的一致性。</p>
+
+    <div class="diagram"><span class="dim">┌─────────────── OpenHands Interfaces ───────────────┐</span>
+<span class="dim">│</span>   <span class="bl">GUI (React)</span>    <span class="bl">CLI (命令行)</span>    <span class="bl">你的自定义客户端</span>   <span class="dim">│</span>
+<span class="dim">└──────┬───────────────┬───────────────┬─────────────┘</span>
+       <span class="dim">└───────────────┼───────────────┘</span>
+                       <span class="dim">▼</span>
+       <span class="hl">┌─────────── Software Agent SDK ───────────┐</span>
+       <span class="hl">│</span>  openhands.sdk + tools + workspace        <span class="hl">│</span>
+       <span class="hl">│</span>  Agent · LLM · Conversation · Events      <span class="hl">│</span>
+       <span class="hl">│</span>  Tools · Workspace · Skill · Security     <span class="hl">│</span>
+       <span class="hl">└──────┬─────────────────────────┬──────────┘</span>
+              <span class="dim">▼</span>                         <span class="dim">▼</span>
+        <span class="gn">LLM Providers</span>            <span class="gn">Runtime Services</span>
+        <span class="dim">OpenAI/Anthropic…</span>       <span class="dim">Docker/Remote API…</span></div>
+
+    <h4>// 四包架构</h4>
+    <p>agent-sdk 被拆分为四个独立的 Python 包：</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>包</th><th>职责</th><th>何时需要</th></tr></thead>
+        <tbody>
+          <tr><td><code>openhands.sdk</code></td><td>核心智能体框架 + 基础工作区类</td><td><strong>始终需要</strong></td></tr>
+          <tr><td><code>openhands.tools</code></td><td>预置工具（bash、文件编辑……）</td><td>可选，提供常用工具</td></tr>
+          <tr><td><code>openhands.workspace</code></td><td>扩展工作区实现（Docker、远程）</td><td>可选，扩展 SDK 基础类</td></tr>
+          <tr><td><code>openhands.agent_server</code></td><td>多用户 API 服务器</td><td>可选，被 workspace 实现使用</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>// 核心组件</h4>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>组件</th><th>作用</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Agent</strong></td><td>实现推理-行动循环</td></tr>
+          <tr><td><strong>Conversation</strong></td><td>管理会话状态与生命周期</td></tr>
+          <tr><td><strong>LLM</strong></td><td>提供商无关的语言模型接口，内置重试与遥测</td></tr>
+          <tr><td><strong>Tool System</strong></td><td>Action / Observation / Tool / Executor 的类型化基类，含 MCP 集成</td></tr>
+          <tr><td><strong>Events</strong></td><td>类型化事件框架（action、observation、用户消息、状态更新等）</td></tr>
+          <tr><td><strong>Workspace</strong></td><td>基础类：Workspace / LocalWorkspace / RemoteWorkspace</td></tr>
+          <tr><td><strong>Skill</strong></td><td>可复用的用户自定义提示，支持触发式激活</td></tr>
+          <tr><td><strong>Condenser</strong></td><td>压缩会话历史以管理 token</td></tr>
+          <tr><td><strong>Security</strong></td><td>执行前对行动进行风险评估与校验</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>所有组件均为<strong>无状态、不可变</strong>，基于类型安全的 Pydantic 模型。</p>
+  </section>
+
+  <!-- ============ 8 LOOP ============ -->
+  <section id="loop">
+    <span class="sec-num">08 / 核心机制</span>
+    <h2 class="sec">推理-行动循环</h2>
+    <p>Agent 的灵魂是 <strong>reasoning-action loop（推理-行动循环）</strong>。它采用<strong>单步执行模型</strong>：每次 <code class="inline">step()</code> 调用只处理一个推理周期，每一步都是原子的、可暂停可恢复的。</p>
+
+    <h4>// 一次 step() 的内部流程</h4>
+    <div class="diagram"><span class="hl">step() 被调用</span>
+   <span class="dim">│</span>
+   <span class="dim">├─</span> 有待确认的 pending 行动？ ──是─→ 执行并返回
+   <span class="dim">│</span>  否
+   <span class="dim">├─</span> 有 Condenser？ ──是─→ <span class="bl">condenser.condense()</span>
+   <span class="dim">│</span>                         <span class="dim">├</span> 返回 View       → 用压缩后的事件继续
+   <span class="dim">│</span>                         <span class="dim">└</span> 返回 Condensation → 发事件并返回
+   <span class="dim">│</span>
+   <span class="dim">├─</span> <span class="hl">查询 LLM</span>（基于事件历史的消息）
+   <span class="dim">│</span>     <span class="dim">└</span> 超出上下文窗口？ ──是─→ 发 CondensationRequest 返回
+   <span class="dim">│</span>
+   <span class="dim">├─</span> 解析响应：
+   <span class="dim">│</span>     <span class="dim">├</span> 工具调用 → 创建 <span class="gn">ActionEvent(s)</span>
+   <span class="dim">│</span>     <span class="dim">└</span> 文本消息 → 创建 MessageEvent 返回
+   <span class="dim">│</span>
+   <span class="dim">├─</span> 需要用户确认？ ──是─→ 状态置 WAITING_FOR_CONFIRMATION 返回
+   <span class="dim">│</span>  否
+   <span class="dim">└─</span> 执行工具 → 创建 <span class="gn">ObservationEvent(s)</span> → 返回</div>
+
+    <p>这个循环的三个关键特征：</p>
+    <ul class="clean">
+      <li><strong>无状态</strong>——Agent 在步骤之间不持有任何可变状态，全部从事件历史读取</li>
+      <li><strong>事件驱动</strong>——读取事件历史，写入新事件，状态即历史</li>
+      <li><strong>可中断</strong>——每一步原子化，可随时暂停/恢复</li>
+    </ul>
+
+    <h4>// 工具的行动-观察模式</h4>
+    <p>所有工具都遵循严格的 <strong>Action → Observation</strong> 模式。LLM 生成 <code class="inline">tool_call</code>，被转换为 ActionEvent；根据是否处于确认模式，要么立即执行、要么暂存为 pending；执行成功产生带结果的 ObservationEvent，失败则产生带错误的 ObservationEvent。</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>执行模式</th><th>行为</th><th>适用场景</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Direct 直接</strong></td><td>立即执行</td><td>开发、可信环境</td></tr>
+          <tr><td><strong>Confirmation 确认</strong></td><td>暂存为 pending，等待用户批准</td><td>高风险行动、生产环境</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>// 安全分析器的风险分级</h4>
+    <p>执行前，Security Analyzer 会评估每个行动的风险等级：</p>
+    <ul class="clean">
+      <li><strong>低风险</strong> → 立即执行</li>
+      <li><strong>中风险</strong> → 记录警告，带监控执行</li>
+      <li><strong>高风险</strong> → 阻断执行，请求用户确认</li>
+    </ul>
+
+    <h4>// Agent Context：技能与提示</h4>
+    <p>Agent 会应用 <code class="inline">AgentContext</code> 来塑造 LLM 行为，其中包含两类技能：</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>技能类型</th><th>激活方式</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td><strong>repo</strong></td><td>始终包含</td><td>项目特定上下文、代码约定</td></tr>
+          <tr><td><strong>knowledge</strong></td><td>触发词 / 模式匹配</td><td>领域知识、特殊行为</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 9 SANDBOX ============ -->
+  <section id="sandbox">
+    <span class="sec-num">09 / 运行时</span>
+    <h2 class="sec">沙箱：代码在哪里执行</h2>
+    <p><strong>沙箱（Sandbox）</strong>是 OpenHands 运行命令、编辑文件、启动服务的环境。在 <strong>V1</strong> 中，这一概念统一称为 sandbox（旧版 V0 称 runtime）。</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>沙箱类型</th><th>说明</th><th>权衡</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Docker</strong> <span class="pill">推荐</span></td><td>在 Docker 容器内运行 agent server</td><td>与宿主机良好隔离</td></tr>
+          <tr><td><strong>Process</strong></td><td>作为宿主机普通进程运行</td><td>不安全但快，无容器隔离</td></tr>
+          <tr><td><strong>Remote</strong></td><td>在远程环境运行</td><td>用于托管部署与部分云端方案</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>在某些部署中，沙箱选择仍由历史遗留的 <code class="inline">RUNTIME</code> 环境变量控制：</p>
+    <pre data-lang="bash">RUNTIME=docker    <span class="c"># 默认</span>
+RUNTIME=process   <span class="c"># 旧称 RUNTIME=local</span>
+RUNTIME=remote</pre>
+
+    <div class="callout note">
+      <span class="lbl">术语提示</span>
+      <p>V1 的用户层术语是 <strong>sandbox</strong>，但配置开关在迁移过程中可能仍叫 <code class="inline">RUNTIME</code>。看到旧文档里的 "runtime" 时，把它理解为 sandbox 即可。</p>
+    </div>
+  </section>
+
+  <!-- ============ 10 DEPLOY ============ -->
+  <section id="deploy">
+    <span class="sec-num">10 / 部署</span>
+    <h2 class="sec">三种部署模式</h2>
+    <p>SDK 最优雅的设计之一：<strong>同一份智能体代码，只需替换 workspace 类型，就能在三种环境间切换</strong>——<code class="inline">LocalWorkspace</code> → <code class="inline">DockerWorkspace</code> → <code class="inline">RemoteAPIWorkspace</code>。</p>
+
+    <h3>模式一 · 本地开发</h3>
+    <p>只装 <code class="inline">openhands-sdk</code> + <code class="inline">openhands-tools</code>。<code class="inline">LocalWorkspace</code> 已内置无需额外安装，一切在单进程内运行。适合原型与简单用例，无需 Docker，启动飞快。</p>
+
+    <h3>模式二 · 生产 / 沙箱化</h3>
+    <p>安装全部 4 个包。<code class="inline">RemoteWorkspace</code> 会在容器中自动拉起 agent-server，提供沙箱化执行、多用户部署与分布式（如 Kubernetes）支持。</p>
+
+    <div class="diagram"><span class="hl">DockerWorkspace</span>  <span class="dim">extends</span> RemoteWorkspace  ─spawns─→  <span class="gn">agent_server</span> (容器内)
+<span class="hl">RemoteAPIWorkspace</span> <span class="dim">extends</span> RemoteWorkspace  ─HTTP──→   <span class="gn">agent_server</span> (远程)
+                                                  <span class="dim">│</span>
+                                                  <span class="dim">└─runs─→</span> <span class="bl">Agent → Tools</span></div>
+
+    <div class="callout tip">
+      <span class="lbl">关键点</span>
+      <p>Agent Server 是基于 <strong>FastAPI + WebSocket</strong> 的 HTTP 服务器，提供会话、bash、文件、事件、桌面、VSCode 等 REST/WS 端点，带按用户隔离的会话管理与 API Key 认证。它既可在容器内运行（DockerWorkspace），也可作为独立进程被 RemoteWorkspace 连接。</p>
+    </div>
+
+    <p>工具运行在 workspace 所配置的环境里（本地/容器/远程），它们与 agent <strong>并肩运行</strong>，而非「穿过」workspace API——这是理解隔离边界的要点。</p>
+  </section>
+
+  <!-- ============ 11 EXTEND ============ -->
+  <section id="extend">
+    <span class="sec-num">11 / 扩展</span>
+    <h2 class="sec">技能 · 自定义工具 · MCP</h2>
+    <p>OpenHands 的可扩展性主要通过三条路径展开：</p>
+
+    <h3>Skills 技能</h3>
+    <p>技能是<strong>特化的提示词</strong>，为智能体注入领域知识、专家指导与自动化任务处理能力。分层体系包括：</p>
+    <ul class="clean">
+      <li><strong>Repo 技能</strong>——仓库级通用指南，让 OpenHands 更高效地与代码库协作（始终激活）</li>
+      <li><strong>Keyword-Triggered 关键词触发技能</strong>——当提示中出现特定关键词时激活，适合针对某工具/语言/框架定制行为</li>
+      <li><strong>Organization / User 技能</strong>——应用于组织或用户名下所有仓库</li>
+      <li><strong>Global 全局技能</strong>——对所有用户生效，官方注册表维护在 <code class="inline">github.com/OpenHands/extensions</code></li>
+    </ul>
+    <p>也可用 <strong>File-Based Agents</strong>——以带 YAML frontmatter 的 Markdown 文件定义子智能体，无需写 Python。</p>
+
+    <h3>Custom Tools 自定义工具</h3>
+    <p>工具定义了智能体「能做什么」。SDK 内置常用工具，也支持为特化需求创建自定义工具。所有工具遵循统一的 <strong>Action / Observation / Executor</strong> 模式，内建校验、错误处理与安全机制。</p>
+
+    <h3>MCP（Model Context Protocol）</h3>
+    <p>MCP 让智能体能<strong>动态集成来自外部服务器的工具</strong>——agent 可自动发现并使用 MCP 提供的工具。在 CLI 里可用命令面板查看 MCP 状态并管理 MCP 服务器；在 SDK 里通过配置接入。这是把 OpenHands 接入 Asana、Gmail、Salesforce 等外部生态的标准方式。</p>
+
+    <h3>Sub-Agent Delegation 子智能体委派</h3>
+    <p>通过把工作委派给多个独立运行的子智能体来实现<strong>并行任务执行</strong>，再汇总结果返回父智能体。配合 Task Tool Set，可把复杂工作分解给同步运行的特化子智能体。这对多智能体编排尤为关键。</p>
+  </section>
+
+  <!-- ============ 12 USECASES ============ -->
+  <section id="usecases">
+    <span class="sec-num">12 / 场景</span>
+    <h2 class="sec">典型应用场景</h2>
+    <p>OpenHands 官方梳理了一批适合智能体接管的工程任务类型：</p>
+    <div class="cards">
+      <div class="card"><div class="ico">⚙</div><h4>自动化 PR 评审</h4><p>用智能体生成有意义的 Pull Request 评审意见，自动分配 reviewer。</p></div>
+      <div class="card"><div class="ico">⬆</div><h4>依赖升级</h4><p>自动化依赖更新与版本升级，处理破坏性变更。</p></div>
+      <div class="card"><div class="ico">🛡</div><h4>漏洞修复</h4><p>识别并修复代码库中的安全漏洞。</p></div>
+      <div class="card"><div class="ico">🔥</div><h4>事故排查</h4><p>调查与解决生产环境事故。</p></div>
+      <div class="card"><div class="ico">📜</div><h4>COBOL 现代化</h4><p>将遗留 COBOL 系统迁移现代化。</p></div>
+      <div class="card"><div class="ico">✦</div><h4>Spark 迁移</h4><p>迁移 Apache Spark 应用。</p></div>
+    </div>
+    <p>此外还可通过 <strong>GitHub Action</strong> 把 OpenHands 嵌入 CI，或用 <strong>Automations</strong> 创建定时 / 事件触发（GitHub 事件或自定义 webhook）的自动化任务。</p>
+
+    <div class="callout note">
+      <span class="lbl">何时该用 OpenHands</span>
+      <p>它最擅长<strong>定义清晰、可验证、范围可控</strong>的工程任务——修 bug、写测试、重构、升级依赖。对于高度模糊、需要大量产品判断或跨团队沟通的工作，仍需人类主导，把它当作放大器而非替代品。</p>
+    </div>
+  </section>
+
+  <!-- ============ 13 TIPS ============ -->
+  <section id="tips">
+    <span class="sec-num">13 / 实践</span>
+    <h2 class="sec">提示词最佳实践</h2>
+    <p>智能体的产出质量，极大程度取决于你给出的指令质量。官方「好指令 vs 坏指令」的核心原则可以浓缩为：</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>维度</th><th>❌ 坏指令</th><th>✅ 好指令</th></tr></thead>
+        <tbody>
+          <tr><td>具体性</td><td>"修一下登录"</td><td>"修复 auth.py 中 token 过期后未刷新导致 401 的问题"</td></tr>
+          <tr><td>可验证</td><td>"让它更快"</td><td>"为 parse() 添加单测，并确保 pytest 全绿"</td></tr>
+          <tr><td>范围</td><td>"重构整个项目"</td><td>"仅重构 utils/ 目录，保持公共 API 不变"</td></tr>
+          <tr><td>上下文</td><td>（无背景）</td><td>"项目用 FastAPI + SQLAlchemy，遵循现有目录约定"</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ul class="clean">
+      <li><strong>给出明确的成功标准</strong>——告诉智能体「怎样算完成」，它就能自我验证</li>
+      <li><strong>提供可执行的检查手段</strong>——测试命令、lint 规则，让它能闭环</li>
+      <li><strong>用 <code>.openhands</code> 目录定制仓库行为</strong>——在仓库根放置约定、技能与上下文</li>
+      <li><strong>善用 Hooks</strong>——拦截危险命令、在停止前强制质量检查、注入上下文</li>
+      <li><strong>分解大任务</strong>——把宏大目标拆成一系列范围清晰的子任务，逐个交付</li>
+    </ul>
+  </section>
+
+  <!-- ============ 14 SUMMARY ============ -->
+  <section id="summary">
+    <span class="sec-num">14 / 收尾</span>
+    <h2 class="sec">总结与资源</h2>
+    <p>把这篇教程压缩成一句话：<strong>OpenHands 是一个以无状态、事件驱动的推理-行动循环为核心的开源智能体框架，SDK 是唯一真理来源，CLI / GUI / Cloud / Enterprise 是它的不同消费界面，沙箱决定代码在哪里安全执行。</strong></p>
+
+    <h4>// 学习路径建议</h4>
+    <div class="diagram"><span class="gn">入门</span>   Cloud 试用 或 <span class="hl">openhands</span> CLI → 跑通第一个任务
+  <span class="dim">↓</span>
+<span class="gn">理解</span>   SDK Hello World → 弄清 Agent/Tool/Workspace/Conversation
+  <span class="dim">↓</span>
+<span class="gn">深入</span>   读架构文档 → 推理-行动循环 + 四包架构 + 沙箱
+  <span class="dim">↓</span>
+<span class="gn">扩展</span>   自定义工具 / 技能 / MCP → 子智能体委派
+  <span class="dim">↓</span>
+<span class="gn">生产</span>   切换 DockerWorkspace / RemoteWorkspace → 多智能体编排</div>
+
+    <h4>// 官方资源</h4>
+    <ul class="clean">
+      <li>文档主站 · <a href="https://docs.openhands.dev/overview/introduction">docs.openhands.dev</a></li>
+      <li>LLM 友好文档索引 · <a href="https://docs.openhands.dev/llms.txt">docs.openhands.dev/llms.txt</a></li>
+      <li>Software Agent SDK 源码 · <a href="https://github.com/OpenHands/software-agent-sdk">github.com/OpenHands/software-agent-sdk</a></li>
+      <li>OpenHands 主仓库 · <a href="https://github.com/OpenHands/OpenHands">github.com/OpenHands/OpenHands</a></li>
+      <li>全局技能注册表 · <a href="https://github.com/OpenHands/extensions">github.com/OpenHands/extensions</a></li>
+      <li>云端免费试用 · <a href="https://app.all-hands.dev">app.all-hands.dev</a></li>
+      <li>社区 Slack · <a href="https://openhands.dev/joinslack">openhands.dev/joinslack</a></li>
+    </ul>
+  </section>
+
+  <footer>
+    <div class="mark">— 用 AI 编织代码 —</div>
+    <p style="font-size:14px;max-width:560px;margin:0 auto;">本教程基于 OpenHands 官方文档（V1）整理，涵盖产品矩阵、CLI、SDK、架构、沙箱与扩展机制。具体命令与版本号请以官方文档最新版为准。</p>
+    <div class="links">OpenHands · MIT License · AI-Driven Development Community</div>
+  </footer>
+
+</div>
+</body>
+</html>

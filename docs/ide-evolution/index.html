@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从 Cursor 到 Qoder：AI 编程界面的四次范式迁移</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f5f0e6;
+    --paper-2: #efe7d6;
+    --ink: #2a2317;
+    --ink-soft: #5a5040;
+    --rule: #d8cdb5;
+    --accent: #b8482e;       /* 砖红 */
+    --accent-2: #c8841f;     /* 赭黄 */
+    --accent-3: #3f6b4f;     /* 墨绿 */
+    --accent-4: #2f5a7a;     /* 蓝 */
+    --card: #fbf7ed;
+    --shadow: rgba(60,48,28,0.12);
+    --mono: 'JetBrains Mono', monospace;
+    --serif-en: 'Fraunces', 'Noto Serif SC', serif;
+    --serif-cn: 'Noto Serif SC', 'Fraunces', serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(200,132,31,0.05), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(184,72,46,0.05), transparent 40%);
+    color: var(--ink);
+    font-family: var(--serif-cn);
+    line-height: 1.85;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  /* grain overlay */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    opacity: 0.4; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  }
+  .wrap { position: relative; z-index: 2; max-width: 820px; margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- HERO ---------- */
+  header.hero {
+    padding: 92px 0 56px;
+    border-bottom: 2px solid var(--ink);
+    position: relative;
+  }
+  .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.32em;
+    text-transform: uppercase; color: var(--accent);
+    display: flex; align-items: center; gap: 14px; margin-bottom: 30px;
+  }
+  .kicker::after { content:""; flex:1; height:1px; background: var(--rule); }
+  h1.title {
+    font-family: var(--serif-en); font-weight: 900;
+    font-size: clamp(38px, 7vw, 70px); line-height: 1.02;
+    letter-spacing: -0.015em; color: var(--ink); margin-bottom: 26px;
+  }
+  h1.title .em { font-style: italic; font-weight: 500; color: var(--accent); }
+  .standfirst {
+    font-size: 19px; color: var(--ink-soft); max-width: 620px;
+    border-left: 3px solid var(--accent-2); padding-left: 20px; font-style: italic;
+  }
+  .byline {
+    margin-top: 34px; font-family: var(--mono); font-size: 12.5px;
+    color: var(--ink-soft); display:flex; gap: 22px; flex-wrap: wrap;
+  }
+  .byline span b { color: var(--ink); font-weight: 700; }
+
+  /* ---------- SECTION ---------- */
+  section { padding: 52px 0; border-bottom: 1px solid var(--rule); }
+  .sec-num {
+    font-family: var(--mono); font-size: 13px; color: var(--accent);
+    letter-spacing: 0.2em; margin-bottom: 12px;
+  }
+  h2 {
+    font-family: var(--serif-en); font-weight: 700;
+    font-size: clamp(26px, 4vw, 36px); line-height: 1.15;
+    color: var(--ink); margin-bottom: 26px; letter-spacing: -0.01em;
+  }
+  h3 {
+    font-family: var(--serif-cn); font-weight: 700; font-size: 20px;
+    margin: 32px 0 14px; color: var(--ink);
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  h3::before {
+    content: ""; width: 9px; height: 9px; flex: none;
+    background: var(--accent); transform: rotate(45deg);
+  }
+  p { margin-bottom: 18px; font-size: 17.5px; }
+  p.lead { font-size: 19px; }
+  strong { font-weight: 700; color: var(--ink); }
+  em { color: var(--accent); font-style: italic; }
+  a { color: var(--accent-4); }
+
+  ul { margin: 0 0 20px; padding-left: 0; list-style: none; }
+  ul li {
+    position: relative; padding-left: 30px; margin-bottom: 13px; font-size: 17px;
+  }
+  ul li::before {
+    content: "—"; position: absolute; left: 0; top: 0;
+    color: var(--accent-2); font-family: var(--mono); font-weight: 700;
+  }
+  ul li strong { color: var(--ink); }
+
+  /* blockquote / pull */
+  blockquote {
+    margin: 30px 0; padding: 22px 26px;
+    background: var(--card); border-left: 4px solid var(--accent);
+    box-shadow: 0 4px 20px var(--shadow); font-style: italic;
+    font-size: 18px; color: var(--ink-soft); position: relative;
+  }
+  blockquote::before {
+    content: "“"; font-family: var(--serif-en); font-size: 70px;
+    color: var(--accent-2); opacity: 0.25; position: absolute;
+    top: -8px; left: 8px; line-height: 1;
+  }
+
+  /* ---------- TABLE ---------- */
+  .table-wrap { overflow-x: auto; margin: 28px 0; border: 1px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--accent-2); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; background: var(--card); }
+  th, td { text-align: left; padding: 13px 15px; border-bottom: 1px solid var(--rule);
+    font-size: 14.5px; vertical-align: top; }
+  th { background: var(--ink); color: var(--paper); font-family: var(--mono);
+    font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
+  td:first-child { font-weight: 700; color: var(--accent); white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--paper-2); }
+
+  /* ---------- STAGE CARD ---------- */
+  .stage {
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 2px; padding: 4px 0 0; margin: 30px 0;
+    box-shadow: 0 6px 24px var(--shadow); overflow: hidden;
+  }
+  .stage-bar { height: 5px; }
+  .stage-1 .stage-bar { background: var(--accent-4); }
+  .stage-2 .stage-bar { background: var(--accent); }
+  .stage-3 .stage-bar { background: var(--accent-2); }
+  .stage-4 .stage-bar { background: var(--accent-3); }
+  .stage-head { display:flex; align-items:baseline; gap:14px; padding: 20px 26px 6px; flex-wrap: wrap;}
+  .stage-head .idx { font-family: var(--mono); font-weight:700; font-size: 13px; padding: 3px 9px; color: #fff; border-radius: 2px;}
+  .stage-1 .idx { background: var(--accent-4);} .stage-2 .idx { background: var(--accent);}
+  .stage-3 .idx { background: var(--accent-2);} .stage-4 .idx { background: var(--accent-3);}
+  .stage-head .name { font-family: var(--serif-en); font-weight: 700; font-size: 24px; }
+  .stage-head .meta { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); }
+  .stage-body { padding: 4px 26px 24px; }
+
+  /* ---------- CODE / DIAGRAM ---------- */
+  pre {
+    background: #221d14; color: #e8dcc3; font-family: var(--mono);
+    font-size: 13px; line-height: 1.7; padding: 22px 24px; margin: 26px 0;
+    overflow-x: auto; border-radius: 3px; border: 1px solid #3a3122;
+    box-shadow: 0 8px 28px var(--shadow);
+  }
+  pre .c-accent { color: #e8a23d; } pre .c-red { color: #e57a5e; }
+  pre .c-green { color: #7fb88f; } pre .c-mut { color: #8a7d63; }
+
+  /* threadline SVG block */
+  .svg-block { margin: 30px 0; text-align:center; }
+
+  /* footer */
+  footer { padding: 50px 0 90px; }
+  .note { font-family: var(--mono); font-size: 12.5px; color: var(--ink-soft);
+    background: var(--paper-2); padding: 16px 20px; border-radius: 3px;
+    border: 1px dashed var(--rule); }
+  .endmark { text-align:center; font-family: var(--serif-en); font-style: italic;
+    color: var(--accent); font-size: 22px; margin: 40px 0 0; }
+
+  /* reveal animation */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (max-width: 600px) {
+    h3 { font-size: 18px; } p { font-size: 16.5px; }
+    .standfirst { font-size: 17px; }
+    .stage-head .name { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker">AI Coding · 工具演进观察</div>
+    <h1 class="title">从 Cursor 到 Qoder<br>AI 编程界面的<span class="em">四次</span>范式迁移</h1>
+    <p class="standfirst">从「补全」到「对话」，从「终端 Agent」到「带知识库的自主工作台」——每一次界面的变化，背后都是 Agent 能力边界的一次扩张。</p>
+    <div class="byline">
+      <span>FOR · <b>Bayes</b></span>
+      <span>SCOPE · <b>Cursor → Claude Code → Codex → Qoder</b></span>
+      <span>READ · <b>~9 min</b></span>
+    </div>
+  </header>
+
+  <section class="reveal">
+    <div class="sec-num">§ 01</div>
+    <h2>为什么要从「界面」这个角度看演进</h2>
+    <p class="lead">讨论 AI 编程工具时，大家习惯比模型分数（SWE-bench）、比上下文窗口、比价格。但有一个更被低估的维度：<strong>界面（surface）本身就是产品哲学的物化</strong>。</p>
+    <p>界面决定了三件事：</p>
+    <ul>
+      <li><strong>人和 Agent 的协作姿态</strong>：是你主导、AI 补全？还是你定义目标、AI 自主执行？</li>
+      <li><strong>上下文的进出方式</strong>：Agent 看到多少、记住多少、跨会话保留多少？</li>
+      <li><strong>信任的让渡程度</strong>：你愿意把多大粒度的任务交出去？</li>
+    </ul>
+    <p>把这四款工具按时间线排开，你会发现界面的每一次跳变，都对应着一次<em>「自主性边界」的右移</em>。这不是巧合，而是一条清晰的演进主线。</p>
+  </section>
+
+  <section class="reveal">
+    <div class="sec-num">§ 02</div>
+    <h2>四个阶段，一条主线</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>阶段</th><th>代表工具</th><th>界面形态</th><th>协作姿态</th><th>核心隐喻</th></tr></thead>
+        <tbody>
+          <tr><td>1. AI-Native 编辑器</td><td>Cursor</td><td>VS Code fork，AI 嵌入编辑器</td><td>人主导，AI 增强</td><td>会读代码的智能编辑器</td></tr>
+          <tr><td>2. 终端 Agent</td><td>Claude Code</td><td>CLI / 终端</td><td>人定义任务，AI 自主执行</td><td>住在终端里的工程师</td></tr>
+          <tr><td>3. 嵌入式 + 云端</td><td>Codex</td><td>IDE 侧边栏 + 云端沙箱</td><td>同步对话 + 异步委托</td><td>随叫随到的并行工兵</td></tr>
+          <tr><td>4. 自主工作台</td><td>Qoder</td><td>独立工作台 + 知识库 + 记忆层</td><td>AI 自主交付，人审查</td><td>读过你全部代码的资深同事</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <blockquote>界面从「辅助你写代码的地方」，逐步变成「托管 Agent 替你写代码的地方」。</blockquote>
+  </section>
+
+  <section class="reveal">
+    <div class="sec-num">§ 03</div>
+    <h2>阶段一 · Cursor：把 AI 焊进编辑器</h2>
+    <div class="stage stage-1">
+      <div class="stage-bar"></div>
+      <div class="stage-head"><span class="idx">01</span><span class="name">Cursor</span><span class="meta">VS Code fork · AI-native editor</span></div>
+      <div class="stage-body">
+        <h3>形态</h3>
+        <p>Cursor 是一个 VS Code 的 fork，把 AI 能力深度重写进编辑器本身，而不是作为插件挂在边上。</p>
+        <ul>
+          <li><strong>极速补全</strong>：收购 Supermaven 后，补全延迟做到 100ms 以内，常常在你打完第一行之前就补出整段代码块。</li>
+          <li><strong>Composer / 多文件编辑</strong>：用自然语言描述跨文件改动，先预览 diff 再应用。</li>
+          <li><strong>Inline Chat</strong>：选中代码就地提问，不用切窗口。</li>
+        </ul>
+        <h3>哲学</h3>
+        <p>Cursor 的核心假设是：<strong>程序员依然坐在驾驶位上</strong>。AI 是一个反应极快的副驾——它让「写代码」进入心流状态，但主导权牢牢握在人手里。终端类工具很难复现这种贴身的编辑流畅感。</p>
+        <h3>局限</h3>
+        <p>正因为它围绕「编辑器光标」构建，早期视野半径有限——擅长「此处此刻」的增强，但对「让 AI 独立跑完一个跨越数小时的任务」并不是为之设计的。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="sec-num">§ 04</div>
+    <h2>阶段二 · Claude Code：Agent 搬进终端</h2>
+    <div class="stage stage-2">
+      <div class="stage-bar"></div>
+      <div class="stage-head"><span class="idx">02</span><span class="name">Claude Code</span><span class="meta">2025.05 · terminal-native agent</span></div>
+      <div class="stage-body">
+        <h3>形态</h3>
+        <p>2025 年 5 月，Anthropic 发布 Claude Code，选择了一条和 Cursor 截然相反的路：<strong>不做编辑器，做终端 Agent</strong>。发布后它迅速成为开发者中使用率最高的 AI 编程工具，在多份调查中超过了 GitHub Copilot 和 Cursor。</p>
+        <ul>
+          <li><strong>终端原生</strong>：活在 CLI 里，靠长上下文推理（百万级 token 窗口）一次性吃下整个代码库。</li>
+          <li><strong>自主探索</strong>：早期版本就能自己探索代码库、收集信息、独立实现多个组件，而不只是「在旁边补全」。</li>
+          <li><strong>CLAUDE.md 约定</strong>：用一个项目级指令文件约束 Agent 行为，把「规则」固化进仓库。</li>
+          <li><strong>审批驱动</strong>：偏向「执行前先确认」，适合大型代码库——Agent 动手前要在脑子里装下很多东西。</li>
+        </ul>
+        <h3>哲学</h3>
+        <p>这是第一次明确的姿态转变：<em>从「AI 增强人」到「人定义任务、AI 自主执行」</em>。界面退回到最朴素的终端，恰恰因为重点不再是「编辑体验」，而是「把任务交给一个能自己干活的 Agent」。</p>
+        <p>许多 Cursor 重度用户开始引入 Claude Code——一个常见工作流是「分屏」：终端开着 Claude Code 驱动工作，旁边编辑器用来 review。这恰好说明两种形态是互补的，不是替代。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="sec-num">§ 05</div>
+    <h2>阶段三 · Codex：嵌入式 UI + 云端异步</h2>
+    <div class="stage stage-3">
+      <div class="stage-bar"></div>
+      <div class="stage-head"><span class="idx">03</span><span class="name">Codex</span><span class="meta">2025.04 CLI · 05.16 Cloud · IDE 扩展</span></div>
+      <div class="stage-body">
+        <h3>形态</h3>
+        <p>OpenAI 的 Codex 走了「两头都要」的路线。2025 年 4 月以 Codex CLI 起步，5 月 16 日推出 Codex Cloud 研究预览，随后铺开 CLI、网页、桌面 App、IDE 扩展多个 surface。其中 <strong>IDE 扩展</strong> 是大多数开发者最先接触的形态，UI 很有代表性：</p>
+        <ul>
+          <li><strong>侧边栏面板</strong>：VS Code 里默认在右侧边栏；同时兼容 Cursor、Windsurf 等 fork 及 JetBrains 系列。</li>
+          <li><strong>聊天面板紧贴代码</strong>：对话面板放在代码旁，用 <code style="font-family:var(--mono);color:var(--accent)">@文件名</code> 引用上下文，更短的 prompt 拿更相关的结果。</li>
+          <li><strong>模式切换器</strong>：输入框下方的 mode switcher，是它最重要的 UX 决策——在「同步对话」与「委托云端异步执行」之间切换。</li>
+          <li><strong>本地 + 云端混合</strong>：既可在 IDE 同步对话，也可把复杂任务甩给 Codex Cloud 沙箱在后台跑。</li>
+        </ul>
+        <h3>哲学</h3>
+        <p>Codex 的界面贡献在于：<strong>它把「同步副驾」和「异步委托」缝进了同一个面板</strong>。你既能像用 Cursor 一样就地对话，也能像用 Claude Code 一样把长任务交出去——只是这次任务跑在云端沙箱，而非你的终端。</p>
+        <p>到 2026 年 3 月，Codex 周活已超 200 万，OpenAI 开始把它定位成更广义的企业 Agent 平台。这套「嵌入式面板 + 模式切换 + 云端执行」的范式，成了后来者的重要参照。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="sec-num">§ 06</div>
+    <h2>阶段四 · Qoder：自主工作台 + 知识库 + 记忆层</h2>
+    <div class="stage stage-4">
+      <div class="stage-bar"></div>
+      <div class="stage-head"><span class="idx">04</span><span class="name">Qoder</span><span class="meta">2025.08 全球版 · 2026.05 v1.0</span></div>
+      <div class="stage-body">
+        <h3>形态</h3>
+        <p>阿里的 Qoder 代表了最新的一跳。它同样是 VS Code 系改造而来，<strong>在 UI 形态上明显借鉴了 Codex 那套「嵌入式面板 + 异步任务」范式</strong>——但关键不在于抄了界面，而在于它往这套界面里<em>灌入了自己的知识库和记忆层</em>。</p>
+        <blockquote>Qoder 借了 Codex 的 UI 骨架，填的是自己的「上下文工程」血肉。</blockquote>
+        <h3>差异化能力</h3>
+        <ul>
+          <li><strong>仓库级上下文 / 代码图谱</strong>：通过规则、记忆、代码图谱、索引四根支柱解析代码库，一次可检索约 10 万个代码文件，让 AI 真正「理解」项目而非只「看到」光标附近几十行。</li>
+          <li><strong>会成长的记忆层</strong>：把个人风格、团队规范、业务规则持续累积，换项目、换电脑也能同步——这是对 Claude Code「CLAUDE.md」约定的一次产品化升维。</li>
+          <li><strong>Quest Mode 异步代理</strong>：把「升级依赖、批量重构、跑测试、提 PR」这类跨小时甚至跨天的任务托管后台，完成后推送结果。</li>
+          <li><strong>从「模式」升级为「独立工作台」</strong>：1.0 里 Quest 升级成独立视窗，集成任务管理、状态追踪、产物追查；并行范围扩展到跨项目、跨代码库——多个 Workspace 同时跑不同 Agent 任务，各有独立状态标签（运行中 / 等待确认 / 已完成）。</li>
+          <li><strong>自定义专家团队</strong>：可创建专属 Agent 团队，配置领域知识、任务技能与外部工具接口。</li>
+        </ul>
+        <h3>哲学</h3>
+        <p>如果说 Codex 是「在编辑器里塞进一个能委托任务的面板」，那么 Qoder 的野心是<strong>把整个 IDE 升级成一个 Agent 自主交付的工作台</strong>——开发者定义目标，执行、验证、交付都在工作台内由 Agent 完成。</p>
+        <p>它真正想解决的，是前三代共同的痛点：<em>记忆是易失的</em>。Cursor 的上下文随光标移动，Claude Code 每次会话归零，Codex 靠你手动 <code style="font-family:var(--mono)">@</code> 引用。Qoder 把「知识库 + 记忆」做成第一公民——这才是它区别于「又一个 VS Code fork」的地方。</p>
+        <h3>局限</h3>
+        <p>代价也很明显：现阶段评测普遍反映 <strong>生成速度偏慢、插件生态相对薄弱</strong>。重的上下文工程是要付出延迟成本的。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="sec-num">§ 07</div>
+    <h2>把四步连起来：演进的三条暗线</h2>
+
+    <h3>暗线 1 · 自主性边界持续右移</h3>
+    <pre><span class="c-mut">Cursor          Claude Code        Codex             Qoder</span>
+人主导          人定义任务         同步+异步委托      AI 自主交付
+<span class="c-accent">AI 补全</span>    →    <span class="c-accent">AI 自主执行</span>   →    <span class="c-accent">云端并行执行</span>   →   <span class="c-accent">工作台托管</span>
+<span class="c-green">(增强)</span>          <span class="c-green">(代理)</span>             <span class="c-green">(委托)</span>            <span class="c-green">(自主)</span></pre>
+    <p>每一步，人让渡给 Agent 的任务粒度都更大。</p>
+
+    <h3>暗线 2 · 界面在「收敛」与「发散」之间摆动</h3>
+    <ul>
+      <li><strong>Cursor</strong>：收进编辑器（一个增强的 IDE）</li>
+      <li><strong>Claude Code</strong>：退回终端（极简，重在能力）</li>
+      <li><strong>Codex</strong>：嵌入侧边栏 + 外溢到云端（一个面板连接本地与云）</li>
+      <li><strong>Qoder</strong>：膨胀成独立工作台（IDE 不再是中心，Agent 任务管理才是）</li>
+    </ul>
+    <p>有意思的是，到 2026 年这几家在能力上正彼此趋同——都支持后台 Agent、都支持 CLI、各自侵入对方腹地。SWE-bench 上的领先分数已挤进很窄的区间，<strong>模型本身正被「降格」为可替换组件，界面与上下文工程反而成了真正的差异化战场。</strong></p>
+
+    <h3>暗线 3 · 记忆，从「易失」走向「持久」</h3>
+    <p>这是贯穿四代最深的一条线。早期工具的「上下文」是临时的、会话级的；到 Qoder 这里，「记忆」第一次被当作需要持久化、可同步、可累积的核心资产来设计。</p>
+    <blockquote>谁掌握了持久化的上下文与记忆，谁就掌握了下一代 AI 编程工具的护城河。</blockquote>
+  </section>
+
+  <section class="reveal">
+    <div class="sec-num">§ 08</div>
+    <h2>结语：界面是 Agent 能力的影子</h2>
+    <p class="lead">回看这条线，规律很清晰：<strong>界面的每一次变形，都是 Agent 自主能力到达某个临界点后的自然外溢。</strong></p>
+    <ul>
+      <li>补全够强了 → 值得做一个 AI-native 编辑器（<strong>Cursor</strong>）</li>
+      <li>能自主执行了 → 编辑器都嫌多余，退回终端（<strong>Claude Code</strong>）</li>
+      <li>既要同步又要异步 → 把两者缝进一个面板，并外接云端（<strong>Codex</strong>）</li>
+      <li>要持久记忆和自主交付 → IDE 升级成工作台（<strong>Qoder</strong>）</li>
+    </ul>
+    <p>下一跳会是什么？多 Agent 编排、跨项目工作区、共享上下文的 Agent 团队——这些 2025 到 2026 陆续出现的形态，都指向同一个方向：<strong>界面正在从「写代码的地方」，彻底变成「指挥一支 Agent 团队的控制台」。</strong></p>
+    <p>而无论界面怎么变，那条暗线始终没变：<em>让人定义意图，让 Agent 承担执行，让记忆把两者连起来。</em></p>
+    <div class="endmark">✦ ✦ ✦</div>
+  </section>
+
+  <footer class="reveal">
+    <p class="note">注：本文涉及的产品时间线与能力描述基于公开资料整理。AI 编程工具迭代极快，具体能力请以各家官方文档为准。</p>
+  </footer>
+
+</div>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach((el, i) => {
+    el.style.transitionDelay = (Math.min(i, 3) * 0.05) + 's';
+    io.observe(el);
+  });
+</script>
+</body>
+</html>

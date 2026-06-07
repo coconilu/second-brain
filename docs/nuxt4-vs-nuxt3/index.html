@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuxt 4 相对于 Nuxt 3 的提升</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Noto+Serif+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d1117;
+  --bg-elev:#161b22;
+  --ink:#e6edf3;
+  --ink-soft:#9da7b3;
+  --line:#262d38;
+  --accent:#00dc82;
+  --accent-dim:#0a8f57;
+  --accent-soft:rgba(0,220,130,.08);
+  --warn:#f0a35e;
+  --code-bg:#0a0e14;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Noto Serif SC',serif;
+  line-height:1.85;
+  font-size:17px;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(0,220,130,.07), transparent 40%),
+    radial-gradient(circle at 90% 10%, rgba(0,220,130,.04), transparent 35%);
+  background-attachment:fixed;
+}
+
+/* ---- Hero ---- */
+.hero{
+  max-width:880px;margin:0 auto;padding:90px 28px 50px;
+  position:relative;
+}
+.kicker{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.78rem;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:22px;
+  display:inline-flex;align-items:center;gap:10px;
+}
+.kicker::before{content:"";width:34px;height:1px;background:var(--accent)}
+h1{
+  font-family:'Fraunces',serif;
+  font-weight:600;
+  font-size:clamp(2.6rem,6vw,4.4rem);
+  line-height:1.05;
+  letter-spacing:-.02em;
+  margin-bottom:26px;
+}
+h1 .v{color:var(--accent);font-style:italic}
+.lede{
+  font-size:1.18rem;color:var(--ink-soft);max-width:62ch;
+  border-left:2px solid var(--accent-dim);padding-left:22px;
+}
+.meta{
+  margin-top:34px;font-family:'JetBrains Mono',monospace;
+  font-size:.8rem;color:var(--ink-soft);
+  display:flex;gap:26px;flex-wrap:wrap;
+}
+.meta span{display:flex;align-items:center;gap:8px}
+.meta .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+
+/* ---- Article ---- */
+article{max-width:880px;margin:0 auto;padding:0 28px 120px}
+section{padding:54px 0;border-top:1px solid var(--line)}
+.section-num{
+  font-family:'JetBrains Mono',monospace;
+  color:var(--accent-dim);font-size:.85rem;letter-spacing:.1em;
+  display:block;margin-bottom:12px;
+}
+h2{
+  font-family:'Fraunces',serif;font-weight:600;
+  font-size:clamp(1.8rem,3.5vw,2.5rem);
+  letter-spacing:-.015em;line-height:1.15;margin-bottom:22px;
+}
+h3{
+  font-family:'Fraunces',serif;font-weight:500;
+  font-size:1.3rem;margin:34px 0 14px;color:var(--ink);
+}
+p{margin-bottom:18px;color:#cdd5df}
+p.tight{margin-bottom:8px}
+strong{color:var(--ink);font-weight:600}
+em.hl{color:var(--accent);font-style:normal;font-weight:600}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-dim)}
+a:hover{background:var(--accent-soft)}
+
+/* ---- Code ---- */
+pre{
+  background:var(--code-bg);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:22px 24px;margin:22px 0;
+  overflow-x:auto;position:relative;
+}
+pre::before{
+  content:attr(data-lang);
+  position:absolute;top:10px;right:16px;
+  font-family:'JetBrains Mono',monospace;font-size:.68rem;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft);
+}
+code{font-family:'JetBrains Mono',monospace;font-size:.86rem;line-height:1.7}
+pre code{color:#c9d1d9}
+.c-com{color:#6e7781}
+.c-dir{color:var(--accent)}
+.c-key{color:#ff7b72}
+p code,li code{
+  font-family:'JetBrains Mono',monospace;font-size:.84em;
+  background:var(--bg-elev);padding:2px 7px;border-radius:5px;
+  color:var(--accent);border:1px solid var(--line);
+}
+
+/* ---- Feature cards ---- */
+.pillars{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:30px 0}
+.pillar{
+  background:var(--bg-elev);border:1px solid var(--line);
+  border-radius:12px;padding:24px;transition:.25s;
+  position:relative;overflow:hidden;
+}
+.pillar::after{
+  content:"";position:absolute;inset:0;border-radius:12px;
+  background:linear-gradient(135deg,var(--accent-soft),transparent 60%);
+  opacity:0;transition:.25s;pointer-events:none;
+}
+.pillar:hover{border-color:var(--accent-dim);transform:translateY(-3px)}
+.pillar:hover::after{opacity:1}
+.pillar .ico{font-size:1.5rem;margin-bottom:10px}
+.pillar h4{font-family:'Fraunces',serif;font-size:1.15rem;font-weight:600;margin-bottom:8px}
+.pillar p{font-size:.92rem;color:var(--ink-soft);margin:0}
+
+/* ---- Comparison table ---- */
+.table-wrap{overflow-x:auto;margin:26px 0;border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:.92rem;min-width:560px}
+th,td{padding:15px 18px;text-align:left;border-bottom:1px solid var(--line)}
+thead th{
+  background:var(--code-bg);font-family:'JetBrains Mono',monospace;
+  font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);
+  font-weight:500;
+}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--accent-soft)}
+td:first-child{font-weight:600;color:var(--ink)}
+.tag-v3{color:var(--ink-soft)}
+.tag-v4{color:var(--accent)}
+
+/* ---- Callout ---- */
+.callout{
+  background:linear-gradient(135deg,var(--accent-soft),transparent);
+  border:1px solid var(--accent-dim);border-radius:12px;
+  padding:22px 26px;margin:26px 0;
+}
+.callout .lbl{
+  font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:8px;display:block;
+}
+.callout p{margin:0;color:#cdd5df}
+
+ul{margin:0 0 18px;padding-left:0;list-style:none}
+ul li{position:relative;padding-left:26px;margin-bottom:11px;color:#cdd5df}
+ul li::before{
+  content:"›";position:absolute;left:6px;top:-1px;
+  color:var(--accent);font-weight:700;font-size:1.1rem;
+}
+
+/* ---- Footer ---- */
+footer{
+  max-width:880px;margin:0 auto;padding:40px 28px 70px;
+  border-top:1px solid var(--line);
+  font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--ink-soft);
+}
+footer a{font-size:.8rem}
+
+@media(max-width:680px){
+  body{font-size:16px}
+  .pillars{grid-template-columns:1fr}
+  .hero{padding:60px 22px 36px}
+  article{padding:0 22px 80px}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <span class="kicker">Vue 元框架 · 版本演进</span>
+  <h1>从 Nuxt 3 到 <span class="v">Nuxt 4</span>：一次克制而深思的进化</h1>
+  <p class="lede">Nuxt 4 不是一次推倒重来，而是在 Nuxt 3 坚实基础上的精修——更清晰的项目结构、更聪明的数据获取、更可靠的类型系统，以及肉眼可见的开发速度提升。</p>
+  <div class="meta">
+    <span><i class="dot"></i>正式发布 2025.07.15</span>
+    <span><i class="dot"></i>当前版本 v4.x</span>
+    <span><i class="dot"></i>阅读约 8 分钟</span>
+  </div>
+</header>
+
+<article>
+
+<section>
+  <span class="section-num">01 / 总览</span>
+  <h2>「进化」而非「革命」</h2>
+  <p>当年从 Nuxt 2 到 Nuxt 3 是一次彻底的重写——引入 Nitro 服务引擎、自动导入、原生 TypeScript 支持。而 <strong>Nuxt 4 走的是另一条路线</strong>：它把过去一年通过 Nuxt 3 小版本陆续放出的改进沉淀下来，作为新的默认行为。</p>
+  <p>官方将其定位为<em class="hl">以稳定性为核心的大版本</em>，引入少量必要的破坏性变更以换取更好的开发体验。绝大多数 Nuxt 3 项目只需简单升级即可平滑迁移。整体围绕四大支柱展开：</p>
+
+  <div class="pillars">
+    <div class="pillar">
+      <div class="ico">🗂️</div>
+      <h4>更清晰的结构</h4>
+      <p>新的 <code>app/</code> 目录，应用代码与配置、依赖彻底分离。</p>
+    </div>
+    <div class="pillar">
+      <div class="ico">🔄</div>
+      <h4>更聪明的数据获取</h4>
+      <p>统一 <code>useFetch</code> / <code>useAsyncData</code> 行为，自动共享与清理。</p>
+    </div>
+    <div class="pillar">
+      <div class="ico">🔧</div>
+      <h4>更好的类型体验</h4>
+      <p>按上下文拆分 TS 工程，自动补全更准、报错更少。</p>
+    </div>
+    <div class="pillar">
+      <div class="ico">⚡</div>
+      <h4>更快的 CLI 与开发</h4>
+      <p>冷启动更快，套接字通信替代网络端口，HMR 更可靠。</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <span class="section-num">02 / 项目结构</span>
+  <h2>全新的 <code>app/</code> 目录布局</h2>
+  <p>最直观的变化是项目组织方式。在 Nuxt 4 中，你的应用代码默认存放在 <code>app/</code> 目录下：</p>
+
+  <pre data-lang="目录结构"><code>my-nuxt-app/
+├─ <span class="c-dir">app/</span>            <span class="c-com"># ← 应用代码全部内聚于此</span>
+│  ├─ assets/
+│  ├─ components/
+│  ├─ composables/
+│  ├─ layouts/
+│  ├─ middleware/
+│  ├─ pages/
+│  ├─ plugins/
+│  ├─ utils/
+│  ├─ app.vue
+│  ├─ app.config.ts
+│  └─ error.vue
+├─ content/
+├─ public/
+├─ shared/          <span class="c-com"># ← 前后端共享代码</span>
+├─ server/          <span class="c-com"># ← 服务端代码</span>
+└─ nuxt.config.ts</code></pre>
+
+  <p>这样设计的好处不只是「看起来整洁」：</p>
+  <ul>
+    <li><strong>更快的文件监听</strong>——应用代码与 <code>node_modules/</code>、<code>.git/</code> 分离，文件 watcher 扫描范围更小，在 Windows 和 Linux 上提速尤为明显。</li>
+    <li><strong>更好的 IDE 上下文</strong>——编辑器能更准确地判断当前文件属于客户端还是服务端代码。</li>
+    <li><strong>对齐主流框架</strong>——与现代框架的目录约定保持一致，降低心智负担。</li>
+  </ul>
+
+  <div class="callout">
+    <span class="lbl">向后兼容</span>
+    <p>不想迁移目录?完全没问题。Nuxt 4 会自动检测你现有的扁平结构并照常工作,<code>app/</code> 目录是<strong>可选</strong>的。</p>
+  </div>
+</section>
+
+<section>
+  <span class="section-num">03 / 数据获取</span>
+  <h2>更聪明、更一致的数据层</h2>
+  <p>Nuxt 团队借这次大版本,系统性地修正了 <code>useAsyncData</code> 与 <code>useFetch</code> 的若干不一致问题,并提升了性能。核心改进包括:</p>
+
+  <ul>
+    <li><strong>自动数据共享</strong>——多个组件使用相同 <code>key</code> 时,会自动共享同一份数据,避免重复请求。</li>
+    <li><strong>组件卸载自动清理</strong>——当组件卸载时,相关数据被自动回收,减少内存与状态泄漏。</li>
+    <li><strong>响应式 key</strong>——可以使用响应式的 key,在依赖变化时自动重新获取数据。</li>
+    <li><strong>更精细的缓存控制</strong>——对「何时使用缓存数据」拥有更强的掌控力。</li>
+  </ul>
+
+  <pre data-lang="composable"><code><span class="c-com">// 响应式 key —— id 变化时自动重新获取</span>
+<span class="c-key">const</span> id = useRoute().params.id
+<span class="c-key">const</span> { data, refresh } = <span class="c-key">await</span> useFetch(
+  () => <span class="c-dir">`/api/users/${id}`</span>,
+  { key: () => <span class="c-dir">`user-${id}`</span> }  <span class="c-com">// 相同 key 的组件共享此数据</span>
+)</code></pre>
+
+  <p>需要说明的是,其中部分能力此前已经通过 Nuxt 3 的小版本陆续放出。<strong>Nuxt 4 的不同之处在于把它们设为默认行为</strong>,并在此基础上继续打磨数据层。</p>
+</section>
+
+<section>
+  <span class="section-num">04 / TypeScript</span>
+  <h2>按上下文拆分的类型工程</h2>
+  <p>Nuxt 4 会为项目中的不同上下文分别创建独立的 TypeScript 工程:<em class="hl">应用代码、服务端代码、<code>shared/</code> 目录、构建器代码</em>各自独立。</p>
+  <p>带来的实际收益是:在不同上下文中工作时,自动补全更智能、类型推断更准确、令人困惑的错误也更少。而且——你的项目根目录<strong>只需要一个 <code>tsconfig.json</code></strong>。</p>
+
+  <div class="callout">
+    <span class="lbl">升级提醒</span>
+    <p>这也是升级时最可能带来「意外」的一处:全新的类型分离会暴露出此前被隐藏的类型问题。长期看体验更顺滑,但首次升级时值得留心。</p>
+  </div>
+</section>
+
+<section>
+  <span class="section-num">05 / 性能与 DX</span>
+  <h2>更快的 CLI 与开发服务器</h2>
+  <p>配合 v4,Nuxt 团队同步优化了 <code>@nuxt/cli</code>,这些改进在日常开发中体感明显:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>优化项</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>更快的冷启动</td><td>开发服务器启动速度显著提升</td></tr>
+        <tr><td>Node.js 编译缓存</td><td>自动复用 V8 编译缓存,减少重复编译</td></tr>
+        <tr><td>原生文件监听</td><td>采用 <code>fs.watch</code> API,占用更少系统资源</td></tr>
+        <tr><td>套接字通信</td><td>CLI 与 Vite 通过内部 socket 而非网络端口通信,降低开销(Windows 上尤为受益)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <span class="section-num">06 / 速查</span>
+  <h2>Nuxt 3 vs Nuxt 4 对照表</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>维度</th><th class="tag-v3">Nuxt 3</th><th class="tag-v4">Nuxt 4</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>定位</td><td class="tag-v3">完整重写</td><td class="tag-v4">稳定性优先的精修</td></tr>
+        <tr><td>项目结构</td><td class="tag-v3">较扁平,代码在根目录</td><td class="tag-v4">默认 <code>app/</code> 目录(可选)</td></tr>
+        <tr><td>数据获取</td><td class="tag-v3">部分改进经小版本回填</td><td class="tag-v4">自动共享 / 清理 / 响应式 key 为默认</td></tr>
+        <tr><td>TypeScript</td><td class="tag-v3">单一 TS 上下文</td><td class="tag-v4">按上下文拆分,单 tsconfig</td></tr>
+        <tr><td>CLI / 通信</td><td class="tag-v3">网络端口</td><td class="tag-v4">内部套接字 + 编译缓存</td></tr>
+        <tr><td>Nuxt 2 兼容</td><td class="tag-v3">部分保留</td><td class="tag-v4">从 <code>@nuxt/kit</code> 移除</td></tr>
+        <tr><td>迁移成本</td><td class="tag-v3">—</td><td class="tag-v4">绝大多数项目平滑升级</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <span class="section-num">07 / 实操</span>
+  <h2>如何升级</h2>
+  <p>本次大版本的一个核心目标就是让升级尽可能平滑——大部分破坏性变更在过去一年里都已通过兼容性标志(compatibility flag)开放测试。</p>
+
+  <h3>1. 更新 Nuxt</h3>
+  <pre data-lang="bash"><code><span class="c-com"># 同时对 lockfile 去重,拉取 unjs 生态的相关更新</span>
+npx nuxt upgrade --dedupe</code></pre>
+
+  <h3>2. 可选:使用自动化迁移工具</h3>
+  <pre data-lang="bash"><code><span class="c-com"># 借助 Codemod 自动完成大部分(并非全部)结构性变更</span>
+npx codemod@latest nuxt/4/migration-recipe</code></pre>
+
+  <h3>3. 测试与调整</h3>
+  <p>跑测试、确认构建正常,修复浮现的问题。需要重点留意的几处:</p>
+  <ul>
+    <li><code>@nuxt/kit</code> 已移除 Nuxt 2 兼容(主要影响模块作者)。</li>
+    <li>部分遗留工具与已弃用特性被清理。</li>
+    <li>新的 TS 设置可能暴露此前隐藏的类型问题。</li>
+    <li>少数模块可能需要进一步更新才能完全兼容 Nuxt 4。</li>
+  </ul>
+  <div class="callout">
+    <span class="lbl">兜底方案</span>
+    <p>对于大多数破坏性变更,都提供了配置项可以临时回退到旧行为,让你有时间逐步调整。强烈建议升级前先通读官方 <a href="https://nuxt.com/docs/4.x/getting-started/upgrade">迁移指南</a>。</p>
+  </div>
+</section>
+
+<section>
+  <span class="section-num">08 / 展望</span>
+  <h2>下一步:Nuxt 5 在路上</h2>
+  <p>官方表示会较快推出 Nuxt 5,届时将带来 <strong>Nitro v3</strong> 与 <strong>h3 v2</strong> 以获得更强性能,并采用 <strong>Vite Environment API</strong> 进一步提升开发体验。</p>
+  <p>此外,许多新特性会持续进入 3.x 与 4.x 分支,例如:SSR 流式渲染、官方无障碍模块、内置 fetch 缓存策略、更强类型的 fetch 调用、动态路由发现、多应用支持等。Nuxt 3 也会持续获得维护更新(含从 v4 回填的功能),直到 2026 年 1 月底——迁移不必着急。</p>
+</section>
+
+</article>
+
+<footer>
+  <p>本文整理自 Nuxt 官方博客 v4.0 发布公告及相关技术文档。事实信息请以 <a href="https://nuxt.com/blog/v4">nuxt.com/blog/v4</a> 与官方迁移指南为准。</p>
+  <p style="margin-top:14px">// 一篇关于克制的发布 —— evolution, not revolution.</p>
+</footer>
+
+</body>
+</html>
