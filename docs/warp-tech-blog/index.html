@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Warp：当 Rust、GPU 与 AI Agent 重塑开发者终端</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: #1a1a2e;
+      --bg-code: #16162a;
+      --text-primary: #e8e8f0;
+      --text-secondary: #a0a0b8;
+      --text-muted: #6b6b82;
+      --accent-purple: #7c3aed;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-pink: #ec4899;
+      --accent-orange: #f97316;
+      --accent-green: #10b981;
+      --border-color: #2a2a3e;
+      --gradient-1: linear-gradient(135deg, #7c3aed, #3b82f6);
+      --gradient-2: linear-gradient(135deg, #06b6d4, #10b981);
+      --gradient-3: linear-gradient(135deg, #ec4899, #f97316);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.8;
+      font-size: 17px;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    .bg-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        linear-gradient(rgba(124, 58, 237, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124, 58, 237, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .content-wrapper {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at 30% 50%, rgba(124, 58, 237, 0.12) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
+      animation: heroGlow 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes heroGlow {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      100% { transform: translate(-2%, 2%) rotate(1deg); }
+    }
+
+    .hero-content {
+      position: relative;
+      max-width: 900px;
+      padding: 2rem;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      background: rgba(124, 58, 237, 0.15);
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      border-radius: 50px;
+      font-size: 0.85rem;
+      color: var(--accent-purple);
+      margin-bottom: 2rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.2rem);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      max-width: 650px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.9;
+    }
+
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .hero-meta span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hero-image {
+      margin-top: 3rem;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5),
+                  0 0 0 1px rgba(124, 58, 237, 0.1);
+    }
+
+    .hero-image img {
+      width: 100%;
+      display: block;
+    }
+
+    /* Article Container */
+    .article-container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 4rem 2rem 6rem;
+    }
+
+    /* Section Headers */
+    .section {
+      margin-bottom: 5rem;
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent-cyan);
+      margin-bottom: 1rem;
+    }
+
+    .section-label::before {
+      content: '';
+      width: 24px;
+      height: 2px;
+      background: var(--accent-cyan);
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      line-height: 1.3;
+      color: #fff;
+    }
+
+    h3 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin: 2.5rem 0 1rem;
+      color: #e0e0f0;
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+      color: var(--text-secondary);
+    }
+
+    /* Image blocks */
+    .image-block {
+      margin: 2.5rem 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+    }
+
+    .image-block img {
+      width: 100%;
+      display: block;
+    }
+
+    .image-block .caption {
+      padding: 1rem 1.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* Code blocks */
+    .code-block {
+      margin: 2rem 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      background: var(--bg-code);
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .code-header .dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .code-header .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .code-header .dot:nth-child(1) { background: #ff5f57; }
+    .code-header .dot:nth-child(2) { background: #ffbd2e; }
+    .code-header .dot:nth-child(3) { background: #28c840; }
+
+    .code-header .lang {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .code-block pre {
+      padding: 1.5rem 2rem;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: var(--text-primary);
+    }
+
+    .code-block code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Syntax colors */
+    .kw { color: var(--accent-purple); }
+    .fn { color: var(--accent-blue); }
+    .str { color: var(--accent-green); }
+    .cm { color: var(--text-muted); }
+    .num { color: var(--accent-orange); }
+    .type { color: var(--accent-cyan); }
+    .op { color: var(--accent-pink); }
+
+    /* Feature Cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gradient-1);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(124, 58, 237, 0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-card:nth-child(2)::before { background: var(--gradient-2); }
+    .feature-card:nth-child(3)::before { background: var(--gradient-3); }
+    .feature-card:nth-child(4)::before { background: linear-gradient(135deg, #f97316, #eab308); }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .feature-icon.purple { background: rgba(124, 58, 237, 0.15); }
+    .feature-icon.blue { background: rgba(59, 130, 246, 0.15); }
+    .feature-icon.cyan { background: rgba(6, 182, 212, 0.15); }
+    .feature-icon.orange { background: rgba(249, 115, 22, 0.15); }
+
+    .feature-card h4 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.8rem;
+      color: #fff;
+    }
+
+    .feature-card p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-bottom: 0;
+      line-height: 1.7;
+    }
+
+    /* Stats Banner */
+    .stats-banner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 3rem 0;
+    }
+
+    .stat-item {
+      background: var(--bg-card);
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      margin: 2.5rem 0;
+      padding-left: 40px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 12px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--accent-purple), var(--accent-cyan));
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 2.5rem;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -34px;
+      top: 8px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent-purple);
+      border: 3px solid var(--bg-primary);
+      box-shadow: 0 0 0 2px var(--accent-purple);
+    }
+
+    .timeline-year {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--accent-cyan);
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+
+    .timeline-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    .timeline-desc {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-bottom: 0;
+    }
+
+    /* Blockquote */
+    blockquote {
+      margin: 2.5rem 0;
+      padding: 2rem 2.5rem;
+      background: var(--bg-card);
+      border-left: 4px solid var(--accent-purple);
+      border-radius: 0 12px 12px 0;
+      font-size: 1.05rem;
+      color: var(--text-primary);
+      font-style: italic;
+    }
+
+    blockquote cite {
+      display: block;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-style: normal;
+    }
+
+    /* Comparison Table */
+    .table-wrapper {
+      margin: 2rem 0;
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+
+    th {
+      background: rgba(124, 58, 237, 0.1);
+      padding: 1rem 1.5rem;
+      text-align: left;
+      font-weight: 600;
+      color: #fff;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 500;
+    }
+
+    .tag-green { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+    .tag-blue { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+    .tag-purple { background: rgba(124, 58, 237, 0.15); color: var(--accent-purple); }
+    .tag-orange { background: rgba(249, 115, 22, 0.15); color: var(--accent-orange); }
+
+    /* Architecture Diagram */
+    .arch-diagram {
+      margin: 2.5rem 0;
+      padding: 2rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+    }
+
+    .arch-layers {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .arch-layer {
+      display: flex;
+      align-items: stretch;
+      gap: 1rem;
+    }
+
+    .arch-layer-label {
+      width: 100px;
+      min-width: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      border-right: 2px solid var(--border-color);
+      padding-right: 1rem;
+    }
+
+    .arch-layer-content {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .arch-chip {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      background: rgba(124, 58, 237, 0.12);
+      color: var(--accent-purple);
+      border: 1px solid rgba(124, 58, 237, 0.2);
+    }
+
+    .arch-chip.blue {
+      background: rgba(59, 130, 246, 0.12);
+      color: var(--accent-blue);
+      border-color: rgba(59, 130, 246, 0.2);
+    }
+
+    .arch-chip.cyan {
+      background: rgba(6, 182, 212, 0.12);
+      color: var(--accent-cyan);
+      border-color: rgba(6, 182, 212, 0.2);
+    }
+
+    .arch-chip.green {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--accent-green);
+      border-color: rgba(16, 185, 129, 0.2);
+    }
+
+    .arch-chip.orange {
+      background: rgba(249, 115, 22, 0.12);
+      color: var(--accent-orange);
+      border-color: rgba(249, 115, 22, 0.2);
+    }
+
+    .arch-chip.pink {
+      background: rgba(236, 72, 153, 0.12);
+      color: var(--accent-pink);
+      border-color: rgba(236, 72, 153, 0.2);
+    }
+
+    /* Callout box */
+    .callout {
+      margin: 2rem 0;
+      padding: 1.5rem 2rem;
+      border-radius: 12px;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .callout.info {
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .callout.tip {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .callout.warning {
+      background: rgba(249, 115, 22, 0.08);
+      border: 1px solid rgba(249, 115, 22, 0.2);
+    }
+
+    .callout-icon {
+      font-size: 1.3rem;
+      line-height: 1.5;
+    }
+
+    .callout p {
+      margin-bottom: 0;
+      font-size: 0.92rem;
+    }
+
+    /* Inline code */
+    code:not(pre code) {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88em;
+      padding: 2px 8px;
+      background: rgba(124, 58, 237, 0.12);
+      color: var(--accent-purple);
+      border-radius: 6px;
+    }
+
+    /* Footer */
+    .article-footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+    }
+
+    .article-footer p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .article-footer a {
+      color: var(--accent-purple);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .article-footer a:hover {
+      color: var(--accent-blue);
+    }
+
+    /* TOC */
+    .toc {
+      position: sticky;
+      top: 2rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .toc h4 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .toc ol {
+      list-style: none;
+      counter-reset: toc;
+      padding: 0;
+    }
+
+    .toc li {
+      counter-increment: toc;
+      margin-bottom: 0.6rem;
+    }
+
+    .toc li::before {
+      content: counter(toc, decimal-leading-zero);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent-purple);
+      margin-right: 0.8rem;
+      font-weight: 600;
+    }
+
+    .toc a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.92rem;
+      transition: color 0.2s;
+    }
+
+    .toc a:hover {
+      color: #fff;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .stats-banner {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .hero-meta {
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+      .arch-layer {
+        flex-direction: column;
+      }
+      .arch-layer-label {
+        width: 100%;
+        border-right: none;
+        border-bottom: 2px solid var(--border-color);
+        padding-right: 0;
+        padding-bottom: 0.5rem;
+      }
+    }
+
+    /* Scroll animations */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.6s ease-out;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Divider */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+      margin: 4rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <div class="content-wrapper">
+    <!-- Hero Section -->
+    <header class="hero">
+      <div class="hero-content">
+        <div class="hero-badge">Open Source &middot; 48,000+ GitHub Stars</div>
+        <h1>Warp：当 Rust、GPU 与 AI Agent<br>重塑开发者终端</h1>
+        <p class="hero-subtitle">
+          从 VT100 到 Agentic Development Environment —— 一个被 Sam Altman 押注的团队，
+          用 Rust 和 GPU 加速重写了终端的四十年历史，并让 AI Agent 真正住进了命令行。
+        </p>
+        <div class="hero-meta">
+          <span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            20 分钟阅读
+          </span>
+          <span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            2026 年 6 月 7 日
+          </span>
+          <span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Tech Blog
+          </span>
+        </div>
+        <div class="hero-image">
+          <img src="images/warp-hero.png" alt="Warp Terminal Concept" />
+        </div>
+      </div>
+    </header>
+
+    <!-- Article Body -->
+    <article class="article-container">
+
+      <!-- Table of Contents -->
+      <nav class="toc">
+        <h4>目录</h4>
+        <ol>
+          <li><a href="#intro">引言：终端的四十年沉睡</a></li>
+          <li><a href="#evolution">六年进化：从 Rust 重写到 ADE</a></li>
+          <li><a href="#architecture">三引擎架构：Rust + GPU + AI</a></li>
+          <li><a href="#blocks">Block-Based 输出系统</a></li>
+          <li><a href="#ai-agent">AI Agent 原生集成</a></li>
+          <li><a href="#mcp">MCP 协议与工具生态</a></li>
+          <li><a href="#opensource">开源生态与社区</a></li>
+          <li><a href="#comparison">与传统终端的对比</a></li>
+          <li><a href="#future">展望：下一代开发范式</a></li>
+        </ol>
+      </nav>
+
+      <!-- Section 1: Intro -->
+      <section class="section fade-in" id="intro">
+        <span class="section-label">Chapter 01</span>
+        <h2>引言：终端的四十年沉睡</h2>
+        <p>
+          自 1978 年 DEC VT100 终端问世以来，命令行界面（CLI）的本质几乎没有发生过根本性的变化。我们今天使用的 Terminal.app、iTerm2、GNOME Terminal，在交互范式上与四十年前的前辈惊人地相似——一个黑底白字的字符流管道，输入、输出、滚动，周而复始。
+        </p>
+        <p>
+          但这四十年间，软件开发的世界已经天翻地覆。IDE 从 Vi/Emacs 进化到 VS Code 和 JetBrains，编程语言从 C 发展到 Rust 和 Zig，软件工程从单人作坊发展到万人协作。而终端——这个每个开发者每天都要打开的工具——却像一个被时间遗忘的角落，依然在用纯文本流的方式与开发者对话。
+        </p>
+
+        <blockquote>
+          "Terminal emulators are the last bastion of 1970s computing. It's time we brought them into the 21st century."
+          <cite>—— Zach Lloyd, Warp 联合创始人 &amp; CEO</cite>
+        </blockquote>
+
+        <p>
+          这正是 <strong>Warp</strong> 诞生的起点。Warp 不是一个"更好的终端模拟器"，也不是在传统终端上贴一个 AI 聊天窗口的产物。它的目标，是重新定义终端本身——将终端从一个被动的字符管道，转变为一个 <strong>Agentic Development Environment（ADE，代理式开发环境）</strong>。
+        </p>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 2: Evolution -->
+      <section class="section fade-in" id="evolution">
+        <span class="section-label">Chapter 02</span>
+        <h2>六年进化：从 Rust 重写到 ADE</h2>
+        <p>
+          Warp 的故事始于 2020 年。由前 Google Sheets 负责人 Zach Lloyd 创立，这个团队从一开始就做了一个在当时看来相当激进的决定：<strong>用 Rust 从零构建终端</strong>，而不是基于已有的 VTE 或 ConPTY 库做修补。
+        </p>
+        <p>
+          这个决定的背后是一个深刻的洞察：传统终端模拟器基于 CPU 渲染文本，这在当今 GPU 时代是一种巨大的浪费。如果要用 GPU 加速渲染终端界面，就需要从底层重新设计渲染管线——而这恰恰是 Rust 擅长的领域。
+        </p>
+
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-year">2020 — 2022</div>
+            <div class="timeline-title">Phase 1.0：现代终端</div>
+            <p class="timeline-desc">Rust 重写终端内核，引入 GPU 渲染引擎（WarpUI），实现 Block-Based 输出系统。核心目标是让终端拥有现代编辑器的交互体验。</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year">2022 — 2024</div>
+            <div class="timeline-title">Phase 2.0：AI 增强终端</div>
+            <p class="timeline-desc">集成 AI Agent 能力，支持自然语言到命令的转换、智能命令建议、Warp AI 对话。开始构建 "AI-native terminal" 愿景。</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year">2024 — 2025</div>
+            <div class="timeline-title">Phase 3.0：Agent 开发环境</div>
+            <p class="timeline-desc">推出 Warp Drive 云端协作平台，支持 Agent 在本地和云端运行，集成 MCP 协议。定位从 "AI Terminal" 升级为 "Agentic Development Environment"。</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year">2026 年 4 月</div>
+            <div class="timeline-title">全面开源</div>
+            <p class="timeline-desc">以 AGPL v3 协议在 GitHub 上正式开源完整客户端代码。开源不到 24 小时即突破 3.5 万 Star，目前累计超过 48,000 Star。</p>
+          </div>
+        </div>
+
+        <div class="stats-banner">
+          <div class="stat-item">
+            <div class="stat-number">48K+</div>
+            <div class="stat-label">GitHub Stars</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">60+</div>
+            <div class="stat-label">Rust Crates</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">120</div>
+            <div class="stat-label">FPS 渲染</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">25+</div>
+            <div class="stat-label">AI Actions</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 3: Architecture -->
+      <section class="section fade-in" id="architecture">
+        <span class="section-label">Chapter 03</span>
+        <h2>三引擎架构：Rust + GPU + AI</h2>
+        <p>
+          要理解 Warp 的技术野心，首先需要看清它的架构全景。Warp 不是在现有终端模拟器上"加功能"，而是从内核到界面到 AI 层，全部自己实现。整个项目由 60 多个 Rust Crate 组成，形成了一个完整的"终端操作系统"。
+        </p>
+
+        <div class="image-block">
+          <img src="images/warp-architecture.png" alt="Warp Architecture" />
+          <div class="caption">Warp 的三大技术支柱：Rust 内核、GPU 渲染引擎、AI Agent 层</div>
+        </div>
+
+        <h3>3.1 Rust 内核：安全与性能的基石</h3>
+        <p>
+          Warp 选择 Rust 作为核心开发语言，并非赶时髦。终端模拟器是一个对性能和安全性要求极高的领域：它需要处理大量的 I/O 操作、解析复杂的终端转义序列（ANSI/VT sequences）、管理多个 PTY（伪终端）会话。传统上使用 C/C++ 编写的终端模拟器（如 xterm、VTE）经常面临内存安全问题。
+        </p>
+        <p>
+          Rust 的所有权系统和借用检查器从编译期就杜绝了数据竞争和悬垂指针，这对于一个需要同时管理渲染、输入、网络、AI 多个并发任务的系统来说至关重要。Warp 的 Crate 组织结构清晰：
+        </p>
+
+        <div class="arch-diagram">
+          <div class="arch-layers">
+            <div class="arch-layer">
+              <div class="arch-layer-label">Core</div>
+              <div class="arch-layer-content">
+                <span class="arch-chip">warp-terminal</span>
+                <span class="arch-chip">pty-manager</span>
+                <span class="arch-chip">session-handler</span>
+                <span class="arch-chip">shell-integration</span>
+              </div>
+            </div>
+            <div class="arch-layer">
+              <div class="arch-layer-label">Render</div>
+              <div class="arch-layer-content">
+                <span class="arch-chip blue">warp-ui (Skia)</span>
+                <span class="arch-chip blue">wgpu-backend</span>
+                <span class="arch-chip blue">font-renderer</span>
+                <span class="arch-chip blue">text-layout</span>
+              </div>
+            </div>
+            <div class="arch-layer">
+              <div class="arch-layer-label">AI / Agent</div>
+              <div class="arch-layer-content">
+                <span class="arch-chip cyan">agent-runtime</span>
+                <span class="arch-chip cyan">llm-gateway</span>
+                <span class="arch-chip cyan">mcp-client</span>
+                <span class="arch-chip cyan">tool-registry</span>
+              </div>
+            </div>
+            <div class="arch-layer">
+              <div class="arch-layer-label">Platform</div>
+              <div class="arch-layer-content">
+                <span class="arch-chip green">warp-drive</span>
+                <span class="arch-chip green">cloud-sync</span>
+                <span class="arch-chip green">team-workspace</span>
+                <span class="arch-chip green">plugin-system</span>
+              </div>
+            </div>
+            <div class="arch-layer">
+              <div class="arch-layer-label">Extension</div>
+              <div class="arch-layer-content">
+                <span class="arch-chip orange">quickjs-runtime</span>
+                <span class="arch-chip orange">theme-engine</span>
+                <span class="arch-chip orange">hook-system</span>
+                <span class="arch-chip pink">external-agents</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3>3.2 GPU 渲染引擎：WarpUI 与 Skia</h3>
+        <p>
+          传统终端模拟器使用 CPU 进行文本渲染，这限制了它们的刷新率和动画流畅度。Warp 构建了一个名为 <code>WarpUI</code> 的自研渲染框架，底层基于 <strong>wgpu</strong>（Rust 实现的 WebGPU 标准）和 <strong>Skia</strong> 2D 图形库。
+        </p>
+        <p>
+          这意味着终端的每一帧输出都经过 GPU 管线处理。实际效果是 Warp 可以稳定在 120fps 下运行，滚动、选择、拖拽操作的流畅度堪比原生 macOS/Windows 应用。当你大量输出日志（比如 <code>cargo build</code> 或 <code>npm install</code>）时，传统终端可能会卡顿甚至丢失帧，而 Warp 则能丝滑地处理。
+        </p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="dots">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <span class="lang">Rust — warp-ui 渲染管线核心</span>
+          </div>
+          <pre><code><span class="kw">pub struct</span> <span class="type">WarpRenderer</span> {
+    gpu_device: <span class="type">wgpu::Device</span>,
+    gpu_queue: <span class="type">wgpu::Queue</span>,
+    skia_context: <span class="type">SkiaContext</span>,
+    font_atlas: <span class="type">FontAtlasCache</span>,
+    surface: <span class="type">Surface</span>,
+}
+
+<span class="kw">impl</span> <span class="type">WarpRenderer</span> {
+    <span class="cm">/// 每帧渲染调用，通过 GPU 加速完成文本和 UI 绘制</span>
+    <span class="kw">pub fn</span> <span class="fn">render_frame</span>(&<span class="kw">mut self</span>, frame: &<span class="type">Frame</span>, blocks: &[<span class="type">TerminalBlock</span>]) {
+        <span class="kw">let</span> encoder = <span class="kw">self</span>.gpu_device.<span class="fn">create_command_encoder</span>(
+            &<span class="type">CommandEncoderDescriptor</span> { label: <span class="type">Some</span>(<span class="str">"frame_encoder"</span>) }
+        );
+
+        <span class="cm">// 1. 清除上一帧内容</span>
+        <span class="kw">self</span>.skia_context.<span class="fn">clear</span>(<span class="type">Color</span>::<span class="fn">from_hex</span>(<span class="str">"#0a0a0f"</span>));
+
+        <span class="cm">// 2. 遍历 Block 列表，依次进行布局和绘制</span>
+        <span class="kw">for</span> block <span class="kw">in</span> blocks {
+            <span class="kw">self</span>.<span class="fn">layout_block</span>(block);
+            <span class="kw">self</span>.<span class="fn">draw_block_text</span>(block, &<span class="kw">mut</span> encoder);
+            <span class="kw">self</span>.<span class="fn">draw_block_decorations</span>(block, &<span class="kw">mut</span> encoder);
+        }
+
+        <span class="cm">// 3. 提交 GPU 命令并呈现到屏幕</span>
+        <span class="kw">self</span>.gpu_queue.<span class="fn">submit</span>([encoder.<span class="fn">finish</span>()]);
+        frame.<span class="fn">present</span>();
+    }
+}</code></pre>
+        </div>
+
+        <h3>3.3 AI Agent 层：不只是 Copilot</h3>
+        <p>
+          Warp 的 AI 层不是简单的"终端 Copilot"。它构建了一个完整的 Agent Runtime，支持多种大模型后端（包括 GPT-4o、Claude、Gemini 等），能够理解用户的自然语言意图，将其转化为具体的终端操作序列，并观察执行结果做出决策。
+        </p>
+        <p>
+          这个架构设计的精妙之处在于，AI Agent 与终端内核是深度耦合的——Agent 不仅能"读"终端输出，还能理解 Block 的结构化语义，知道哪段是命令、哪段是输出、哪段是错误信息。这比一个通用的 AI 助手在终端里"看截图"要精准得多。
+        </p>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 4: Block-Based Output -->
+      <section class="section fade-in" id="blocks">
+        <span class="section-label">Chapter 04</span>
+        <h2>Block-Based 输出系统</h2>
+        <p>
+          如果你问 Warp 用户"最喜欢的功能是什么"，Block-Based Output 系统大概率会排在前三。这个功能从根本上改变了终端输出的呈现方式。
+        </p>
+        <p>
+          在传统终端中，所有命令的输出混在一起形成一条连续的字符流。当你执行了多条命令后，要在密密麻麻的文本中找到某条命令的输出，往往需要反复滚动和搜索。Warp 的 Block 系统将每次命令执行及其输出封装为一个独立的"块"（Block），每个块都有明确的边界、命令标题、执行时间和退出状态。
+        </p>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon purple">&#9632;</div>
+            <h4>结构化输出</h4>
+            <p>每条命令的输入和输出被封装为独立 Block，带有时间戳、退出码和命令标题，告别"找输出找到眼花"。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon blue">&#9998;</div>
+            <h4>块级编辑与复制</h4>
+            <p>像编辑文档一样选择、复制、粘贴终端中的任何文本。支持块级选中，不再需要精确到字符地拖选。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon cyan">&#128269;</div>
+            <h4>智能搜索</h4>
+            <p>在所有历史 Block 中进行全文搜索，快速定位到之前的命令输出，支持正则表达式匹配。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon orange">&#8618;</div>
+            <h4>一键分享</h4>
+            <p>将任意 Block 生成为可分享的链接，团队成员可以直接查看命令输出，无需截图。</p>
+          </div>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="dots">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <span class="lang">Terminal — Warp Block 结构示例</span>
+          </div>
+          <pre><code><span class="cm">╭─ Block #1 ──────────────────────────────────────── ✓ 0.3s</span>
+<span class="cm">│</span> <span class="kw">$</span> cargo build --release
+<span class="cm">│</span> <span class="str">   Compiling warp-terminal v0.2026.04.28</span>
+<span class="cm">│</span> <span class="str">   Compiling warp-ui v0.15.2</span>
+<span class="cm">│</span> <span class="str">   Compiling agent-runtime v1.8.0</span>
+<span class="cm">│</span> <span class="str">    Finished release [optimized] target(s) in 42.7s</span>
+<span class="cm">╰──────────────────────────────────────────────────────────</span>
+
+<span class="cm">╭─ Block #2 ──────────────────────────────────────── ✗ 1.2s</span>
+<span class="cm">│</span> <span class="kw">$</span> cargo test --package agent-runtime
+<span class="cm">│</span> <span class="type">   running 147 tests</span>
+<span class="cm">│</span> <span class="str">   test agent::tests::test_command_generation ... ok</span>
+<span class="cm">│</span> <span class="str">   test agent::tests::test_mcp_handshake ... ok</span>
+<span class="cm">│</span> <span class="op">   test agent::tests::test_multi_step_plan ... FAILED</span>
+<span class="cm">│</span> <span class="op">   fail: assertion failed at agent/tests/multi_step.rs:42</span>
+<span class="cm">╰──────────────────────────────────────────────────────────</span></code></pre>
+        </div>
+
+        <div class="callout tip">
+          <div class="callout-icon">&#128161;</div>
+          <p>
+            <strong>开发者贴士：</strong>Block 系统与 AI Agent 的协作非常优雅——当你让 AI "帮我分析上一次构建失败的原因" 时，Agent 能直接引用特定 Block 的结构化数据，而不是在一大段终端文本中"猜"哪些内容是相关的。
+          </p>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 5: AI Agent -->
+      <section class="section fade-in" id="ai-agent">
+        <span class="section-label">Chapter 05</span>
+        <h2>AI Agent 原生集成</h2>
+        <p>
+          Warp 的 AI Agent 是其最具差异化的能力。与 VS Code Copilot 或 ChatGPT 等工具不同，Warp 的 Agent 不是"旁观者"，而是"参与者"——它深度嵌入终端的执行循环中，能够主动执行命令、观察输出、做出决策、继续下一步操作。
+        </p>
+
+        <div class="image-block">
+          <img src="images/warp-ai-agent.png" alt="Warp AI Agent" />
+          <div class="caption">Warp AI Agent 工作流程：自然语言理解 → 命令生成 → 执行 → 结果分析 → 下一步决策</div>
+        </div>
+
+        <h3>5.1 多模型后端支持</h3>
+        <p>
+          Warp 的 Agent Runtime 采用了模型无关的架构设计，通过统一的 LLM Gateway 对接不同的大模型提供商。目前支持的模型包括 OpenAI GPT-4o、Anthropic Claude、Google Gemini 等，并且通过 MCP 协议可以扩展到更多模型和工具。用户可以根据任务类型和偏好选择不同的模型后端。
+        </p>
+
+        <h3>5.2 25+ AI Actions</h3>
+        <p>
+          Warp 内置了超过 25 种预定义的 AI Actions，覆盖了开发者最常见的操作场景。这些不是简单的 prompt 模板，而是经过精心设计的 Agent 工作流，每个 Action 都包含完整的多步执行逻辑和错误处理策略。
+        </p>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon purple">&#128172;</div>
+            <h4>自然语言命令</h4>
+            <p>用自然语言描述你想做的事情，Agent 会生成并执行对应的终端命令。支持多步命令的链式执行。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon blue">&#128270;</div>
+            <h4>错误诊断</h4>
+            <p>当命令执行失败时，Agent 自动分析错误输出，给出诊断信息和修复建议，必要时自动执行修复。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon cyan">&#128221;</div>
+            <h4>代码审查</h4>
+            <p>直接在终端中进行 Git Diff 审查、PR 评论，Agent 辅助检查代码变更并生成审查意见。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon orange">&#9881;</div>
+            <h4>外部 Agent 编排</h4>
+            <p>支持在 Warp 中运行 Claude Code、Codex、Gemini CLI 等外部 Agent，统一管理和编排。</p>
+          </div>
+        </div>
+
+        <h3>5.3 Agent 执行模型</h3>
+        <p>
+          Warp 的 Agent 采用"人在环路"（Human-in-the-loop）的执行模型。Agent 在执行每一步操作前会向用户展示即将执行的操作，用户可以审批、修改或拒绝。这既保证了自动化效率，又确保了安全性——毕竟在终端中执行命令是一件需要谨慎对待的事情。
+        </p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="dots">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <span class="lang">Warp Agent — 自然语言交互示例</span>
+          </div>
+          <pre><code><span class="cm">  You:</span> <span class="str">"帮我找到项目中所有未使用的依赖包并清理它们"</span>
+
+<span class="cm">  Agent Plan:</span>
+<span class="cm">  ┌─────────────────────────────────────────────┐</span>
+<span class="cm">  │</span> Step 1: <span class="fn">cargo install cargo-udeps</span>          <span class="tag tag-blue">auto</span>    <span class="cm">│</span>
+<span class="cm">  │</span> Step 2: <span class="fn">cargo +nightly udeps --all-targets</span> <span class="tag tag-orange">confirm</span> <span class="cm">│</span>
+<span class="cm">  │</span> Step 3: <span class="fn">Analyze output, list unused deps</span>    <span class="tag tag-green">auto</span>    <span class="cm">│</span>
+<span class="cm">  │</span> Step 4: <span class="fn">Remove from Cargo.toml</span>             <span class="tag tag-purple">confirm</span> <span class="cm">│</span>
+<span class="cm">  │</span> Step 5: <span class="fn">cargo build --release (verify)</span>     <span class="tag tag-orange">confirm</span> <span class="cm">│</span>
+<span class="cm">  └─────────────────────────────────────────────┘</span>
+
+<span class="cm">  [Approve Plan]  [Modify]  [Cancel]</span></code></pre>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 6: MCP -->
+      <section class="section fade-in" id="mcp">
+        <span class="section-label">Chapter 06</span>
+        <h2>MCP 协议与工具生态</h2>
+        <p>
+          <strong>MCP（Model Context Protocol）</strong>是由 Anthropic 提出的一种标准化协议，旨在让 AI 模型能够以统一的方式与外部工具和数据源交互。Warp 是 MCP 协议的早期采用者之一，并将其深度整合到了 Agent Runtime 中。
+        </p>
+        <p>
+          通过 MCP，Warp 的 Agent 可以与外部服务进行交互——无论是查询 Jira 上的 Issue、读取 Notion 中的文档、操作 Kubernetes 集群，还是调用自定义的 API——都通过同一套标准化的 Tool Interface 完成。这极大地扩展了 Agent 的能力边界。
+        </p>
+
+        <div class="callout info">
+          <div class="callout-icon">&#9432;</div>
+          <p>
+            <strong>MCP 的意义：</strong>在没有 MCP 之前，每个 AI 工具都需要为每个外部集成写专门的 adapter。MCP 把这件事标准化了——任何实现了 MCP Server 的工具，都可以直接被 Warp Agent 调用，无需额外适配。
+          </p>
+        </div>
+
+        <h3>插件系统：QuickJS Runtime</h3>
+        <p>
+          除了 MCP，Warp 还内置了一个 <code>QuickJS</code> 运行时，支持使用 JavaScript/TypeScript 编写终端插件。这些插件可以扩展终端的功能——从自定义主题、快捷键映射，到复杂的自动化工作流。插件系统采用沙箱隔离，确保安全性。
+        </p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="dots">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <span class="lang">TypeScript — Warp 插件示例：Git 状态增强</span>
+          </div>
+          <pre><code><span class="kw">import</span> { WarpPlugin, TerminalContext } <span class="kw">from</span> <span class="str">'@warp/sdk'</span>;
+
+<span class="kw">export default class</span> <span class="type">GitStatusPlugin</span> <span class="kw">implements</span> <span class="type">WarpPlugin</span> {
+  name = <span class="str">'git-status-enhanced'</span>;
+
+  <span class="kw">async</span> <span class="fn">onBlockComplete</span>(ctx: <span class="type">TerminalContext</span>) {
+    <span class="cm">// 检测 git 命令执行完成</span>
+    <span class="kw">if</span> (ctx.block.command.<span class="fn">startsWith</span>(<span class="str">'git'</span>)) {
+      <span class="kw">const</span> status = <span class="kw">await</span> ctx.<span class="fn">exec</span>(<span class="str">'git status --porcelain'</span>);
+      <span class="kw">const</span> modified = status.<span class="fn">split</span>(<span class="str">'\n'</span>).<span class="fn">filter</span>(l => l.<span class="fn">startsWith</span>(<span class="str">' M'</span>));
+
+      <span class="kw">if</span> (modified.length > <span class="num">0</span>) {
+        ctx.ui.<span class="fn">showBadge</span>(<span class="str">`${modified.length} files modified`</span>, <span class="str">'warning'</span>);
+      }
+    }
+  }
+}</code></pre>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 7: Open Source -->
+      <section class="section fade-in" id="opensource">
+        <span class="section-label">Chapter 07</span>
+        <h2>开源生态与社区</h2>
+        <p>
+          2026 年 4 月 28 日，Warp 以 AGPL v3 协议在 GitHub 上正式开源了其完整客户端代码。这个消息在开发者社区引发了巨大的反响——开源不到 24 小时，GitHub Star 数就突破了 35,000，成为当天 GitHub Trending 上的现象级项目。
+        </p>
+        <p>
+          这次开源并非"象征性开源"——Warp 开放了超过 60 个 Rust Crate 的完整源码，包括核心的渲染引擎 WarpUI、PTY 管理器、Agent Runtime 等关键模块。同时，UI 框架部分采用 MIT 许可证，方便社区在自己的项目中使用。
+        </p>
+
+        <blockquote>
+          开源后 Star 数的爆发式增长证明了一件事：开发者对终端工具现代化的渴望是真实且强烈的。Warp 不只是做了一个"更好看的终端"，而是展示了一种全新的开发范式。
+          <cite>—— 某知名技术博主</cite>
+        </blockquote>
+
+        <h3>开源后的社区贡献</h3>
+        <p>
+          开源仅一个多月，Warp 的 GitHub 仓库就已经收到了数百个 Pull Request，涵盖 Bug 修复、功能增强、文档完善等多个方面。社区贡献者还开发了大量第三方主题、插件和 MCP Server，极大地丰富了 Warp 的生态。
+        </p>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon purple">&#128230;</div>
+            <h4>60+ Crates 开源</h4>
+            <p>从渲染引擎到 Agent Runtime，核心模块全部开放，允许社区深度参与开发和改进。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon blue">&#127912;</div>
+            <h4>MIT UI 框架</h4>
+            <p>WarpUI 的 GPU 渲染框架以 MIT 协议开源，其他项目可以自由使用这套高性能渲染方案。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon cyan">&#128736;</div>
+            <h4>社区插件生态</h4>
+            <p>数百个社区开发的主题、插件和 MCP Server，覆盖从 DevOps 到数据分析的各种场景。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon orange">&#127760;</div>
+            <h4>全球化社区</h4>
+            <p>来自全球各地的贡献者，包括来自 Google、Meta、Rust 社区的核心开发者。</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 8: Comparison -->
+      <section class="section fade-in" id="comparison">
+        <span class="section-label">Chapter 08</span>
+        <h2>与传统终端的对比</h2>
+        <p>
+          要理解 Warp 的革新之处，最直观的方式就是与现有终端工具进行对比。下表从渲染方式、AI 能力、输出管理、协作功能和扩展性五个维度进行了全面比较：
+        </p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>特性</th>
+                <th>Warp</th>
+                <th>iTerm2</th>
+                <th>Windows Terminal</th>
+                <th>Alacritty</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>开发语言</strong></td>
+                <td><span class="tag tag-purple">Rust</span></td>
+                <td><span class="tag tag-blue">Objective-C</span></td>
+                <td><span class="tag tag-blue">C++/C#</span></td>
+                <td><span class="tag tag-purple">Rust</span></td>
+              </tr>
+              <tr>
+                <td><strong>渲染方式</strong></td>
+                <td><span class="tag tag-green">GPU (wgpu + Skia)</span></td>
+                <td><span class="tag tag-orange">CPU</span></td>
+                <td><span class="tag tag-blue">GPU (DirectWrite)</span></td>
+                <td><span class="tag tag-green">GPU (OpenGL)</span></td>
+              </tr>
+              <tr>
+                <td><strong>刷新率</strong></td>
+                <td><span class="tag tag-green">120 fps</span></td>
+                <td><span class="tag tag-orange">60 fps</span></td>
+                <td><span class="tag tag-blue">60 fps</span></td>
+                <td><span class="tag tag-green">120+ fps</span></td>
+              </tr>
+              <tr>
+                <td><strong>AI Agent 集成</strong></td>
+                <td><span class="tag tag-green">原生深度集成</span></td>
+                <td><span class="tag tag-orange">无</span></td>
+                <td><span class="tag tag-orange">无</span></td>
+                <td><span class="tag tag-orange">无</span></td>
+              </tr>
+              <tr>
+                <td><strong>Block-Based 输出</strong></td>
+                <td><span class="tag tag-green">&#10003;</span></td>
+                <td><span class="tag tag-orange">&#10007;</span></td>
+                <td><span class="tag tag-orange">&#10007;</span></td>
+                <td><span class="tag tag-orange">&#10007;</span></td>
+              </tr>
+              <tr>
+                <td><strong>MCP 协议支持</strong></td>
+                <td><span class="tag tag-green">&#10003;</span></td>
+                <td><span class="tag tag-orange">&#10007;</span></td>
+                <td><span class="tag tag-orange">&#10007;</span></td>
+                <td><span class="tag tag-orange">&#10007;</span></td>
+              </tr>
+              <tr>
+                <td><strong>团队协作</strong></td>
+                <td><span class="tag tag-green">Warp Drive</span></td>
+                <td><span class="tag tag-orange">Shell 共享</span></td>
+                <td><span class="tag tag-orange">&#10007;</span></td>
+                <td><span class="tag tag-orange">&#10007;</span></td>
+              </tr>
+              <tr>
+                <td><strong>插件系统</strong></td>
+                <td><span class="tag tag-green">QuickJS + MCP</span></td>
+                <td><span class="tag tag-blue">Python 脚本</span></td>
+                <td><span class="tag tag-blue">JSON 配置</span></td>
+                <td><span class="tag tag-orange">TOML 配置</span></td>
+              </tr>
+              <tr>
+                <td><strong>跨平台</strong></td>
+                <td><span class="tag tag-green">macOS / Linux / Windows</span></td>
+                <td><span class="tag tag-orange">macOS only</span></td>
+                <td><span class="tag tag-blue">Windows only</span></td>
+                <td><span class="tag tag-green">全平台</span></td>
+              </tr>
+              <tr>
+                <td><strong>开源协议</strong></td>
+                <td><span class="tag tag-green">AGPL v3 / MIT</span></td>
+                <td><span class="tag tag-green">GPL v2</span></td>
+                <td><span class="tag tag-green">MIT</span></td>
+                <td><span class="tag tag-green">Apache 2.0</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout warning">
+          <div class="callout-icon">&#9888;</div>
+          <p>
+            <strong>客观视角：</strong>Warp 并非没有争议。部分开发者对 AGPL 协议的商业限制表示担忧；也有人认为 Warp 的云端功能（Warp Drive）引入了不必要的复杂性。Alacritty 在纯渲染性能上仍然是最快的选择。选择终端工具应该根据个人需求和偏好来决定。
+          </p>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 9: Future -->
+      <section class="section fade-in" id="future">
+        <span class="section-label">Chapter 09</span>
+        <h2>展望：下一代开发范式</h2>
+        <p>
+          Warp 的出现和爆火，不仅仅是"一个终端工具火了"那么简单。它背后折射出的是软件开发范式正在经历的深刻变革。
+        </p>
+
+        <div class="image-block">
+          <img src="images/warp-team-collab.png" alt="Warp Team Collaboration" />
+          <div class="caption">Warp 正在构建的下一代云端协作开发平台</div>
+        </div>
+
+        <h3>从"工具"到"环境"</h3>
+        <p>
+          传统开发工具是离散的、被动的——你打开一个 IDE 写代码，打开一个终端执行命令，打开一个浏览器查文档，打开一个 Slack 窗口讨论问题。Warp 的愿景是将这些能力统一到一个 Agentic Development Environment 中：AI Agent 理解你的整个工作上下文，自动协调不同工具之间的交互。
+        </p>
+
+        <h3>Agent 协作的未来</h3>
+        <p>
+          当 Agent 能力越来越强，一个自然的问题出现了：多个 Agent 能否协作？Warp 的架构已经在为这个未来做准备——Warp Drive 平台支持 Agent 在云端运行，理论上可以实现多个 Agent 分工协作，完成从需求分析到代码实现到测试验证的完整工作流。
+        </p>
+
+        <h3>开发者体验的重新定义</h3>
+        <p>
+          Warp 的成功也证明了一个重要趋势：开发者越来越重视"Developer Experience"（开发者体验）。一个工具不仅要功能强大，还要用起来舒服、看起来好看、交互要直觉化。在这个维度上，Warp 用 Rust 的安全、GPU 的流畅、AI 的智能，为终端工具设立了一个新的标杆。
+        </p>
+
+        <blockquote>
+          "The future of development is not about replacing developers with AI. It's about giving every developer a team of AI agents that understand their codebase, their workflow, and their intent."
+          <cite>—— Warp 团队</cite>
+        </blockquote>
+
+        <h3>如何开始使用</h3>
+        <p>
+          如果你被 Warp 的理念所吸引，开始使用非常简单。Warp 目前支持 macOS、Linux 和 Windows 三大平台，可以从官网直接下载安装，也可以通过 Homebrew（macOS/Linux）安装。对于想要深入参与开发的贡献者，GitHub 上的仓库文档提供了完整的架构说明和贡献指南。
+        </p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="dots">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <span class="lang">Shell — 安装 Warp</span>
+          </div>
+          <pre><code><span class="cm"># macOS (Homebrew)</span>
+<span class="kw">brew</span> install --cask warp
+
+<span class="cm"># Linux (deb)</span>
+<span class="kw">curl</span> -sSfL https://app.warp.dev/download/deb | <span class="kw">sudo</span> dpkg -i -
+
+<span class="cm"># 从源码构建</span>
+<span class="kw">git</span> clone https://github.com/warpdotdev/warp.git
+<span class="kw">cd</span> warp && <span class="kw">cargo</span> build --release</code></pre>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Conclusion -->
+      <section class="section fade-in">
+        <span class="section-label">Conclusion</span>
+        <h2>结语</h2>
+        <p>
+          Warp 的故事远没有结束。从一个用 Rust 重写的终端模拟器，到今天拥有 GPU 渲染、AI Agent、MCP 协议、云端协作的 Agentic Development Environment，Warp 用六年时间证明了一件事：即使是最"古老"的开发工具，也值得被认真对待。
+        </p>
+        <p>
+          在 AI 浪潮席卷软件行业的今天，Warp 给出了一个令人信服的答案：AI 不应该只是 IDE 里的一个侧边栏，它应该成为开发环境的核心组成部分。而终端，这个连接开发者与机器的最底层接口，恰恰是 AI Agent 最自然的"栖息地"。
+        </p>
+        <p>
+          如果你还没有尝试过 Warp，也许是时候给你的终端一个升级了。毕竟，你值得一个活在 21 世纪的开发工具。
+        </p>
+      </section>
+
+      <!-- Footer -->
+      <footer class="article-footer">
+        <p>
+          本文撰写于 2026 年 6 月 7 日 &middot; 信息来源：<a href="https://www.warp.dev" target="_blank">warp.dev</a> &middot;
+          <a href="https://github.com/warpdotdev/warp" target="_blank">GitHub</a>
+        </p>
+        <p style="margin-top: 1rem; font-size: 0.82rem;">
+          &copy; 2026 Tech Blog. 本文仅供技术分享，不构成任何投资或购买建议。
+        </p>
+      </footer>
+
+    </article>
+  </div>
+
+  <!-- Scroll Animation Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      });
+
+      document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+      // Smooth scroll for TOC links
+      document.querySelectorAll('.toc a').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const target = document.querySelector(link.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -4,6 +4,7 @@
 
 ## 工具操作指南
 
+- [Warp：当 Rust、GPU 与 AI Agent 重塑开发者终端](warp-tech-blog/) `HTML`{target="_self"} — 拆解 Warp 终端的 Rust/GPU 架构、AI Agent 能力和团队协作工作流。
 - [Qoder CLI 完全指南：从零开始的 AI 编程助手之旅](qoder-cli-overview/) `HTML`{target="_self"} — 介绍 Qoder CLI 的安装、TUI、权限系统和 AI 编程助手使用流程。
 - [LM Studio 开发者文档 · 教案](lmstudio-teaching/) `HTML`{target="_self"} — 面向开发者系统讲解本地模型加载、API 调用、结构化输出和工具调用等 LM Studio 工作流。
 - [2026 终端工具选型：Ghostty、cmux、tmux、Zellij、Warp 怎么选](terminal-tools-2026/index.md) — 按终端模拟器、复用器、AI agent 工作台和进程管理四层梳理终端工具组合。
@@ -19,6 +20,7 @@
 
 ## Agent 架构与协作
 
+- [OpenHands 深度解析：开源 AI 软件工程师的崛起](openhands-tech-blog/) `HTML`{target="_self"} — 从架构、工具生态和工作流角度解析 OpenHands 这类开源 AI 软件工程师。
 - [Agent 知识库全景图 · 2026](agent-memory-landscape/) `HTML`{target="_self"} — 从记忆类型、知识库形态和工程落地维度梳理 Agent 长期记忆生态。
 - [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"} — 讨论单 Agent 如何动态规划、委派、回收上下文，并协同一组专门化子 Agent 完成复杂任务。
 - [Agent 设计模式互动教学稿](agent-design-patterns/) `HTML`{target="_self"} — 用交互式单页讲解感知、记忆、推理、行动、反思、协作六类 Agent 模式。
@@ -81,6 +83,8 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
+- [Warp：当 Rust、GPU 与 AI Agent 重塑开发者终端](warp-tech-blog/) `HTML`{target="_self"}
+- [OpenHands 深度解析：开源 AI 软件工程师的崛起](openhands-tech-blog/) `HTML`{target="_self"}
 - [Claude Cowork:把 Claude Code 的 Agent 能力搬进桌面](claude-cowork-blog/) `HTML`{target="_self"}
 - [读懂大模型榜单：一张能力地图的使用说明](llm-leaderboard-guide/) `HTML`{target="_self"}
 - [Qoder CLI 完全指南：从零开始的 AI 编程助手之旅](qoder-cli-overview/) `HTML`{target="_self"}

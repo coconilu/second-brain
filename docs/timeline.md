@@ -4,6 +4,8 @@
 
 ## 2026-06
 
+- [Warp：当 Rust、GPU 与 AI Agent 重塑开发者终端](warp-tech-blog/) `HTML`{target="_self"}
+- [OpenHands 深度解析：开源 AI 软件工程师的崛起](openhands-tech-blog/) `HTML`{target="_self"}
 - [Claude Cowork:把 Claude Code 的 Agent 能力搬进桌面](claude-cowork-blog/) `HTML`{target="_self"}
 - [读懂大模型榜单：一张能力地图的使用说明](llm-leaderboard-guide/) `HTML`{target="_self"}
 - [Qoder CLI 完全指南：从零开始的 AI 编程助手之旅](qoder-cli-overview/) `HTML`{target="_self"}

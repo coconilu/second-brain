@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenHands 深度解析：开源 AI 软件工程师的崛起</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --primary-light: #a29bfe;
+            --accent: #00cec9;
+            --accent-light: #81ecec;
+            --dark: #0a0a1a;
+            --dark-card: #12122a;
+            --dark-surface: #1a1a3e;
+            --text: #e0e0f0;
+            --text-muted: #9090b0;
+            --gradient-1: linear-gradient(135deg, #6c5ce7 0%, #00cec9 100%);
+            --gradient-2: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 100%);
+            --border: rgba(108, 92, 231, 0.2);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--dark);
+            color: var(--text);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            width: 100%;
+            min-height: 85vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('images/openhands-hero.png') center/cover no-repeat;
+            filter: brightness(0.4);
+            z-index: 0;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(10,10,26,0.3) 0%, rgba(10,10,26,0.8) 70%, var(--dark) 100%);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            max-width: 900px;
+            padding: 2rem;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 20px;
+            background: rgba(108, 92, 231, 0.2);
+            border: 1px solid var(--primary-light);
+            color: var(--primary-light);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        .hero-meta {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .hero-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Article Container */
+        .article-container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: var(--dark-surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .toc h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .toc ol {
+            padding-left: 1.5rem;
+        }
+
+        .toc li {
+            margin-bottom: 0.5rem;
+        }
+
+        .toc a {
+            color: var(--primary-light);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .toc a:hover {
+            color: var(--accent);
+        }
+
+        /* Section Styles */
+        .section {
+            margin-bottom: 4rem;
+        }
+
+        .section h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            position: relative;
+        }
+
+        .section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 80px;
+            height: 2px;
+            background: var(--gradient-1);
+        }
+
+        .section h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin: 2rem 0 1rem;
+        }
+
+        .section h4 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--primary-light);
+            margin: 1.5rem 0 0.8rem;
+        }
+
+        .section p {
+            margin-bottom: 1.2rem;
+            color: var(--text);
+            font-size: 1.05rem;
+        }
+
+        /* Image Styles */
+        .article-image {
+            width: 100%;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: transform 0.3s;
+        }
+
+        .article-image:hover {
+            transform: scale(1.01);
+        }
+
+        .image-caption {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: -1rem;
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .code-block code {
+            font-family: 'Fira Code', 'JetBrains Mono', 'Cascadia Code', monospace;
+            font-size: 0.9rem;
+            color: #e6edf3;
+            line-height: 1.7;
+        }
+
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-comment { color: #8b949e; }
+        .code-func { color: #d2a8ff; }
+        .code-type { color: #79c0ff; }
+        .code-number { color: #ffa657; }
+
+        /* Feature Cards */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: var(--dark-surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.8rem;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-1);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(108, 92, 231, 0.15);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .feature-card h4 {
+            font-size: 1.1rem;
+            color: var(--text);
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(108, 92, 231, 0.1);
+            border-left: 4px solid var(--primary);
+            border-radius: 0 12px 12px 0;
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+        }
+
+        .info-box.warning {
+            background: rgba(253, 203, 110, 0.08);
+            border-left-color: #fdcb6e;
+        }
+
+        .info-box.success {
+            background: rgba(0, 206, 201, 0.08);
+            border-left-color: var(--accent);
+        }
+
+        .info-box p {
+            margin: 0;
+            font-size: 0.98rem;
+        }
+
+        .info-box strong {
+            color: var(--accent);
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 2rem 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .comparison-table th {
+            background: var(--dark-surface);
+            padding: 1rem 1.2rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--accent);
+            font-size: 0.95rem;
+        }
+
+        .comparison-table td {
+            padding: 0.9rem 1.2rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.95rem;
+            color: var(--text);
+        }
+
+        .comparison-table tr:hover td {
+            background: rgba(108, 92, 231, 0.05);
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--dark-surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+
+        /* Inline Code */
+        code.inline {
+            background: rgba(108, 92, 231, 0.15);
+            color: var(--accent-light);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.88em;
+        }
+
+        /* Architecture Diagram */
+        .arch-diagram {
+            background: var(--dark-surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .arch-diagram svg {
+            width: 100%;
+            height: auto;
+        }
+
+        /* Flowchart */
+        .flow-steps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .flow-step {
+            background: var(--dark-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem;
+            text-align: center;
+            min-width: 140px;
+            position: relative;
+        }
+
+        .flow-step .step-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .flow-step .step-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .flow-arrow {
+            display: flex;
+            align-items: center;
+            color: var(--primary-light);
+            font-size: 1.5rem;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+            margin: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--gradient-1);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+            padding-left: 1.5rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.35rem;
+            top: 0.5rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid var(--dark);
+        }
+
+        .timeline-item h4 {
+            margin-top: 0;
+            color: var(--text);
+        }
+
+        .timeline-item p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Footer */
+        .article-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .article-footer a {
+            color: var(--primary-light);
+            text-decoration: none;
+        }
+
+        .article-footer a:hover {
+            color: var(--accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .article-container {
+                padding: 2rem 1.2rem;
+            }
+
+            .section h2 {
+                font-size: 1.6rem;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+
+        /* Scroll Animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Highlight */
+        .highlight {
+            background: linear-gradient(120deg, rgba(108,92,231,0.15) 0%, rgba(0,206,201,0.15) 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Blockquote */
+        blockquote {
+            border-left: 3px solid var(--primary);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            background: rgba(108, 92, 231, 0.05);
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        blockquote p {
+            margin: 0;
+        }
+
+        /* Tag */
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin: 2px;
+            background: rgba(108, 92, 231, 0.15);
+            color: var(--primary-light);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+        }
+
+        /* Anchor link */
+        a.anchor {
+            color: var(--primary-light);
+            text-decoration: none;
+            border-bottom: 1px dashed var(--primary-light);
+            transition: all 0.3s;
+        }
+
+        a.anchor:hover {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* List styles */
+        .section ul, .section ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .section li {
+            margin-bottom: 0.6rem;
+            font-size: 1.02rem;
+        }
+
+        /* Separator */
+        .section-divider {
+            border: none;
+            height: 1px;
+            background: var(--gradient-1);
+            margin: 3rem 0;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Hero Section -->
+<header class="hero">
+    <div class="hero-content">
+        <span class="hero-badge">Open Source AI Agent</span>
+        <h1>OpenHands 深度解析<br>开源 AI 软件工程师的崛起</h1>
+        <p class="hero-subtitle">
+            从架构设计到实战应用，全面解读这款 GitHub 50K+ Star 的开源 AI 编程平台如何用 Agent 重新定义软件开发
+        </p>
+        <div class="hero-meta">
+            <span>&#128197; 2026 年 6 月</span>
+            <span>&#9201; 阅读约 15 分钟</span>
+            <span>&#128218; 技术深度解析</span>
+        </div>
+    </div>
+</header>
+
+<!-- Article -->
+<article class="article-container">
+
+    <!-- Table of Contents -->
+    <nav class="toc fade-in">
+        <h2>&#128204; 目录</h2>
+        <ol>
+            <li><a href="#intro">引言：AI 编程的新范式</a></li>
+            <li><a href="#what">什么是 OpenHands？</a></li>
+            <li><a href="#architecture">系统架构深度剖析</a></li>
+            <li><a href="#core-features">核心功能全景图</a></li>
+            <li><a href="#agent-sdk">Software Agent SDK 详解</a></li>
+            <li><a href="#workflow">Agent 工作流程：从规划到交付</a></li>
+            <li><a href="#sandbox">安全沙箱机制</a></li>
+            <li><a href="#getting-started">快速上手指南</a></li>
+            <li><a href="#comparison">同类产品对比</a></li>
+            <li><a href="#ecosystem">生态与社区</a></li>
+            <li><a href="#future">未来展望</a></li>
+        </ol>
+    </nav>
+
+    <!-- Section 1: Introduction -->
+    <section id="intro" class="section fade-in">
+        <h2>一、引言：AI 编程的新范式</h2>
+
+        <p>2024 年 3 月，Cognition AI 发布了号称「全球首位 AI 软件工程师」的 Devin，震撼了整个技术社区。然而 Devin 高昂的使用费用和闭源策略让大多数开发者望而却步。就在此时，一个名为 OpenDevin（后更名为 <span class="highlight">OpenHands</span>）的开源项目应运而生，迅速在 GitHub 上积累了超过 50,000 颗 Star，成为 AI 编程 Agent 领域最受关注的开源项目。</p>
+
+        <p>OpenHands 不仅仅是一个"代码补全"工具，而是一个能够自主理解需求、规划方案、编写代码、调试测试、甚至提交 Pull Request 的<strong>完整 AI 软件工程 Agent</strong>。它运行在安全的 Docker 沙箱中，可以搭配任意 LLM（大语言模型）使用，支持私有化部署，并且核心代码完全开源（MIT 许可证）。</p>
+
+        <blockquote>
+            <p>"Build AI agents that write software." —— OpenHands 的使命宣言</p>
+        </blockquote>
+
+        <p>本文将从架构设计、核心功能、Agent SDK、安全机制等多个维度，对 OpenHands 进行全面深入的技术解析，帮助你理解这个平台的设计哲学和工程实践。</p>
+
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-number">50K+</div>
+                <div class="stat-label">GitHub Stars</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">77.6%</div>
+                <div class="stat-label">SWE-Bench 评分</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">1000+</div>
+                <div class="stat-label">社区贡献者</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">MIT</div>
+                <div class="stat-label">开源许可证</div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- Section 2: What is OpenHands -->
+    <section id="what" class="section fade-in">
+        <h2>二、什么是 OpenHands？</h2>
+
+        <p>OpenHands（曾用名 OpenDevin）是由 All Hands AI 主导开发的开源 AI 驱动软件开发平台。它提供了一个完整的 Software Agent SDK，使开发者能够构建可以自主完成编程任务的 AI Agent。这些 Agent 能够执行人类开发者日常的绝大多数工作：阅读代码、编写功能、修复 Bug、运行测试、浏览 Web、提交代码等。</p>
+
+        <h3>2.1 项目演进历程</h3>
+
+        <div class="timeline">
+            <div class="timeline-item">
+                <h4>2024 年 3 月 — OpenDevin 诞生</h4>
+                <p>作为对 Cognition AI 发布 Devin 的回应，OpenDevin 项目在社区中发起，目标是构建一个开源的 AI 软件工程师。</p>
+            </div>
+            <div class="timeline-item">
+                <h4>2024 年中 — 快速迭代</h4>
+                <p>项目迅速获得大量社区贡献，Agent 能力不断进化，Docker 沙箱、浏览器操控等核心能力陆续集成。</p>
+            </div>
+            <div class="timeline-item">
+                <h4>2024 年末 — 更名 OpenHands</h4>
+                <p>项目从 OpenDevin 更名为 OpenHands，定位从单一 Agent 扩展为通用的 AI 软件开发平台。</p>
+            </div>
+            <div class="timeline-item">
+                <h4>2025 年 — 产品矩阵成型</h4>
+                <p>形成 SDK + CLI + Local GUI + Cloud + Enterprise 五大产品形态，SWE-Bench 评分达到 77.6%。</p>
+            </div>
+            <div class="timeline-item">
+                <h4>2026 年 — 企业级落地</h4>
+                <p>推出企业版（支持 VPC/K8s 自托管），集成 Jira、Slack 等企业工具，MCP 协议支持。</p>
+            </div>
+        </div>
+
+        <h3>2.2 五大产品形态</h3>
+
+        <p>OpenHands 针对不同使用场景提供了多种产品形态：</p>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="feature-icon">&#128736;</span>
+                <h4>Software Agent SDK</h4>
+                <p>可组合的 Python 库，OpenHands 的核心引擎。支持自定义 Agent、工具和技能，用于构建能编写软件的 AI Agent。</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">&#128187;</span>
+                <h4>CLI 命令行工具</h4>
+                <p>轻量级命令行界面，可直接在终端中与 Agent 对话，适合自动化脚本和 CI/CD 集成场景。</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">&#128421;</span>
+                <h4>Local GUI</h4>
+                <p>本地运行的图形界面（Agent Canvas），提供浏览器内的可视化交互体验，适合日常开发使用。</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">&#9729;</span>
+                <h4>OpenHands Cloud</h4>
+                <p>托管云服务，集成 GitHub/GitLab，支持从 Issue 到 PR 的自动化流程，零配置开箱即用。</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">&#127970;</span>
+                <h4>Enterprise 企业版</h4>
+                <p>支持 VPC/Kubernetes 自托管部署，提供 Jira、Slack 等企业工具集成，满足合规和安全要求。</p>
+            </div>
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- Section 3: Architecture -->
+    <section id="architecture" class="section fade-in">
+        <h2>三、系统架构深度剖析</h2>
+
+        <p>OpenHands 的架构设计遵循模块化、安全隔离和可扩展三大原则。下面我们将从整体架构入手，逐层解析其内部运作机制。</p>
+
+        <img src="images/openhands-architecture.png" alt="OpenHands 架构示意图" class="article-image">
+        <p class="image-caption">OpenHands 系统架构示意图 — Agent 核心通过沙箱与外部环境交互</p>
+
+        <h3>3.1 核心架构组件</h3>
+
+        <p>OpenHands 的架构可以分为四个核心层次：</p>
+
+        <h4>用户交互层（User Interface）</h4>
+        <p>这一层负责接收用户的指令和反馈。无论是通过 CLI、Web GUI（Agent Canvas）、还是 Cloud 界面，用户的自然语言指令都会被解析为 Agent 可以理解的 Task。Cloud 版还支持通过 GitHub App 监听 Issue 和 PR 评论，实现全自动化的代码协作流程。</p>
+
+        <h4>Agent 推理层（Reasoning-Action Loop）</h4>
+        <p>这是 OpenHands 的"大脑"。Agent 采用经典的 Reasoning-Action Loop（推理-行动循环）架构：首先通过 LLM 分析当前任务上下文和已有信息，然后推理出下一步应采取的行动（Action），执行该行动后观察结果（Observation），再将新的 Observation 送回 LLM 进行下一轮推理。这个过程会持续迭代，直到任务完成或需要用户介入。</p>
+
+        <h4>工具执行层（Tool Execution）</h4>
+        <p>Agent 的所有外部操作都通过 Tool（工具）完成。OpenHands 内置了丰富的工具集，包括 Bash 命令执行、文件读写操作、浏览器控制、代码编辑器操作等。工具的执行结果会作为 Observation 返回给 Agent，驱动下一轮推理。此外，OpenHands 还支持 MCP（Model Context Protocol）协议，可以动态接入外部工具和服务。</p>
+
+        <h4>沙箱隔离层（Sandbox Isolation）</h4>
+        <p>所有代码执行和文件操作都在安全的沙箱环境中进行。OpenHands 支持多种沙箱后端：本地 Docker 容器、Apptainer 容器、以及远程沙箱服务。沙箱确保 Agent 的操作不会影响宿主系统，同时提供了可复现的执行环境。</p>
+
+        <h3>3.2 架构设计 SVG 示意图</h3>
+
+        <div class="arch-diagram">
+            <svg viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg">
+                <!-- Background grid -->
+                <defs>
+                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#6c5ce7;stop-opacity:0.1" />
+                        <stop offset="100%" style="stop-color:#00cec9;stop-opacity:0.1" />
+                    </linearGradient>
+                    <linearGradient id="gradFlow" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#6c5ce7;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#00cec9;stop-opacity:1" />
+                    </linearGradient>
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+
+                <!-- User Box -->
+                <rect x="300" y="10" width="200" height="50" rx="10" fill="url(#grad1)" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="400" y="40" text-anchor="middle" fill="#e0e0f0" font-size="14" font-weight="600">&#128100; 用户 (User)</text>
+
+                <!-- Arrow down -->
+                <line x1="400" y1="60" x2="400" y2="90" stroke="#6c5ce7" stroke-width="2" marker-end="url(#arrowhead)"/>
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#6c5ce7"/>
+                    </marker>
+                </defs>
+
+                <!-- UI Layer -->
+                <rect x="200" y="90" width="400" height="45" rx="8" fill="rgba(108,92,231,0.15)" stroke="#6c5ce7" stroke-width="1"/>
+                <text x="400" y="118" text-anchor="middle" fill="#a29bfe" font-size="13">CLI / Web GUI / Cloud / Enterprise</text>
+
+                <!-- Arrow down -->
+                <line x1="400" y1="135" x2="400" y2="165" stroke="#6c5ce7" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                <!-- Agent Core -->
+                <rect x="250" y="165" width="300" height="60" rx="12" fill="rgba(0,206,201,0.1)" stroke="#00cec9" stroke-width="2" filter="url(#glow)"/>
+                <text x="400" y="192" text-anchor="middle" fill="#00cec9" font-size="15" font-weight="700">&#129504; Agent 推理引擎</text>
+                <text x="400" y="212" text-anchor="middle" fill="#81ecec" font-size="11">Reasoning-Action Loop + LLM</text>
+
+                <!-- Left: LLM Provider -->
+                <rect x="30" y="170" width="170" height="50" rx="10" fill="url(#grad1)" stroke="#a29bfe" stroke-width="1"/>
+                <text x="115" y="200" text-anchor="middle" fill="#e0e0f0" font-size="12">LLM Provider</text>
+                <line x1="200" y1="195" x2="250" y2="195" stroke="#a29bfe" stroke-width="1.5" stroke-dasharray="5,3"/>
+                <line x1="250" y1="195" x2="200" y2="195" stroke="#a29bfe" stroke-width="1.5" stroke-dasharray="5,3"/>
+
+                <!-- Right: Skills & MCP -->
+                <rect x="600" y="170" width="170" height="50" rx="10" fill="url(#grad1)" stroke="#a29bfe" stroke-width="1"/>
+                <text x="685" y="200" text-anchor="middle" fill="#e0e0f0" font-size="12">Skills / MCP</text>
+                <line x1="550" y1="195" x2="600" y2="195" stroke="#a29bfe" stroke-width="1.5" stroke-dasharray="5,3"/>
+
+                <!-- Arrow down from Agent -->
+                <line x1="400" y1="225" x2="400" y2="265" stroke="#00cec9" stroke-width="2" marker-end="url(#arrowhead2)"/>
+                <defs>
+                    <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#00cec9"/>
+                    </marker>
+                </defs>
+
+                <!-- Tool Layer -->
+                <rect x="100" y="265" width="600" height="50" rx="10" fill="rgba(108,92,231,0.08)" stroke="rgba(108,92,231,0.3)" stroke-width="1"/>
+                <text x="400" y="285" text-anchor="middle" fill="#a29bfe" font-size="12" font-weight="600">Tool Execution Layer</text>
+                <text x="400" y="303" text-anchor="middle" fill="#9090b0" font-size="10">Bash &#128187; | File I/O &#128196; | Browser &#127760; | Editor &#9998; | Git &#128279;</text>
+
+                <!-- Arrow down -->
+                <line x1="400" y1="315" x2="400" y2="350" stroke="#6c5ce7" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                <!-- Sandbox -->
+                <rect x="150" y="350" width="500" height="110" rx="14" fill="rgba(253,203,110,0.05)" stroke="#fdcb6e" stroke-width="1.5" stroke-dasharray="6,3"/>
+                <text x="400" y="375" text-anchor="middle" fill="#fdcb6e" font-size="13" font-weight="600">&#128274; Sandbox (Docker / Apptainer / Remote)</text>
+
+                <!-- Inside sandbox items -->
+                <rect x="180" y="390" width="130" height="50" rx="8" fill="rgba(253,203,110,0.08)" stroke="rgba(253,203,110,0.3)" stroke-width="1"/>
+                <text x="245" y="420" text-anchor="middle" fill="#e0e0f0" font-size="11">Bash Terminal</text>
+
+                <rect x="330" y="390" width="130" height="50" rx="8" fill="rgba(253,203,110,0.08)" stroke="rgba(253,203,110,0.3)" stroke-width="1"/>
+                <text x="395" y="420" text-anchor="middle" fill="#e0e0f0" font-size="11">File System</text>
+
+                <rect x="480" y="390" width="130" height="50" rx="8" fill="rgba(253,203,110,0.08)" stroke="rgba(253,203,110,0.3)" stroke-width="1"/>
+                <text x="545" y="420" text-anchor="middle" fill="#e0e0f0" font-size="11">Browser Engine</text>
+            </svg>
+        </div>
+
+        <h3>3.3 关键技术选型</h3>
+
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>技术层</th>
+                    <th>选型</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>LLM 接入</td>
+                    <td>LiteLLM</td>
+                    <td>统一接口，支持 OpenAI、Azure、AWS Bedrock、Anthropic、本地模型等 100+ 种 LLM</td>
+                </tr>
+                <tr>
+                    <td>沙箱运行时</td>
+                    <td>Docker / Apptainer</td>
+                    <td>提供进程和网络隔离，确保 Agent 操作不影响宿主系统</td>
+                </tr>
+                <tr>
+                    <td>浏览器自动化</td>
+                    <td>Playwright</td>
+                    <td>Agent 可以像人类一样浏览网页、填写表单、截图</td>
+                </tr>
+                <tr>
+                    <td>可观测性</td>
+                    <td>OpenTelemetry</td>
+                    <td>完整的 trace 记录，支持监控和调试 Agent 行为</td>
+                </tr>
+                <tr>
+                    <td>工具扩展</td>
+                    <td>MCP Protocol</td>
+                    <td>通过 Model Context Protocol 动态接入外部工具和服务</td>
+                </tr>
+                <tr>
+                    <td>对话持久化</td>
+                    <td>Conversation Store</td>
+                    <td>支持会话保存和恢复，Agent 可以跨会话记住上下文</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- Section 4: Core Features -->
+    <section id="core-features" class="section fade-in">
+        <h2>四、核心功能全景图</h2>
+
+        <p>OpenHands 提供了一套完整的 AI 编程工具链，覆盖了软件开发全生命周期的各个环节。下面我们逐一解析其核心功能模块。</p>
+
+        <img src="images/openhands-tools.png" alt="OpenHands 工具生态" class="article-image">
+        <p class="image-caption">OpenHands 丰富的工具生态 — 覆盖代码、终端、浏览器、文件系统等</p>
+
+        <h3>4.1 自主代码编写与修改</h3>
+
+        <p>OpenHands Agent 能够根据自然语言指令自主编写代码。它不仅能生成新文件，还能理解现有代码库的上下文，进行精确的代码修改。Agent 会：</p>
+
+        <ul>
+            <li>分析项目结构、依赖关系和代码风格</li>
+            <li>根据需求生成符合项目风格的代码</li>
+            <li>自动处理 import 语句和类型定义</li>
+            <li>支持跨文件的联动修改</li>
+        </ul>
+
+        <h3>4.2 智能调试与错误修复</h3>
+
+        <p>Agent 能够自主运行代码，捕获错误信息，分析 Stack Trace，然后定位并修复 Bug。这个「运行-观察-修复」的循环是自动化的，Agent 会持续迭代直到测试通过或问题解决。</p>
+
+        <div class="code-block" data-lang="Agent 工作流示例">
+<code><span class="code-comment"># Agent 的自主调试流程</span>
+<span class="code-keyword">User</span>: <span class="code-string">"运行测试并修复失败的用例"</span>
+
+<span class="code-comment"># Step 1: Agent 执行测试命令</span>
+<span class="code-func">Action</span>: bash(<span class="code-string">"pytest tests/ -v"</span>)
+<span class="code-func">Observation</span>: <span class="code-string">"FAILED test_auth.py::test_login - AssertionError"</span>
+
+<span class="code-comment"># Step 2: Agent 分析错误并阅读相关代码</span>
+<span class="code-func">Action</span>: read_file(<span class="code-string">"src/auth.py"</span>)
+<span class="code-func">Observation</span>: <span class="code-string">[文件内容]</span>
+
+<span class="code-comment"># Step 3: Agent 定位问题并修复</span>
+<span class="code-func">Action</span>: edit_file(<span class="code-string">"src/auth.py"</span>, <span class="code-number">line</span>=<span class="code-number">42</span>, ...)
+<span class="code-func">Observation</span>: <span class="code-string">"File updated"</span>
+
+<span class="code-comment"># Step 4: Agent 重新运行测试验证</span>
+<span class="code-func">Action</span>: bash(<span class="code-string">"pytest tests/test_auth.py -v"</span>)
+<span class="code-func">Observation</span>: <span class="code-string">"PASSED ✓"</span></code>
+        </div>
+
+        <h3>4.3 浏览器自动化</h3>
+
+        <p>OpenHands 集成了浏览器自动化能力，Agent 可以像人类用户一样操控浏览器。这使得 Agent 能够：</p>
+
+        <ul>
+            <li>浏览文档和 API 参考资料</li>
+            <li>搜索技术方案和最佳实践</li>
+            <li>填写 Web 表单、与 Web 应用交互</li>
+            <li>截图验证前端页面效果</li>
+        </ul>
+
+        <h3>4.4 Git 集成与 PR 自动化</h3>
+
+        <p>OpenHands 深度集成了 Git 和代码托管平台。Agent 可以自动创建分支、提交代码、推送远程仓库，甚至通过 GitHub/GitLab API 创建 Pull Request。在 Cloud 版本中，还支持监听 Issue 评论并自动修复问题后提交 PR。</p>
+
+        <h3>4.5 并行工具执行</h3>
+
+        <p>为了提高效率，OpenHands 支持并行执行多个不相互依赖的工具调用。例如，Agent 可以同时读取多个文件、并行执行多个独立的测试，从而显著缩短任务完成时间。</p>
+
+        <h3>4.6 Theory of Mind 个性化引导</h3>
+
+        <p>OpenHands 引入了 "Theory of Mind" 概念，Agent 能够根据用户的技术水平和偏好调整自己的行为方式。对于新手用户，Agent 会提供更多解释和步骤说明；对于资深开发者，Agent 则更加简洁高效地完成任务。</p>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- Section 5: Agent SDK -->
+    <section id="agent-sdk" class="section fade-in">
+        <h2>五、Software Agent SDK 详解</h2>
+
+        <p>Software Agent SDK 是 OpenHands 的核心引擎，也是一个可组合的 Python 库。开发者可以用它来定义自己的 Agent，配置工具和技能，并构建定制化的 AI 编程助手。</p>
+
+        <h3>5.1 核心概念</h3>
+
+        <p>SDK 围绕三个核心概念构建：</p>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="feature-icon">&#129302;</span>
+                <h4>Agent（智能体）</h4>
+                <p>Agent 是自主执行任务的 AI 实体。它接收任务描述，通过 Reasoning-Action Loop 不断推理和行动，直到任务完成。你可以自定义 Agent 的行为策略。</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">&#128295;</span>
+                <h4>Tool（工具）</h4>
+                <p>Tool 定义了 Agent 可以执行的操作。每个 Tool 都是一个 Python 函数，带有类型注解和文档字符串。内置工具包括 Bash、文件 I/O、浏览器等。</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">&#128218;</span>
+                <h4>Skill（技能）</h4>
+                <p>Skill 为 Agent 添加领域知识。例如，你可以添加一个"React 开发"技能，让 Agent 了解 React 的最佳实践和项目结构约定。</p>
+            </div>
+        </div>
+
+        <h3>5.2 自定义 Tool 示例</h3>
+
+        <p>在 OpenHands 中定义一个自定义 Tool 非常简洁。以下是一个数据库查询工具的实现示例：</p>
+
+        <div class="code-block" data-lang="Python">
+<code><span class="code-keyword">from</span> openhands.sdk <span class="code-keyword">import</span> tool, Agent, Task
+<span class="code-keyword">import</span> sqlite3
+
+<span class="code-comment"># 定义一个自定义工具</span>
+<span class="code-keyword">@tool</span>
+<span class="code-keyword">def</span> <span class="code-func">query_database</span>(sql: <span class="code-type">str</span>) -> <span class="code-type">str</span>:
+    <span class="code-string">"""执行 SQL 查询并返回结果。
+
+    Args:
+        sql: 要执行的 SQL 查询语句
+
+    Returns:
+        查询结果的字符串表示
+    """</span>
+    conn = sqlite3.<span class="code-func">connect</span>(<span class="code-string">"project.db"</span>)
+    cursor = conn.<span class="code-func">execute</span>(sql)
+    results = cursor.<span class="code-func">fetchall</span>()
+    conn.<span class="code-func">close</span>()
+    <span class="code-keyword">return</span> <span class="code-func">str</span>(results)
+
+<span class="code-comment"># 创建 Agent 并注册工具</span>
+agent = <span class="code-func">Agent</span>(
+    tools=[query_database],
+    model=<span class="code-string">"gpt-4o"</span>
+)
+
+<span class="code-comment"># 执行任务</span>
+result = agent.<span class="code-func">run</span>(<span class="code-string">"查询用户表中注册日期在2024年之后的用户数量"</span>)</code>
+        </div>
+
+        <h3>5.3 MCP 协议支持</h3>
+
+        <p>OpenHands 原生支持 <span class="highlight">Model Context Protocol (MCP)</span>，这是一种标准化的协议，允许 AI Agent 动态发现和调用外部工具。通过 MCP，OpenHands Agent 可以：</p>
+
+        <ul>
+            <li>接入 Slack、Jira、Notion 等第三方 SaaS 工具</li>
+            <li>调用内部微服务 API</li>
+            <li>访问企业内部知识库</li>
+            <li>与 CI/CD 系统集成</li>
+        </ul>
+
+        <div class="info-box success">
+            <p><strong>MCP 的优势：</strong>通过 MCP 协议，开发者无需修改 Agent 核心代码，即可动态扩展 Agent 的能力边界。只需要实现 MCP Server，Agent 就能自动发现和调用新工具。</p>
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- Section 6: Workflow -->
+    <section id="workflow" class="section fade-in">
+        <h2>六、Agent 工作流程：从规划到交付</h2>
+
+        <p>理解 OpenHands Agent 的工作流程，有助于我们更好地使用它来完成实际开发任务。Agent 的工作流程遵循一个清晰的「规划—执行—验证—交付」闭环。</p>
+
+        <img src="images/openhands-workflow.png" alt="Agent 工作流程" class="article-image">
+        <p class="image-caption">OpenHands Agent 的完整工作流程 — 从任务理解到代码交付</p>
+
+        <h3>6.1 Reasoning-Action Loop 详解</h3>
+
+        <p>Agent 的核心运行机制是 Reasoning-Action Loop（推理-行动循环）。每一轮循环包含以下步骤：</p>
+
+        <div class="flow-steps">
+            <div class="flow-step">
+                <div class="step-icon">&#128269;</div>
+                <div class="step-label">感知 (Perceive)</div>
+            </div>
+            <div class="flow-arrow">&#10132;</div>
+            <div class="flow-step">
+                <div class="step-icon">&#129504;</div>
+                <div class="step-label">推理 (Reason)</div>
+            </div>
+            <div class="flow-arrow">&#10132;</div>
+            <div class="flow-step">
+                <div class="step-icon">&#9889;</div>
+                <div class="step-label">行动 (Act)</div>
+            </div>
+            <div class="flow-arrow">&#10132;</div>
+            <div class="flow-step">
+                <div class="step-icon">&#128065;</div>
+                <div class="step-label">观察 (Observe)</div>
+            </div>
+            <div class="flow-arrow">&#10132;</div>
+            <div class="flow-step">
+                <div class="step-icon">&#128260;</div>
+                <div class="step-label">迭代 (Iterate)</div>
+            </div>
+        </div>
+
+        <p>在<strong>感知</strong>阶段，Agent 接收用户的任务指令以及当前环境的状态信息（已有的代码、文件结构、之前的执行结果等）。在<strong>推理</strong>阶段，LLM 分析所有可用信息，生成一个行动计划。在<strong>行动</strong>阶段，Agent 调用相应的 Tool 执行具体操作。<strong>观察</strong>阶段收集工具执行的返回结果，然后整个循环不断迭代，直到 Agent 判断任务已完成。</p>
+
+        <h3>6.2 实际任务执行案例</h3>
+
+        <p>让我们通过一个具体的例子来观察 Agent 的完整工作流程。假设我们给 Agent 下达了以下任务：</p>
+
+        <div class="info-box">
+            <p><strong>任务：</strong>"为我们的 Flask API 添加用户注册功能，包含邮箱验证和密码加密"</p>
+        </div>
+
+        <p>Agent 的执行过程大致如下：</p>
+
+        <ol>
+            <li><strong>理解需求</strong> — 分析任务描述，识别出需要创建注册 API、邮箱验证逻辑和密码加密三个子任务</li>
+            <li><strong>探索代码库</strong> — 阅读项目结构、现有的路由文件、模型定义和依赖配置</li>
+            <li><strong>设计方案</strong> — 确定使用 bcrypt 进行密码加密，使用 Flask-Mail 发送验证邮件</li>
+            <li><strong>编写代码</strong> — 创建注册路由、用户模型、邮件验证蓝图</li>
+            <li><strong>安装依赖</strong> — 在 requirements.txt 中添加新依赖并执行安装</li>
+            <li><strong>编写测试</strong> — 为注册功能编写单元测试</li>
+            <li><strong>运行验证</strong> — 执行测试，修复发现的问题</li>
+            <li><strong>提交代码</strong> — 创建分支、提交代码、推送远程</li>
+        </ol>
+
+        <p>整个过程中，Agent 会在「推理-行动」循环中不断迭代，遇到错误会自动修复，最终交付一个可工作的功能实现。</p>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- Section 7: Sandbox -->
+    <section id="sandbox" class="section fade-in">
+        <h2>七、安全沙箱机制</h2>
+
+        <p>安全性是 OpenHands 架构设计中的第一优先级。由于 Agent 需要执行任意代码和操作文件系统，一个完善的隔离机制至关重要。OpenHands 提供了多层安全防护：</p>
+
+        <h3>7.1 Docker 沙箱（默认）</h3>
+
+        <p>默认情况下，OpenHands 在 Docker 容器中运行所有 Agent 操作。每个会话都会启动一个独立的容器，具有完全隔离的文件系统和网络环境。这意味着即使 Agent 执行了 <code class="inline">rm -rf /</code> 这样的危险命令，也只会影响容器内部，不会波及宿主系统。</p>
+
+        <div class="code-block" data-lang="Shell">
+<code><span class="code-comment"># 启动 OpenHands (自动创建 Docker 沙箱)</span>
+$ openhands serve
+
+<span class="code-comment"># 指定使用 Docker 沙箱</span>
+$ openhands serve --sandbox-type docker
+
+<span class="code-comment"># 自定义 Docker 镜像</span>
+$ openhands serve --sandbox-image my-custom-image:latest</code>
+        </div>
+
+        <h3>7.2 其他沙箱选项</h3>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="feature-icon">&#128051;</span>
+                <h4>Docker Sandbox</h4>
+                <p>默认的本地沙箱方案，使用 Docker 容器提供完全隔离的执行环境。支持自定义镜像，适合开发和测试场景。</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">&#128640;</span>
+                <h4>Apptainer Sandbox</h4>
+                <p>面向 HPC 和高性能计算场景的容器方案，提供比 Docker 更强的安全性和资源隔离能力。</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">&#127758;</span>
+                <h4>Remote Sandbox</h4>
+                <p>云端远程沙箱服务，适合需要弹性扩展或团队协作的场景。由 OpenHands Cloud 托管管理。</p>
+            </div>
+        </div>
+
+        <h3>7.3 可观测性与审计</h3>
+
+        <p>OpenHands 集成了 OpenTelemetry，为每次 Agent 执行提供完整的 trace 记录。开发者可以回溯 Agent 的每一步决策和操作，这对于调试和生产环境的安全审计至关重要。所有的 Action 和 Observation 都被记录，形成可追溯的 Agent 行为日志。</p>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- Section 8: Getting Started -->
+    <section id="getting-started" class="section fade-in">
+        <h2>八、快速上手指南</h2>
+
+        <p>OpenHands 提供了多种安装和使用方式，从简单的 CLI 工具到完整的企业部署，满足不同场景的需求。</p>
+
+        <h3>8.1 环境要求</h3>
+
+        <div class="info-box">
+            <p><strong>前置条件：</strong>Python 3.12+、Docker（如果使用本地沙箱）、Git。推荐使用 Linux 或 macOS 环境，Windows 用户建议使用 WSL2。</p>
+        </div>
+
+        <h3>8.2 安装 SDK 和 CLI</h3>
+
+        <div class="code-block" data-lang="Shell">
+<code><span class="code-comment"># 使用 pip 安装 OpenHands SDK</span>
+$ pip install openhands-sdk
+
+<span class="code-comment"># 安装 CLI 工具</span>
+$ pip install openhands-cli
+
+<span class="code-comment"># 验证安装</span>
+$ openhands --version</code>
+        </div>
+
+        <h3>8.3 配置 LLM</h3>
+
+        <p>OpenHands 通过 LiteLLM 支持多种 LLM 提供商。你可以通过环境变量或配置文件设置 API Key：</p>
+
+        <div class="code-block" data-lang="Shell">
+<code><span class="code-comment"># OpenAI</span>
+$ <span class="code-keyword">export</span> LLM_API_KEY=<span class="code-string">"sk-your-openai-key"</span>
+$ <span class="code-keyword">export</span> LLM_MODEL=<span class="code-string">"gpt-4o"</span>
+
+<span class="code-comment"># Anthropic</span>
+$ <span class="code-keyword">export</span> LLM_API_KEY=<span class="code-string">"sk-ant-your-anthropic-key"</span>
+$ <span class="code-keyword">export</span> LLM_MODEL=<span class="code-string">"claude-sonnet-4-20250514"</span>
+
+<span class="code-comment"># Azure OpenAI</span>
+$ <span class="code-keyword">export</span> LLM_API_KEY=<span class="code-string">"your-azure-key"</span>
+$ <span class="code-keyword">export</span> LLM_BASE_URL=<span class="code-string">"https://your-resource.openai.azure.com"</span>
+$ <span class="code-keyword">export</span> LLM_MODEL=<span class="code-string">"azure/gpt-4o"</span>
+
+<span class="code-comment"># 本地模型 (Ollama)</span>
+$ <span class="code-keyword">export</span> LLM_BASE_URL=<span class="code-string">"http://localhost:11434"</span>
+$ <span class="code-keyword">export</span> LLM_MODEL=<span class="code-string">"ollama/llama3"</span></code>
+        </div>
+
+        <h3>8.4 使用 CLI 与 Agent 对话</h3>
+
+        <div class="code-block" data-lang="Shell">
+<code><span class="code-comment"># 启动 CLI 交互模式</span>
+$ openhands chat
+
+<span class="code-comment"># 直接给出任务</span>
+$ openhands run <span class="code-string">"为项目添加单元测试，覆盖率目标 80%"</span>
+
+<span class="code-comment"># 在特定目录下工作</span>
+$ openhands run <span class="code-string">"重构 auth 模块，使用 JWT 替代 session"</span> --workspace ./my-project</code>
+        </div>
+
+        <h3>8.5 IDE 集成</h3>
+
+        <p>OpenHands 还提供了 VS Code 和 JetBrains IDE 的插件，让你在编辑器中直接与 Agent 交互。安装插件后，可以通过命令面板或快捷键调起 Agent，直接在 IDE 内完成代码生成和修改。</p>
+
+        <h3>8.6 使用 GitHub Actions 自动化</h3>
+
+        <p>OpenHands Cloud 支持通过 GitHub Actions 实现全自动的代码修复和 PR 提交：</p>
+
+        <div class="code-block" data-lang="YAML">
+<code><span class="code-comment"># .github/workflows/openhands.yml</span>
+<span class="code-keyword">name</span>: <span class="code-string">OpenHands Auto Fix</span>
+<span class="code-keyword">on</span>:
+  <span class="code-keyword">issues</span>:
+    <span class="code-keyword">types</span>: [<span class="code-string">labeled</span>]
+
+<span class="code-keyword">jobs</span>:
+  <span class="code-keyword">fix</span>:
+    <span class="code-keyword">if</span>: <span class="code-string">github.event.label.name == 'ai-fix'</span>
+    <span class="code-keyword">runs-on</span>: <span class="code-string">ubuntu-latest</span>
+    <span class="code-keyword">steps</span>:
+      - <span class="code-keyword">uses</span>: <span class="code-string">openhands/auto-fix@v1</span>
+        <span class="code-keyword">with</span>:
+          <span class="code-keyword">token</span>: <span class="code-string">${{ secrets.GITHUB_TOKEN }}</span>
+          <span class="code-keyword">openhands-key</span>: <span class="code-string">${{ secrets.OPENHANDS_KEY }}</span></code>
+        </div>
+
+        <p>配置完成后，只需给 Issue 打上 <code class="inline">ai-fix</code> 标签，OpenHands Agent 就会自动分析问题、编写修复代码并提交 PR。</p>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- Section 9: Comparison -->
+    <section id="comparison" class="section fade-in">
+        <h2>九、同类产品对比</h2>
+
+        <p>在 AI 编程 Agent 领域，OpenHands 面临着多个竞争对手。以下是主要产品的对比分析：</p>
+
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>特性</th>
+                    <th>OpenHands</th>
+                    <th>Devin (Cognition)</th>
+                    <th>GitHub Copilot Workspace</th>
+                    <th>Cursor / Windsurf</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>开源</td>
+                    <td>&#9989; MIT</td>
+                    <td>&#10060; 闭源</td>
+                    <td>&#10060; 闭源</td>
+                    <td>&#10060; 闭源</td>
+                </tr>
+                <tr>
+                    <td>LLM 选择</td>
+                    <td>任意 LLM (100+)</td>
+                    <td>专有模型</td>
+                    <td>GitHub 模型</td>
+                    <td>多模型支持</td>
+                </tr>
+                <tr>
+                    <td>沙箱隔离</td>
+                    <td>&#9989; Docker/Apptainer</td>
+                    <td>&#9989; 云端隔离</td>
+                    <td>&#10060; 无</td>
+                    <td>&#10060; 无</td>
+                </tr>
+                <tr>
+                    <td>浏览器自动化</td>
+                    <td>&#9989; Playwright</td>
+                    <td>&#9989; 内置</td>
+                    <td>&#10060; 无</td>
+                    <td>&#10060; 无</td>
+                </tr>
+                <tr>
+                    <td>私有化部署</td>
+                    <td>&#9989; 支持</td>
+                    <td>&#10060; 不支持</td>
+                    <td>&#10060; 不支持</td>
+                    <td>&#10060; 不支持</td>
+                </tr>
+                <tr>
+                    <td>SDK 可扩展</td>
+                    <td>&#9989; Python SDK</td>
+                    <td>&#10060; 无</td>
+                    <td>&#10060; 有限</td>
+                    <td>&#10060; 无</td>
+                </tr>
+                <tr>
+                    <td>MCP 协议</td>
+                    <td>&#9989; 原生支持</td>
+                    <td>&#10060; 无</td>
+                    <td>&#10060; 无</td>
+                    <td>&#9989; 部分支持</td>
+                </tr>
+                <tr>
+                    <td>价格</td>
+                    <td>免费（自带 LLM Key）</td>
+                    <td>$500/月起</td>
+                    <td>GitHub 订阅</td>
+                    <td>$20/月起</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="info-box success">
+            <p><strong>OpenHands 的核心优势：</strong>完全开源、LLM 自由度高、可私有化部署、SDK 可扩展性强。这些特点使其成为企业和独立开发者最灵活的选择。</p>
+        </div>
+
+        <p>需要注意的是，Cursor 和 Windsurf 更偏向于「AI 辅助编码」工具，而 OpenHands 和 Devin 则是「自主 AI 工程师」。前者适合人类开发者在 IDE 中使用，后者则能独立完成完整的开发任务。</p>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- Section 10: Ecosystem -->
+    <section id="ecosystem" class="section fade-in">
+        <h2>十、生态与社区</h2>
+
+        <p>OpenHands 的成功很大程度上归功于其活跃的开源社区和丰富的生态系统。</p>
+
+        <h3>10.1 社区资源</h3>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="feature-icon">&#128172;</span>
+                <h4>Slack 社区</h4>
+                <p>活跃的开发者社区，可以交流使用经验、报告问题、参与讨论。All Hands AI 团队成员也经常在社区中互动。</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">&#128187;</span>
+                <h4>GitHub 仓库</h4>
+                <p>完全开源的代码库，欢迎贡献代码、提交 Issue 和参与 Code Review。超过 1000 位社区贡献者。</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">&#128214;</span>
+                <h4>官方文档</h4>
+                <p>详尽的使用指南、API 参考和最佳实践。文档地址：<a href="https://docs.openhands.dev" class="anchor" target="_blank">docs.openhands.dev</a></p>
+            </div>
+        </div>
+
+        <h3>10.2 企业集成</h3>
+
+        <p>OpenHands 企业版提供了丰富的第三方集成能力，可以无缝融入现有的开发和协作工具链：</p>
+
+        <ul>
+            <li><strong>代码托管</strong>：GitHub、GitLab — 自动化 PR 流程、Issue 响应</li>
+            <li><strong>项目管理</strong>：Jira、Linear — 自动同步任务状态</li>
+            <li><strong>通讯协作</strong>：Slack、Teams — Agent 可在频道中汇报进度</li>
+            <li><strong>CI/CD</strong>：GitHub Actions、Jenkins — 与自动化流水线深度集成</li>
+            <li><strong>监控告警</strong>：PagerDuty、Datadog — 响应告警自动排查问题</li>
+        </ul>
+
+        <h3>10.3 SWE-Bench 性能评测</h3>
+
+        <p>在 SWE-Bench（软件工程基准测试）中，OpenHands 取得了 77.6% 的优异成绩，这是一个衡量 AI 解决真实世界 GitHub Issue 能力的基准。这个分数意味着 OpenHands Agent 能够独立解决接近八成来自真实开源项目的 Bug 和功能请求。</p>
+
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-number">77.6%</div>
+                <div class="stat-label">SWE-Bench 综合评分</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">Top 1</div>
+                <div class="stat-label">开源 AI 编码 Agent</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">2300+</div>
+                <div class="stat-label">已解决的 Issue</div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- Section 11: Future -->
+    <section id="future" class="section fade-in">
+        <h2>十一、未来展望</h2>
+
+        <p>OpenHands 正在快速演进，未来有几个值得关注的方向：</p>
+
+        <h3>11.1 多 Agent 协作</h3>
+
+        <p>目前的 OpenHands Agent 主要是单 Agent 执行任务。未来有望实现多 Agent 协作模式，例如一个 Agent 负责前端开发，另一个负责后端 API，第三个负责测试，它们可以像真实团队一样协同工作。</p>
+
+        <h3>11.2 更深度的企业集成</h3>
+
+        <p>随着企业版的成熟，OpenHands 有望成为企业内部 AI 开发助手的标准选择，深度嵌入到 DevOps 工作流中，从 Issue 管理到代码部署实现全自动化。</p>
+
+        <h3>11.3 领域特化 Agent</h3>
+
+        <p>通过 SDK 和 Skill 系统，社区可以构建面向特定领域的 Agent，例如安全审计 Agent、性能优化 Agent、数据库迁移 Agent 等。这将极大扩展 OpenHands 的应用场景。</p>
+
+        <h3>11.4 对开发者工作方式的影响</h3>
+
+        <p>OpenHands 这样的 AI Agent 平台不会取代开发者，但会深刻改变开发者的工作方式。未来的开发者可能更多扮演「架构师」和「审查者」的角色——设计系统架构、定义需求、审查 AI 生成的代码，而具体的编码实现工作将越来越多地由 AI Agent 完成。</p>
+
+        <blockquote>
+            <p>AI 不会取代程序员，但会使用 AI 的程序员会取代不会使用的。OpenHands 让每个开发者都拥有自己的 AI 开发团队。</p>
+        </blockquote>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- Conclusion -->
+    <section class="section fade-in">
+        <h2>总结</h2>
+
+        <p>OpenHands 代表了 AI 驱动软件开发的一个重要方向：不是简单的代码补全或问答，而是构建能够自主完成开发任务的完整 AI Agent。它的开源特性、灵活的 LLM 支持、安全的沙箱机制和可扩展的 SDK 架构，使其成为目前最值得关注和使用门槛最低的 AI 编程平台之一。</p>
+
+        <p>无论你是想要提高个人开发效率的独立开发者，还是希望在团队中引入 AI 辅助开发的企业，OpenHands 都值得一试。你可以从 CLI 工具开始，快速体验 Agent 的能力，然后根据需要逐步深入到 SDK 定制和企业级部署。</p>
+
+        <div class="info-box">
+            <p><strong>相关链接：</strong>官方文档 — <a href="https://docs.openhands.dev" class="anchor" target="_blank">docs.openhands.dev</a> | GitHub — <a href="https://github.com/All-Hands-AI/OpenHands" class="anchor" target="_blank">github.com/All-Hands-AI/OpenHands</a> | Slack 社区 — <a href="https://openhands.dev/slack" class="anchor" target="_blank">openhands.dev/slack</a></p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="article-footer">
+        <p>本文基于 OpenHands 官方文档及社区资料整理，数据截至 2026 年 6 月。</p>
+        <p style="margin-top: 0.5rem;">
+            <span class="tag">OpenHands</span>
+            <span class="tag">AI Agent</span>
+            <span class="tag">开源</span>
+            <span class="tag">软件开发</span>
+            <span class="tag">LLM</span>
+            <span class="tag">编程自动化</span>
+        </p>
+    </footer>
+
+</article>
+
+<script>
+// Scroll animation
+document.addEventListener('DOMContentLoaded', () => {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    // Smooth scroll for TOC links
+    document.querySelectorAll('.toc a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = document.querySelector(link.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+});
+</script>
+
+</body>
+</html>
