@@ -6,6 +6,7 @@ import { defineConfig } from 'vitepress'
 
 const docsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const standaloneHtmlPages = findStandaloneHtmlPages(docsRoot)
+const standaloneHtmlAssets = findStandaloneHtmlAssets(docsRoot, standaloneHtmlPages)
 const standaloneHtmlRoutes = [...standaloneHtmlPages].map((page) => `/${page.replace(/index\.html$/, '')}`)
 const previewImages = findPreviewImages(docsRoot)
 const sidebar = generateSidebarFromIndex(docsRoot)
@@ -61,10 +62,26 @@ export default defineConfig({
     },
     plugins: [
       htmlStaticPagesPlugin(docsRoot, standaloneHtmlPages),
+      htmlStaticAssetsPlugin(docsRoot, standaloneHtmlAssets),
       previewImagesPlugin(docsRoot, previewImages),
     ],
   },
 })
+
+function htmlStaticAssetsPlugin(root: string, assets: Set<string>): Plugin {
+  return {
+    name: 'second-brain-html-static-assets',
+    generateBundle() {
+      for (const relativePath of assets) {
+        this.emitFile({
+          type: 'asset',
+          fileName: relativePath,
+          source: fs.readFileSync(path.join(root, relativePath)),
+        })
+      }
+    },
+  }
+}
 
 function previewImagesPlugin(root: string, images: Set<string>): Plugin {
   return {
@@ -201,6 +218,34 @@ function findStandaloneHtmlPages(root: string) {
 
   walk(root)
   return pages
+}
+
+function findStandaloneHtmlAssets(root: string, pages: Set<string>) {
+  const assets = new Set<string>()
+
+  for (const page of pages) {
+    const pageDir = path.dirname(page)
+    walk(path.join(root, pageDir))
+  }
+
+  function walk(dir: string) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name === '.DS_Store') continue
+
+      const fullPath = path.join(dir, entry.name)
+      if (entry.isDirectory()) {
+        walk(fullPath)
+        continue
+      }
+
+      if (!entry.isFile()) continue
+      if (entry.name === 'index.html' || entry.name === 'preview.png') continue
+
+      assets.add(path.relative(root, fullPath).split(path.sep).join('/'))
+    }
+  }
+
+  return assets
 }
 
 function findPreviewImages(root: string) {
