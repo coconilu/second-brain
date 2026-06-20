@@ -25,6 +25,7 @@
 - [OpenHands 完全教程 · AI 软件开发智能体](openhands-tutorial/) `HTML`{target="_self"} — 从安装、配置、运行和实践场景系统讲解 OpenHands 的使用方式。
 - [Agent 知识库全景图 · 2026](agent-memory-landscape/) `HTML`{target="_self"} — 从记忆类型、知识库形态和工程落地维度梳理 Agent 长期记忆生态。
 - [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"} — 讨论单 Agent 如何动态规划、委派、回收上下文，并协同一组专门化子 Agent 完成复杂任务。
+- [AutoResearch 启示录：把长任务 Agent 写成可运行协议](autoresearch-agent-protocol/) `HTML`{target="_self"} — 从 AutoResearch 框架提炼长任务 Agent 的状态落盘、反停滞、验证闭环与 Skill 协议化方法。
 - [Agent 设计模式互动教学稿](agent-design-patterns/) `HTML`{target="_self"} — 用交互式单页讲解感知、记忆、推理、行动、反思、协作六类 Agent 模式。
 - [从 sub-agent 到 agent-team：三个台阶，三套心智模型](claude-sub-agent/sub-agent-and-agent-team.md) — 偏概念和心智模型。
 - [Sub-agent 和 Agent-team：从一个例子开始](claude-sub-agent/sub-agent-and-agent-team-guide.md) — 偏操作和落地模板。
@@ -87,6 +88,7 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
+- [AutoResearch 启示录：把长任务 Agent 写成可运行协议](autoresearch-agent-protocol/) `HTML`{target="_self"}
 - [从 Cursor 到 Qoder：AI 编程界面的四次范式迁移](ide-evolution/) `HTML`{target="_self"}
 - [Nuxt 4 相对于 Nuxt 3 的提升](nuxt4-vs-nuxt3/) `HTML`{target="_self"}
 - [OpenHands 完全教程 · AI 软件开发智能体](openhands-tutorial/) `HTML`{target="_self"}
