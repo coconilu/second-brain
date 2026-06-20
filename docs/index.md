@@ -26,6 +26,7 @@
 - [OpenHands 完全教程 · AI 软件开发智能体](openhands-tutorial/) `HTML`{target="_self"} — 从安装、配置、运行和实践场景系统讲解 OpenHands 的使用方式。
 - [Agent 知识库全景图 · 2026](agent-memory-landscape/) `HTML`{target="_self"} — 从记忆类型、知识库形态和工程落地维度梳理 Agent 长期记忆生态。
 - [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"} — 讨论单 Agent 如何动态规划、委派、回收上下文，并协同一组专门化子 Agent 完成复杂任务。
+- [从 Prompt 工程到 Agent Loop：Agent 工程范式的六层演进](agent-loop-engineering/) `HTML`{target="_self"} — 梳理 Prompt、上下文、MCP、Skills、Harness 与 Agent Loop 的递进关系。
 - [Claude Code 的 `.claude/workflows`：把复杂 AI 任务写成可复用流程](claude-code-workflows/index.md) — 从 Claude Code 项目目录视角理解 workflow 如何编排多个 agent。
 - [Superpowers v6.0.3 架构与流程编排图解](superpowers-architecture-flow/) `HTML`{target="_self"} — 解析 Superpowers 的技能注入、会话启动、流程编排和质量门设计。
 - [AutoResearch 启示录：把长任务 Agent 写成可运行协议](autoresearch-agent-protocol/) `HTML`{target="_self"} — 从 AutoResearch 框架提炼长任务 Agent 的状态落盘、反停滞、验证闭环与 Skill 协议化方法。
@@ -69,6 +70,7 @@
 
 - [SIA：当 Agent 开始改写自己 —— 一篇关于自改进循环的实践笔记](self-improving-ai/) `HTML`{target="_self"} — 讨论自改进 AI 的闭环、实践路径和工程含义。
 - [用 Issue 驱动开发：当瓶颈从 Agent 转向人](issue-driven-development/index.md) — 从 Symphony 看 issue tracker 如何成为 agent 协作的控制平面。
+- [AI 工程师的核心竞争力：从抽卡到可验证交付](ai-engineer-methodology/) `HTML`{target="_self"} — 讨论 AI 工程师如何把不确定生成收敛成可运行、可评估、可维护的交付。
 - [当代码不再由你来写：工程师角色的一次硬着陆](engineer-role-shift/index.md) — 讨论 Harness engineering 下工程师从写代码转向造环境的角色变化。
 - [AI 时代，我们不要想好再做，而是边做边想边改](ai-era-think-by-doing/index.md) — 关于提示词焦虑、AI 协作和迭代式思考的感悟。
 - [AI 时代，什么才是稀缺能力](ai-era-scarce-abilities/index.md) — 关于判断力、提问能力和结构化能力的长文。
@@ -91,6 +93,8 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
+- [AI 工程师的核心竞争力：从抽卡到可验证交付](ai-engineer-methodology/) `HTML`{target="_self"}
+- [从 Prompt 工程到 Agent Loop：Agent 工程范式的六层演进](agent-loop-engineering/) `HTML`{target="_self"}
 - [Superpowers v6.0.3 架构与流程编排图解](superpowers-architecture-flow/) `HTML`{target="_self"}
 - [AutoResearch 启示录：把长任务 Agent 写成可运行协议](autoresearch-agent-protocol/) `HTML`{target="_self"}
 - [从 Cursor 到 Qoder：AI 编程界面的四次范式迁移](ide-evolution/) `HTML`{target="_self"}

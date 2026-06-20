@@ -1,0 +1,1531 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>从 Prompt 工程到 Agent Loop：Agent 工程范式的六层演进</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --paper: #ffffff;
+      --ink: #1d2733;
+      --muted: #657386;
+      --line: #d9e1ec;
+      --accent: #0f766e;
+      --accent-soft: #e7f4f1;
+      --blue: #2563eb;
+      --blue-soft: #edf4ff;
+      --amber: #a16207;
+      --amber-soft: #fff7e6;
+      --rose: #be123c;
+      --rose-soft: #fff1f2;
+      --code-bg: #111827;
+      --code-ink: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(180deg, rgba(15, 118, 110, 0.1), rgba(246, 247, 249, 0) 420px),
+        linear-gradient(90deg, rgba(37, 99, 235, 0.05), rgba(161, 98, 7, 0.04)),
+        var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      line-height: 1.72;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 46px 20px 76px;
+    }
+
+    article {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 18px 42px rgba(29, 39, 51, 0.08);
+      overflow: hidden;
+    }
+
+    header {
+      padding: 42px 46px 38px;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0) 44%),
+        linear-gradient(315deg, rgba(37, 99, 235, 0.08), rgba(37, 99, 235, 0) 42%),
+        #ffffff;
+    }
+
+    main {
+      padding: 36px 46px 48px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.04fr) minmax(360px, 0.96fr);
+      gap: 34px;
+      align-items: center;
+    }
+
+    .hero-copy {
+      min-width: 0;
+    }
+
+    .hero-visual {
+      margin: 0;
+    }
+
+    .hero-visual img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      border: 1px solid #c7d2df;
+      border-radius: 8px;
+      box-shadow: 0 24px 48px rgba(29, 39, 51, 0.16);
+    }
+
+    .hero-visual figcaption {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .hero-metric {
+      min-height: 80px;
+      padding: 12px 13px;
+      border: 1px solid #cdd8e6;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.78);
+    }
+
+    .hero-metric b {
+      display: block;
+      color: #0f4f49;
+      font-size: 21px;
+      line-height: 1.15;
+    }
+
+    .hero-metric span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 4px 12px;
+      border: 1px solid #b9dfd9;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.28;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 850px;
+      font-size: 48px;
+      font-weight: 850;
+    }
+
+    h2 {
+      margin-top: 48px;
+      padding-top: 6px;
+      font-size: 26px;
+    }
+
+    h3 {
+      margin-top: 28px;
+      font-size: 19px;
+    }
+
+    p {
+      margin: 15px 0 0;
+    }
+
+    .lead {
+      max-width: 780px;
+      margin-top: 20px;
+      color: #344052;
+      font-size: 18px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 3px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+    }
+
+    .summary {
+      margin: 34px 0 8px;
+      padding: 22px 24px;
+      border: 1px solid #b9dfd9;
+      border-left: 5px solid var(--accent);
+      border-radius: 8px;
+      background: var(--accent-soft);
+    }
+
+    .summary strong {
+      color: #0b544f;
+    }
+
+    .visual-feature {
+      margin: 28px 0 12px;
+      padding: 22px;
+      border: 1px solid #cfd9e5;
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.1), transparent 42%),
+        linear-gradient(315deg, rgba(161, 98, 7, 0.09), transparent 48%),
+        #fbfcfe;
+    }
+
+    .visual-feature h2,
+    .visual-feature h3 {
+      margin-top: 0;
+    }
+
+    .visual-feature p {
+      max-width: 760px;
+      color: #475569;
+      font-size: 15px;
+    }
+
+    .evolution-strip {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .evolution-stage {
+      position: relative;
+      min-height: 154px;
+      padding: 14px 13px;
+      border: 1px solid #c9d7ea;
+      border-radius: 8px;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    .evolution-stage::before {
+      content: attr(data-step);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      margin-bottom: 10px;
+      border-radius: 50%;
+      background: #0f766e;
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .evolution-stage::after {
+      content: "";
+      position: absolute;
+      inset: auto 12px 12px 12px;
+      height: 5px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #0f766e, #2563eb, #a16207);
+      opacity: 0.26;
+    }
+
+    .evolution-stage b {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .evolution-stage span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .stack {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin: 28px 0 8px;
+      counter-reset: stage;
+    }
+
+    .stack-item {
+      position: relative;
+      min-height: 116px;
+      padding: 44px 13px 15px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(37, 99, 235, 0.05), rgba(255, 255, 255, 0)),
+        #fbfcfe;
+    }
+
+    .stack-item::before {
+      counter-increment: stage;
+      content: counter(stage);
+      position: absolute;
+      top: 13px;
+      left: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: 1px solid #b7c8dc;
+      border-radius: 50%;
+      background: #fff;
+      color: #315164;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .stack-item b {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .stack-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .callout {
+      margin-top: 22px;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+
+    .callout.warn {
+      border-color: #efd8a8;
+      background: var(--amber-soft);
+      color: #503600;
+    }
+
+    .callout.risk {
+      border-color: #fecdd3;
+      background: var(--rose-soft);
+      color: #6b1227;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .card {
+      padding: 18px 19px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .card b.kicker {
+      display: inline-flex;
+      margin-bottom: 9px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eef7f5;
+      color: var(--accent);
+      font-size: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .scene {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      gap: 18px;
+      align-items: stretch;
+      margin-top: 24px;
+    }
+
+    .scene-panel {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .scene-panel.visual {
+      display: grid;
+      align-content: center;
+      gap: 12px;
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(255, 255, 255, 0)),
+        #fbfcfe;
+    }
+
+    .mini-node {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 48px;
+      padding: 10px 12px;
+      border: 1px solid #d5dee9;
+      border-radius: 8px;
+      background: #fff;
+      color: #334155;
+      font-size: 14px;
+    }
+
+    .mini-node strong {
+      color: #102a43;
+    }
+
+    .mini-node span {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .mcp-board,
+    .harness-board,
+    .loop-board {
+      margin-top: 22px;
+      padding: 20px;
+      border: 1px solid #cfd9e5;
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+
+    .mcp-board {
+      display: grid;
+      grid-template-columns: minmax(170px, 0.75fr) minmax(0, 1.25fr);
+      gap: 16px;
+      align-items: center;
+    }
+
+    .agent-core {
+      display: grid;
+      place-items: center;
+      min-height: 190px;
+      padding: 18px;
+      border: 1px solid #9fc9c1;
+      border-radius: 8px;
+      background: #e8f5f2;
+      text-align: center;
+    }
+
+    .agent-core b {
+      display: block;
+      font-size: 20px;
+      color: #0f4f49;
+    }
+
+    .agent-core span {
+      display: block;
+      margin-top: 8px;
+      color: #42605d;
+      font-size: 14px;
+    }
+
+    .connector-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .connector-card {
+      min-height: 96px;
+      padding: 13px;
+      border: 1px solid #d5dee9;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .connector-card b {
+      display: block;
+      color: #263241;
+      font-size: 14px;
+    }
+
+    .connector-card span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .skill-shelf {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .skill-file {
+      min-height: 138px;
+      padding: 16px 15px;
+      border: 1px solid #cfd9e5;
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, #f8fafc 0 30px, #ffffff 30px);
+      box-shadow: 0 10px 22px rgba(29, 39, 51, 0.06);
+    }
+
+    .skill-file b {
+      display: block;
+      margin-bottom: 8px;
+      color: #102a43;
+      font-size: 14px;
+    }
+
+    .skill-file span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .harness-board {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .harness-cell {
+      min-height: 122px;
+      padding: 14px 12px;
+      border: 1px solid #d5dee9;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .harness-cell b {
+      display: block;
+      color: #263241;
+      font-size: 14px;
+    }
+
+    .harness-cell span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    .comparison-card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .comparison-card.good {
+      border-color: #b9dfd9;
+      background: #f4fbf9;
+    }
+
+    .comparison-card.risky {
+      border-color: #efd8a8;
+      background: #fffaf0;
+    }
+
+    .comparison-card h3 {
+      margin-top: 0;
+    }
+
+    .comparison-card ul {
+      margin: 12px 0 0;
+      padding-left: 20px;
+      color: #475569;
+    }
+
+    .comparison-card li {
+      margin-top: 7px;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+
+    th,
+    td {
+      padding: 12px 12px;
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #263241;
+      font-weight: 750;
+    }
+
+    tbody tr:nth-child(even) td {
+      background: #fafcff;
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      background: #eef2f7;
+      color: #263241;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      margin: 20px 0 0;
+      padding: 18px 20px;
+      overflow-x: auto;
+      border-radius: 8px;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      line-height: 1.58;
+      font-size: 14px;
+    }
+
+    pre code {
+      padding: 0;
+      background: transparent;
+      color: inherit;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 9px;
+      align-items: stretch;
+      margin-top: 24px;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 92px;
+      padding: 14px 12px;
+      border: 1px solid #c9d7ea;
+      border-radius: 8px;
+      background: var(--blue-soft);
+      color: #1d3f78;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .flow-step b {
+      display: block;
+      margin-bottom: 6px;
+      color: #12305f;
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: ">";
+      position: absolute;
+      right: -9px;
+      top: 32px;
+      color: #64748b;
+      font-weight: 800;
+    }
+
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 18px;
+      margin: 24px 0 4px;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+
+    .toc a {
+      display: block;
+      color: #315164;
+      font-size: 15px;
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    .refs {
+      margin-top: 18px;
+      padding-left: 22px;
+    }
+
+    .refs li {
+      margin-top: 10px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      margin-right: 6px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #eef2f7;
+      color: #526170;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    blockquote {
+      margin: 22px 0 0;
+      padding: 18px 20px;
+      border-left: 5px solid var(--accent);
+      background: #f8fbfa;
+      color: #344052;
+    }
+
+    footer {
+      padding-top: 32px;
+      margin-top: 46px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 860px) {
+      header,
+      main {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+
+      .hero,
+      .scene,
+      .mcp-board {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 40px;
+      }
+
+      .hero-metrics,
+      .connector-grid,
+      .skill-shelf,
+      .harness-board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .stack,
+      .flow,
+      .evolution-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .flow-step:not(:last-child)::after {
+        content: "";
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 22px 12px 44px;
+      }
+
+      header {
+        padding: 30px 20px 26px;
+      }
+
+      main {
+        padding: 28px 20px 34px;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+
+      .grid,
+      .toc,
+      .comparison {
+        grid-template-columns: 1fr;
+      }
+
+      .stack,
+      .flow,
+      .evolution-strip,
+      .hero-metrics,
+      .connector-grid,
+      .skill-shelf,
+      .harness-board {
+        grid-template-columns: 1fr;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <article>
+      <header>
+        <div class="hero">
+          <div class="hero-copy">
+            <div class="eyebrow">Agent Engineering</div>
+            <h1>从 Prompt 工程到 Agent Loop：Agent 工程范式的六层演进</h1>
+            <p class="lead">
+              Prompt 工程、上下文工程、MCP、Skills、Harness 和 Agent Loop 不是彼此替代的流行词，而是一条逐层增强的工程链路：从“让模型答得更好”，走向“让智能系统可行动、可复用、可验证、可收敛”。
+            </p>
+            <div class="meta">
+              <span class="chip">资料整理日期：2026-06-20</span>
+              <span class="chip">面向：AI 工程师、Agent 平台团队、技术负责人</span>
+            </div>
+            <div class="hero-metrics" aria-label="文章阅读重点">
+              <div class="hero-metric">
+                <b>6 层</b>
+                <span>从 Prompt 到 Loop 的工程栈</span>
+              </div>
+              <div class="hero-metric">
+                <b>15 份</b>
+                <span>官方文档、论文和工程资料</span>
+              </div>
+              <div class="hero-metric">
+                <b>1 个</b>
+                <span>面向生产系统的收敛框架</span>
+              </div>
+            </div>
+          </div>
+          <figure class="hero-visual">
+            <img src="assets/agent-engineering-hero.png" alt="抽象的 AI Agent 工程系统，包含工具、测试台和反馈回路" />
+            <figcaption>
+              主视觉：Agent 不再只是一次性回答，而是在上下文、工具、技能和验证环境中持续行动。
+            </figcaption>
+          </figure>
+        </div>
+      </header>
+
+      <main>
+        <section class="summary">
+          <strong>核心判断：</strong>
+          Agent 工程的关键变化，不是 Prompt 写法越来越花，而是系统边界越来越清楚。Prompt 解决表达，上下文解决信息，MCP 解决连接，Skills 解决经验复用，Harness 解决验证，Agent Loop 解决持续收敛。
+        </section>
+
+        <section class="visual-feature" aria-label="Agent 工程演进路线图">
+          <h2>一张图看懂这条演进链</h2>
+          <p>
+            这不是一组横向概念，而是一套逐步补齐系统能力的路线：先把指令说清楚，再把材料组织好，然后连接外部世界，沉淀可复用技能，最后用验证环境驱动循环收敛。
+          </p>
+          <div class="evolution-strip">
+            <div class="evolution-stage" data-step="01">
+              <b>Prompt 工程</b>
+              <span>把意图变成模型能执行的一次性任务说明。</span>
+            </div>
+            <div class="evolution-stage" data-step="02">
+              <b>上下文工程</b>
+              <span>决定模型在每一步应该看见哪些事实。</span>
+            </div>
+            <div class="evolution-stage" data-step="03">
+              <b>MCP</b>
+              <span>把数据、工具和工作流标准化接入 Agent。</span>
+            </div>
+            <div class="evolution-stage" data-step="04">
+              <b>Skills</b>
+              <span>把团队经验打包成可加载、可复用能力。</span>
+            </div>
+            <div class="evolution-stage" data-step="05">
+              <b>Harness</b>
+              <span>用测试、评测、日志和回放定义“做对了”。</span>
+            </div>
+            <div class="evolution-stage" data-step="06">
+              <b>Agent Loop</b>
+              <span>让系统在反馈中计划、行动、验证和修正。</span>
+            </div>
+          </div>
+        </section>
+
+        <nav class="toc" aria-label="目录">
+          <a href="#why">1. 为什么这条链路成立</a>
+          <a href="#six-layers">2. 六层能力模型</a>
+          <a href="#prompt">3. Prompt 工程：单次指令的质量控制</a>
+          <a href="#context">4. 上下文工程：把正确材料放进工作记忆</a>
+          <a href="#mcp">5. MCP：把外部世界标准化接进来</a>
+          <a href="#skills">6. Skills：把组织经验沉淀成可调用能力</a>
+          <a href="#harness">7. Harness：让 Agent 的结果可验证</a>
+          <a href="#loop">8. Agent Loop：从回答走向闭环行动</a>
+          <a href="#metrics">9. 可量化指标</a>
+          <a href="#sources">10. 参考资料</a>
+        </nav>
+
+        <section id="why">
+          <h2>1. 为什么这条链路成立</h2>
+          <p>
+            早期使用大模型时，工程重点集中在 Prompt：怎样写角色、怎样给示例、怎样限定格式、怎样减少歧义。随着模型能够使用工具、处理长上下文、执行多步任务，问题逐渐变成：模型知道哪些信息？可以调用什么系统？能否复用团队流程？执行结果如何验收？失败之后是否能自我修正？
+          </p>
+          <p>
+            因此，Agent 工程不是“Prompt 工程过时了”，而是 Prompt 被放进了更大的系统结构里。Prompt 仍然重要，但它只负责“表达意图”；真正的生产系统还需要上下文选择、工具协议、技能封装、评测环境和循环控制。
+          </p>
+
+          <div class="comparison">
+            <div class="comparison-card risky">
+              <h3>早期用法：把模型当回答器</h3>
+              <ul>
+                <li>一次 Prompt 承担所有表达、背景和约束。</li>
+                <li>结果主要靠人工阅读判断好坏。</li>
+                <li>失败后靠重新提问，而不是系统性反馈。</li>
+              </ul>
+            </div>
+            <div class="comparison-card good">
+              <h3>Agent 工程：把模型放进系统</h3>
+              <ul>
+                <li>上下文、工具、技能和验证环境分工明确。</li>
+                <li>每轮行动都有观察、trace 和验收信号。</li>
+                <li>失败会进入下一轮计划，直到通过或停止。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="stack" aria-label="Agent 工程六层栈">
+            <div class="stack-item">
+              <b>Prompt 工程</b>
+              <span>把任务说清楚，约束输出，提供示例。</span>
+            </div>
+            <div class="stack-item">
+              <b>上下文工程</b>
+              <span>选择、压缩、更新模型真正需要的信息。</span>
+            </div>
+            <div class="stack-item">
+              <b>MCP</b>
+              <span>以标准协议连接数据、工具和工作流。</span>
+            </div>
+            <div class="stack-item">
+              <b>Skills</b>
+              <span>把领域知识、脚本、模板和流程打包复用。</span>
+            </div>
+            <div class="stack-item">
+              <b>Harness</b>
+              <span>提供测试、评测、日志、回放和安全边界。</span>
+            </div>
+            <div class="stack-item">
+              <b>Agent Loop</b>
+              <span>计划、行动、观察、验证、反思，直到收敛。</span>
+            </div>
+          </div>
+        </section>
+
+        <section id="six-layers">
+          <h2>2. 六层能力模型</h2>
+          <div class="scene">
+            <div class="scene-panel">
+              <h3>读这张表的方式</h3>
+              <p>
+                每一层都不是“新名词”，而是在回答一个工程问题：当 Agent 要在真实系统里行动时，哪些能力必须从 Prompt 里拆出来，变成独立、可维护、可验证的模块？
+              </p>
+            </div>
+            <div class="scene-panel visual" aria-label="六层能力的工作流视图">
+              <div class="mini-node"><strong>表达层</strong><span>Prompt</span></div>
+              <div class="mini-node"><strong>信息层</strong><span>Context</span></div>
+              <div class="mini-node"><strong>连接层</strong><span>MCP + Tools</span></div>
+              <div class="mini-node"><strong>复用层</strong><span>Skills</span></div>
+              <div class="mini-node"><strong>验证层</strong><span>Harness</span></div>
+              <div class="mini-node"><strong>控制层</strong><span>Agent Loop</span></div>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>层级</th>
+                <th>核心问题</th>
+                <th>主要产物</th>
+                <th>失败信号</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Prompt 工程</td>
+                <td>如何让模型理解一次任务？</td>
+                <td>指令、约束、示例、输出格式、评分口径。</td>
+                <td>回答跑偏、格式不稳、需要反复追问。</td>
+              </tr>
+              <tr>
+                <td>上下文工程</td>
+                <td>模型当前应该知道什么，不应该知道什么？</td>
+                <td>检索策略、上下文包、摘要、记忆、状态压缩。</td>
+                <td>上下文污染、遗漏关键事实、长上下文里注意力漂移。</td>
+              </tr>
+              <tr>
+                <td>MCP</td>
+                <td>Agent 如何标准化连接外部系统？</td>
+                <td>MCP server、tools、resources、prompts、权限策略。</td>
+                <td>工具接入碎片化、重复适配、权限和数据边界混乱。</td>
+              </tr>
+              <tr>
+                <td>Skills</td>
+                <td>如何把专家经验变成可复用能力？</td>
+                <td><code>SKILL.md</code>、参考材料、脚本、模板、检查清单。</td>
+                <td>每次都要重新解释流程，团队最佳实践无法稳定复用。</td>
+              </tr>
+              <tr>
+                <td>Harness</td>
+                <td>如何判断 Agent 做得对不对？</td>
+                <td>测试环境、fixture、eval、trace、回放、CI、沙箱。</td>
+                <td>只能凭感觉验收，无法复现失败，改动没有回归保护。</td>
+              </tr>
+              <tr>
+                <td>Agent Loop</td>
+                <td>如何让系统自动逼近目标？</td>
+                <td>计划器、执行器、观察器、评分器、反思机制、停止条件。</td>
+                <td>无限循环、成本失控、为通过测试而破坏真实目标。</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="prompt">
+          <h2>3. Prompt 工程：单次指令的质量控制</h2>
+          <p>
+            Prompt 工程解决的是最基础也最容易被低估的问题：把人的意图转换为模型可执行的任务描述。OpenAI 的提示工程材料强调清晰指令、充足上下文、示例、输出格式和迭代改写，这些仍然是 Agent 系统的地基。
+          </p>
+          <div class="scene">
+            <div class="scene-panel visual" aria-label="Prompt 任务合同结构">
+              <div class="mini-node"><strong>目标</strong><span>要完成什么</span></div>
+              <div class="mini-node"><strong>边界</strong><span>能看什么、不能做什么</span></div>
+              <div class="mini-node"><strong>格式</strong><span>如何交付</span></div>
+              <div class="mini-node"><strong>验收</strong><span>什么算完成</span></div>
+            </div>
+            <div class="scene-panel">
+              <h3>Prompt 像一份任务合同</h3>
+              <p>
+                它不只是“请你帮我做 X”，而是把目标、约束、交付格式和验收标准写进同一个任务边界。Agent 后续可以调用工具和技能，但最初的方向仍然来自这份合同。
+              </p>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <b class="kicker">负责</b>
+              <h3>Prompt 负责什么</h3>
+              <p>定义角色、任务、约束、输入输出、判断标准和禁止事项。它是模型单次推理的“任务合同”。</p>
+            </div>
+            <div class="card">
+              <b class="kicker">不负责</b>
+              <h3>Prompt 不负责什么</h3>
+              <p>它不应该承担长期记忆、工具权限、环境状态、测试执行和失败回滚。这些需要后续几层系统能力接管。</p>
+            </div>
+          </div>
+          <pre><code>一个工程化 Prompt 通常包含：
+
+1. 任务目标：要完成什么
+2. 上下文边界：可以参考哪些信息
+3. 操作约束：哪些事情不能做
+4. 输出格式：用什么结构交付
+5. 验收标准：什么情况算完成
+6. 失败策略：不确定时如何处理</code></pre>
+        </section>
+
+        <section id="context">
+          <h2>4. 上下文工程：把正确材料放进工作记忆</h2>
+          <p>
+            上下文工程把问题从“怎么写一句好 Prompt”推进到“模型推理时到底看到了什么”。Anthropic 对 context engineering 的定义强调：它是围绕 LLM 推理时 token 集合的策展和维护，包括 Prompt 之外进入上下文的一切信息。
+          </p>
+          <p>
+            这对 Agent 尤其关键，因为 Agent 会经历多轮工具调用、日志观察、局部失败、状态更新和任务拆解。如果上下文不断堆叠，系统会出现“越做越糊”的现象；如果上下文过度裁剪，又会丢掉关键线索。
+          </p>
+          <div class="scene">
+            <div class="scene-panel">
+              <h3>上下文不是资料仓库</h3>
+              <p>
+                更像一个动态工作台：每轮只摆出当前需要的材料，把旧记录压缩成状态，把失败线索保留下来，把无关噪音移出视野。
+              </p>
+            </div>
+            <div class="scene-panel visual" aria-label="上下文工程四步">
+              <div class="mini-node"><strong>选择</strong><span>相关文件、日志、需求</span></div>
+              <div class="mini-node"><strong>压缩</strong><span>摘要、状态、决策</span></div>
+              <div class="mini-node"><strong>隔离</strong><span>子任务、权限、边界</span></div>
+              <div class="mini-node"><strong>更新</strong><span>观察、失败、反馈</span></div>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>上下文动作</th>
+                <th>工程含义</th>
+                <th>典型实现</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>选择</td>
+                <td>让模型看到最相关的文件、需求、日志和历史决策。</td>
+                <td>检索、引用追踪、依赖图、代码索引。</td>
+              </tr>
+              <tr>
+                <td>压缩</td>
+                <td>把长历史变成结构化摘要，同时保留决策依据。</td>
+                <td>状态摘要、任务卡片、失败记录、变更日志。</td>
+              </tr>
+              <tr>
+                <td>隔离</td>
+                <td>避免不同子任务互相污染，降低注意力漂移。</td>
+                <td>子 Agent 独立上下文、按模块拆包、只读参考包。</td>
+              </tr>
+              <tr>
+                <td>更新</td>
+                <td>让观察结果、测试失败和人工反馈进入下一轮。</td>
+                <td>trace、memory、scratchpad、issue log。</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout warn">
+            上下文工程的目标不是“塞更多资料”，而是让 Agent 在每一步都拥有足够但不过载的信息。上下文越长，越需要选择、分层和压缩。
+          </div>
+        </section>
+
+        <section id="mcp">
+          <h2>5. MCP：把外部世界标准化接进来</h2>
+          <p>
+            MCP，也就是 Model Context Protocol，是把 AI 应用连接到外部系统的开放标准。官方规范把 server 能提供的能力分为三类：Resources 提供上下文和数据，Prompts 提供模板化消息和工作流，Tools 提供可执行函数。
+          </p>
+          <p>
+            在 Agent 工程里，MCP 的价值不是“又一种插件格式”，而是把工具接入从项目私有适配，推进到可发现、可描述、可授权、可复用的协议边界。一个 Agent 不需要为每个 SaaS、数据库、文件系统单独发明接法，而是通过 MCP client 发现和调用 server 暴露的能力。
+          </p>
+          <div class="mcp-board" aria-label="MCP 连接外部系统示意">
+            <div class="agent-core">
+              <div>
+                <b>Agent Host</b>
+                <span>MCP Client 负责发现、描述和调用外部能力</span>
+              </div>
+            </div>
+            <div class="connector-grid">
+              <div class="connector-card">
+                <b>Resources</b>
+                <span>文档、代码、工单、数据库记录，作为上下文进入模型。</span>
+              </div>
+              <div class="connector-card">
+                <b>Prompts</b>
+                <span>团队沉淀的消息模板、工作流入口和任务脚手架。</span>
+              </div>
+              <div class="connector-card">
+                <b>Tools</b>
+                <span>可执行函数：查库、发请求、创建 issue、读取文件。</span>
+              </div>
+              <div class="connector-card">
+                <b>Policies</b>
+                <span>权限、审批、审计和参数校验，决定哪些动作能执行。</span>
+              </div>
+              <div class="connector-card">
+                <b>Tracing</b>
+                <span>记录每次工具调用、输入输出和失败原因。</span>
+              </div>
+              <div class="connector-card">
+                <b>Reuse</b>
+                <span>同一套 server 能被多个 Agent、IDE 或内部平台复用。</span>
+              </div>
+            </div>
+          </div>
+          <pre><code>Agent Host
+  └─ MCP Client
+       ├─ MCP Server: GitHub
+       │    ├─ resources: issues, PRs, files
+       │    ├─ prompts: release-note workflow
+       │    └─ tools: create_issue, comment_pr
+       ├─ MCP Server: Database
+       │    └─ tools: query, explain_plan
+       └─ MCP Server: Internal Docs
+            └─ resources: policies, specs, runbooks</code></pre>
+          <div class="callout risk">
+            MCP 把工具接入变容易，也把安全边界变得更重要。生产环境里必须设计权限、审计、参数校验、危险工具审批和最小可用能力。
+          </div>
+        </section>
+
+        <section id="skills">
+          <h2>6. Skills：把组织经验沉淀成可调用能力</h2>
+          <p>
+            如果 MCP 解决“Agent 能连什么”，Skills 解决“Agent 应该怎么做”。OpenAI Codex、Anthropic Claude 和 Agent Skills 社区对 Skills 的描述都很接近：一个 Skill 通常是包含 <code>SKILL.md</code> 的文件夹，里面可以放说明、脚本、模板、参考材料和资源。Agent 在任务相关时再加载完整技能，避免一开始就把所有流程塞进上下文。
+          </p>
+          <p>
+            Skills 的真正价值在企业内部会非常大。它可以把“资深工程师脑子里的流程”变成 Agent 可读、可执行、可分发的知识包。例如：如何发布一个版本、如何分析线上事故、如何写符合公司规范的 SQL、如何做安全审计、如何生成某种格式的客户报告。
+          </p>
+          <div class="skill-shelf" aria-label="Skill 资产包组成">
+            <div class="skill-file">
+              <b>SKILL.md</b>
+              <span>触发条件、执行步骤、边界和注意事项。</span>
+            </div>
+            <div class="skill-file">
+              <b>scripts/</b>
+              <span>把稳定动作交给脚本，减少模型自由发挥。</span>
+            </div>
+            <div class="skill-file">
+              <b>references/</b>
+              <span>放规范、术语表、案例和领域知识。</span>
+            </div>
+            <div class="skill-file">
+              <b>templates/</b>
+              <span>统一报告、PR、方案和交付物格式。</span>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Skill 内容</th>
+                <th>作用</th>
+                <th>例子</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>说明文件</td>
+                <td>告诉 Agent 何时使用、如何执行、注意什么。</td>
+                <td><code>SKILL.md</code> 中的触发条件、步骤、限制。</td>
+              </tr>
+              <tr>
+                <td>脚本</td>
+                <td>把稳定操作交给确定性程序完成。</td>
+                <td>渲染文档、生成报表、批量校验、格式转换。</td>
+              </tr>
+              <tr>
+                <td>参考材料</td>
+                <td>提供领域规则和组织标准。</td>
+                <td>品牌规范、代码规范、合规要求、术语表。</td>
+              </tr>
+              <tr>
+                <td>模板</td>
+                <td>降低输出风格漂移。</td>
+                <td>PR 描述模板、事故复盘模板、方案设计模板。</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="harness">
+          <h2>7. Harness：让 Agent 的结果可验证</h2>
+          <p>
+            Harness 可以理解为 Agent 的“工程试验台”：它不只是跑测试，还包括复现环境、样例数据、评测集、日志、trace、回放、权限沙箱、成本统计和人工验收入口。没有 Harness，Agent Loop 只能靠感觉收敛；有了 Harness，系统才能把失败变成下一轮可用的反馈。
+          </p>
+          <p>
+            OpenAI Evals、Anthropic 的 agent evals 与 long-running harness 文章、Inspect AI 和 SWE-bench 都指向同一个事实：评测不只是给模型打分，而是把“什么叫好”变成可运行的反馈机制。尤其在软件工程任务里，SWE-bench 这类基准强调真实 issue、可复现环境和一致的 evaluation harness，正好体现了 Harness 对 Agent 的约束意义。
+          </p>
+          <div class="harness-board" aria-label="Agent Harness 工程试验台">
+            <div class="harness-cell">
+              <b>环境</b>
+              <span>依赖、配置、fixture、沙箱和权限边界。</span>
+            </div>
+            <div class="harness-cell">
+              <b>测试</b>
+              <span>单测、集成测试、回归集和任务验收脚本。</span>
+            </div>
+            <div class="harness-cell">
+              <b>评测</b>
+              <span>评分器、样例集、失败分类和基准对比。</span>
+            </div>
+            <div class="harness-cell">
+              <b>观测</b>
+              <span>日志、trace、成本、延迟和工具调用记录。</span>
+            </div>
+            <div class="harness-cell">
+              <b>接管</b>
+              <span>审批点、停止条件、回滚策略和人工 review。</span>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <h3>Harness 的底层组件</h3>
+              <p>环境初始化、fixture、测试命令、评测脚本、工具权限、日志和 trace、成本统计、结果报告。</p>
+            </div>
+            <div class="card">
+              <h3>Harness 的上层价值</h3>
+              <p>把“模型觉得完成了”转换为“系统验证通过了”，并在失败时提供可定位、可回放的证据。</p>
+            </div>
+          </div>
+          <pre><code>一个实用的 Agent Harness 至少回答这些问题：
+
+1. 如何一键复现当前问题？
+2. Agent 可以读写哪些资源？
+3. 通过哪些测试或 eval 才算完成？
+4. 每轮行为是否有 trace 和日志？
+5. 失败样例是否会进入回归集？
+6. 超时、超预算、危险操作如何停止？
+7. 人类在哪些节点审批或接管？</code></pre>
+          <div class="callout warn">
+            注意：OpenAI 的 Evals 平台在官方文档中已标注退场时间表，但“把目标具体化、运行评测、基于失败改进”的方法论并没有过时。工程上可以用自建 eval、Inspect AI、SWE-bench 风格环境或团队内部 Harness 承接。
+          </div>
+        </section>
+
+        <section id="loop">
+          <h2>8. Agent Loop：从回答走向闭环行动</h2>
+          <p>
+            Agent Loop 是这条链路自然长出来的结果。当前面几层都存在时，Agent 不再只是“回答一次”，而可以持续执行：理解目标、制定计划、调用工具、观察结果、运行验证、反思失败、更新上下文，然后继续下一轮。
+          </p>
+          <p>
+            ReAct 论文提出把 reasoning 和 acting 交错进行，让模型一边推理一边通过行动获得外部观察。Reflexion 进一步强调，语言 Agent 可以从反馈信号中生成反思，并把反思放入记忆来改善后续尝试。Voyager 则展示了更长期的循环：自动课程、技能库和迭代 prompting 组合在一起，让 Agent 在环境反馈中积累可复用行为。
+          </p>
+
+          <div class="flow" aria-label="Agent Loop 流程">
+            <div class="flow-step">
+              <b>目标</b>
+              接收任务、约束和验收标准。
+            </div>
+            <div class="flow-step">
+              <b>上下文</b>
+              选择材料、加载 Skills、发现工具。
+            </div>
+            <div class="flow-step">
+              <b>计划</b>
+              拆解步骤、评估风险、决定下一步。
+            </div>
+            <div class="flow-step">
+              <b>行动</b>
+              调用工具、修改文件、查询系统。
+            </div>
+            <div class="flow-step">
+              <b>观察</b>
+              收集输出、日志、错误和环境反馈。
+            </div>
+            <div class="flow-step">
+              <b>验证</b>
+              运行测试、eval、人工审批或评分器。
+            </div>
+            <div class="flow-step">
+              <b>收敛</b>
+              通过则停止，失败则反思并进入下一轮。
+            </div>
+          </div>
+
+          <div class="loop-board">
+            <div class="connector-grid">
+              <div class="connector-card">
+                <b>停止条件</b>
+                <span>通过验收、达到上限、风险升高或需要人工判断。</span>
+              </div>
+              <div class="connector-card">
+                <b>预算控制</b>
+                <span>限制时间、token、工具调用次数和并行探索规模。</span>
+              </div>
+              <div class="connector-card">
+                <b>回滚策略</b>
+                <span>保留 diff、日志和测试结果，必要时恢复到已知状态。</span>
+              </div>
+              <div class="connector-card">
+                <b>反馈记忆</b>
+                <span>把失败原因、修复尝试和评测结果写回下一轮上下文。</span>
+              </div>
+              <div class="connector-card">
+                <b>人类接管</b>
+                <span>高风险操作、价值判断和模糊需求需要人工确认。</span>
+              </div>
+              <div class="connector-card">
+                <b>防止投机</b>
+                <span>避免只为通过测试而破坏真实目标或长期可维护性。</span>
+              </div>
+            </div>
+          </div>
+
+          <h3>Agent Loop 不是无限循环</h3>
+          <p>
+            一个成熟的 Agent Loop 必须具备停止条件、预算控制、风险分级、回滚策略和人类接管点。否则它只是在自动消耗 token，甚至可能为了通过局部测试而破坏真实目标。
+          </p>
+          <pre><code>伪代码：
+
+while budget.available():
+    context = build_context(task, memory, traces)
+    action = agent.plan_and_act(context, tools, skills)
+    observation = harness.observe(action)
+    score = harness.evaluate(observation, acceptance_criteria)
+
+    if score.passed:
+        return final_report(action, observation, score)
+
+    if score.requires_human or risk_too_high(action):
+        return ask_for_review(action, observation, score)
+
+    memory.add(reflect(observation, score))
+
+return stop_with_partial_report(memory, traces)</code></pre>
+        </section>
+
+        <section id="metrics">
+          <h2>9. 可量化指标</h2>
+          <p>
+            如果把 Agent 工程当作企业能力建设，就不能只看“模型回答是否惊艳”。更可靠的指标应该覆盖速度、质量、成本、可复现性和人机协作效率。
+          </p>
+          <div class="harness-board" aria-label="Agent 工程指标仪表盘">
+            <div class="harness-cell">
+              <b>速度</b>
+              <span>想法到 Demo、需求到 PR、每轮验证耗时。</span>
+            </div>
+            <div class="harness-cell">
+              <b>质量</b>
+              <span>测试通过率、缺陷密度、回归捕获率。</span>
+            </div>
+            <div class="harness-cell">
+              <b>成本</b>
+              <span>token、工具调用、人工介入和失败重试。</span>
+            </div>
+            <div class="harness-cell">
+              <b>复现</b>
+              <span>问题、环境、trace 和结果是否可回放。</span>
+            </div>
+            <div class="harness-cell">
+              <b>风险</b>
+              <span>越权操作、线上事故、维护成本和投机行为。</span>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>指标类别</th>
+                <th>指标</th>
+                <th>解释</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>落地速度</td>
+                <td>Idea to Demo Time、Idea to PR Time</td>
+                <td>从想法到可运行原型或可 review 代码的时间。</td>
+              </tr>
+              <tr>
+                <td>上下文质量</td>
+                <td>Context Relevance、Missing Context Rate</td>
+                <td>给 Agent 的材料是否相关，关键材料是否遗漏。</td>
+              </tr>
+              <tr>
+                <td>工具可靠性</td>
+                <td>Tool Success Rate、Permission Violation Rate</td>
+                <td>工具调用是否成功，是否触发越权或危险操作。</td>
+              </tr>
+              <tr>
+                <td>Skill 复用</td>
+                <td>Skill Activation Accuracy、Workflow Reuse Rate</td>
+                <td>Skill 是否在正确任务中被调用，流程是否被团队复用。</td>
+              </tr>
+              <tr>
+                <td>Harness 能力</td>
+                <td>Reproducibility、Regression Catch Rate</td>
+                <td>失败能否复现，回归问题能否被自动发现。</td>
+              </tr>
+              <tr>
+                <td>Loop 收敛</td>
+                <td>Loop Count to Pass、Human Intervention Rate</td>
+                <td>达到验收需要几轮，需要多少人工介入。</td>
+              </tr>
+              <tr>
+                <td>生产风险</td>
+                <td>Change Failure Rate、Post-deploy Incident Rate</td>
+                <td>Agent 交付是否引入线上故障或维护成本。</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="conclusion">
+          <h2>结论：Agent 工程的终点是可控收敛</h2>
+          <p>
+            这条链路可以压缩成一句话：Prompt 让模型理解任务，上下文让模型看见事实，MCP 让模型连接世界，Skills 让模型复用经验，Harness 让模型接受验证，Agent Loop 让模型在反馈中逼近目标。
+          </p>
+          <blockquote>
+            真正的 Agent 工程能力，不是让模型多说几步推理，而是把不确定的生成能力放进一个可观察、可验证、可回滚、可持续改进的系统。
+          </blockquote>
+          <p>
+            所以，Harness 到 Agent Loop 是一个分水岭。前面几层主要是在增强模型的输入和能力边界；后面开始进入控制系统思维：每次行动都要有观测，每次失败都要能学习，每次通过都要能复现，每次放权都要有边界。
+          </p>
+        </section>
+
+        <section id="sources">
+          <h2>参考资料</h2>
+          <ol class="refs">
+            <li><span class="tag">Prompt</span>OpenAI, <a href="https://developers.openai.com/api/docs/guides/prompt-engineering" target="_blank" rel="noopener">Prompt engineering</a>；OpenAI Help Center, <a href="https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api" target="_blank" rel="noopener">Best practices for prompt engineering with the OpenAI API</a>。</li>
+            <li><span class="tag">Context</span>Anthropic, <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank" rel="noopener">Effective context engineering for AI agents</a>。</li>
+            <li><span class="tag">MCP</span>Model Context Protocol, <a href="https://modelcontextprotocol.io/docs/getting-started/intro" target="_blank" rel="noopener">Introduction</a>；<a href="https://modelcontextprotocol.io/specification/2025-06-18" target="_blank" rel="noopener">Specification 2025-06-18</a>；<a href="https://modelcontextprotocol.io/specification/2025-06-18/server/tools" target="_blank" rel="noopener">Tools</a>。</li>
+            <li><span class="tag">MCP</span>Anthropic, <a href="https://www.anthropic.com/news/model-context-protocol" target="_blank" rel="noopener">Introducing the Model Context Protocol</a>。</li>
+            <li><span class="tag">Skills</span>OpenAI Developers, <a href="https://developers.openai.com/codex/skills" target="_blank" rel="noopener">Agent Skills - Codex</a>；Claude API Docs, <a href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview" target="_blank" rel="noopener">Agent Skills</a>。</li>
+            <li><span class="tag">Skills</span>Anthropic, <a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills" target="_blank" rel="noopener">Equipping agents for the real world with Agent Skills</a>；Agent Skills, <a href="https://agentskills.io/home" target="_blank" rel="noopener">Overview</a>。</li>
+            <li><span class="tag">Agents</span>OpenAI API, <a href="https://developers.openai.com/api/docs/guides/agents" target="_blank" rel="noopener">Agents SDK</a>；OpenAI Agents SDK, <a href="https://openai.github.io/openai-agents-python/agents/" target="_blank" rel="noopener">Agents</a>；<a href="https://openai.github.io/openai-agents-python/tracing/" target="_blank" rel="noopener">Tracing</a>。</li>
+            <li><span class="tag">Workflow</span>Anthropic, <a href="https://www.anthropic.com/research/building-effective-agents" target="_blank" rel="noopener">Building Effective AI Agents</a>。</li>
+            <li><span class="tag">Evals</span>Anthropic, <a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank" rel="noopener">Demystifying evals for AI agents</a>；<a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents" target="_blank" rel="noopener">Effective harnesses for long-running agents</a>。</li>
+            <li><span class="tag">Evals</span>OpenAI, <a href="https://github.com/openai/evals" target="_blank" rel="noopener">openai/evals</a>；OpenAI API, <a href="https://developers.openai.com/api/docs/guides/evals" target="_blank" rel="noopener">Working with evals</a>；Inspect AI, <a href="https://inspect.aisi.org.uk/" target="_blank" rel="noopener">Inspect AI documentation</a>。</li>
+            <li><span class="tag">Harness</span>SWE-bench, <a href="https://www.swebench.com/SWE-bench/" target="_blank" rel="noopener">Overview</a>；<a href="https://www.swebench.com/SWE-bench/reference/harness/" target="_blank" rel="noopener">The Harness</a>；SWE-bench, <a href="https://www.swebench.com/" target="_blank" rel="noopener">Leaderboards</a>；OpenAI, <a href="https://openai.com/index/introducing-swe-bench-verified/" target="_blank" rel="noopener">Introducing SWE-bench Verified</a>。</li>
+            <li><span class="tag">Loop</span>Yao et al., <a href="https://arxiv.org/abs/2210.03629" target="_blank" rel="noopener">ReAct: Synergizing Reasoning and Acting in Language Models</a>；Google Research, <a href="https://research.google/blog/react-synergizing-reasoning-and-acting-in-language-models/" target="_blank" rel="noopener">ReAct overview</a>。</li>
+            <li><span class="tag">Loop</span>Shinn et al., <a href="https://arxiv.org/abs/2303.11366" target="_blank" rel="noopener">Reflexion: Language Agents with Verbal Reinforcement Learning</a>。</li>
+            <li><span class="tag">Skills</span>Wang et al., <a href="https://arxiv.org/abs/2305.16291" target="_blank" rel="noopener">Voyager: An Open-Ended Embodied Agent with Large Language Models</a>；Voyager project, <a href="https://voyager.minedojo.org/" target="_blank" rel="noopener">project site</a>。</li>
+            <li><span class="tag">HITL</span>LangChain Docs, <a href="https://docs.langchain.com/oss/python/langchain/human-in-the-loop" target="_blank" rel="noopener">Human-in-the-loop</a>；LangGraph Docs, <a href="https://docs.langchain.com/oss/python/langgraph/overview" target="_blank" rel="noopener">LangGraph overview</a>。</li>
+          </ol>
+        </section>
+
+        <footer>
+          本文面向工程实践整理，重点不在术语归属，而在把 Agent 从“会回答”推进到“能在受控环境中行动并被验证”。可按企业内部情况继续扩展为岗位能力模型、平台架构方案或团队落地路线图。
+        </footer>
+      </main>
+    </article>
+  </div>
+</body>
+</html>

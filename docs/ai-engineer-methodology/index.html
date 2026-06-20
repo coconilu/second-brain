@@ -1,0 +1,1169 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 工程师的核心竞争力：从抽卡到可验证交付</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7f7;
+      --paper: #ffffff;
+      --ink: #172026;
+      --muted: #63707a;
+      --soft: #eef3f2;
+      --line: #d8e1de;
+      --teal: #0f766e;
+      --teal-dark: #0a514c;
+      --teal-soft: #e3f4f1;
+      --amber: #b7791f;
+      --amber-soft: #fff4dc;
+      --coral: #c2413b;
+      --coral-soft: #fff0ef;
+      --indigo: #4755c7;
+      --indigo-soft: #eef0ff;
+      --green: #2f7d4e;
+      --green-soft: #e7f5eb;
+      --shadow: 0 24px 70px rgba(23, 32, 38, 0.1);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(180deg, #e8f2f0 0, #f5f7f7 420px),
+        var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+      line-height: 1.72;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    a {
+      color: var(--teal);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+
+    p {
+      margin: 0 0 16px;
+    }
+
+    ul,
+    ol {
+      margin: 0 0 18px;
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    strong {
+      color: #11181d;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
+
+    .article-shell {
+      overflow: hidden;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      position: relative;
+      min-height: 560px;
+      display: grid;
+      align-items: end;
+      isolation: isolate;
+      background: #172026;
+    }
+
+    .hero img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -2;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(90deg, rgba(12, 18, 22, 0.88), rgba(12, 18, 22, 0.54) 48%, rgba(12, 18, 22, 0.12)),
+        linear-gradient(0deg, rgba(12, 18, 22, 0.92), rgba(12, 18, 22, 0.12) 48%);
+    }
+
+    .hero-content {
+      max-width: 820px;
+      padding: 56px;
+      color: #fff;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 18px;
+      color: #b9fff3;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 34px;
+      height: 2px;
+      background: #f8c15c;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.22;
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 900px;
+      font-size: clamp(34px, 5vw, 58px);
+      font-weight: 850;
+    }
+
+    .mobile-break {
+      display: none;
+    }
+
+    .subtitle {
+      max-width: 700px;
+      margin-top: 20px;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: clamp(17px, 2vw, 22px);
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 5px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 13px;
+      font-weight: 700;
+      backdrop-filter: blur(12px);
+    }
+
+    main {
+      padding: 0 56px 58px;
+    }
+
+    .lead-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+      gap: 26px;
+      margin-top: 42px;
+      align-items: stretch;
+    }
+
+    .lead-copy {
+      padding: 28px 0;
+      font-size: 18px;
+    }
+
+    .thesis-box {
+      padding: 28px;
+      border: 1px solid #bcded8;
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(255, 255, 255, 0.7)),
+        #f8fcfb;
+    }
+
+    .thesis-box .label {
+      color: var(--teal-dark);
+      font-size: 13px;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .thesis-box p {
+      margin: 12px 0 0;
+      color: #19302d;
+      font-size: 22px;
+      font-weight: 850;
+      line-height: 1.45;
+    }
+
+    .toc {
+      margin: 26px 0 0;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfc;
+    }
+
+    .toc-title {
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .toc-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .toc-links a {
+      display: inline-flex;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: #25323a;
+      font-size: 13px;
+      font-weight: 750;
+      text-decoration: none;
+    }
+
+    section {
+      margin-top: 56px;
+    }
+
+    .section-kicker {
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin-top: 8px;
+      font-size: clamp(28px, 3.3vw, 42px);
+    }
+
+    .section-intro {
+      max-width: 840px;
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .callout {
+      margin-top: 24px;
+      padding: 22px 24px;
+      border-left: 5px solid var(--amber);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      background: var(--amber-soft);
+      color: #3b2d15;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .compare-panel {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfc;
+    }
+
+    .compare-panel.weak {
+      border-color: #f1beb8;
+      background: var(--coral-soft);
+    }
+
+    .compare-panel.strong {
+      border-color: #b9ded4;
+      background: var(--teal-soft);
+    }
+
+    .compare-panel h3 {
+      margin-bottom: 12px;
+      font-size: 20px;
+    }
+
+    .compare-panel ul {
+      margin-bottom: 0;
+    }
+
+    .flow-wrap {
+      margin-top: 28px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfc;
+    }
+
+    .foundation {
+      display: grid;
+      grid-template-columns: 140px minmax(0, 1fr);
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+
+    .foundation-label {
+      display: grid;
+      place-items: center;
+      min-height: 100%;
+      padding: 18px;
+      border-radius: var(--radius);
+      background: #172026;
+      color: #ffffff;
+      font-weight: 850;
+      text-align: center;
+    }
+
+    .foundation-items {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .foundation-item {
+      min-height: 84px;
+      padding: 14px;
+      border: 1px solid #bfd7d4;
+      border-radius: var(--radius);
+      background: #ffffff;
+      font-weight: 800;
+    }
+
+    .foundation-item span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    .loop-title {
+      margin: 26px 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .delivery-loop {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .loop-step {
+      position: relative;
+      min-height: 116px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .loop-step::after {
+      content: "->";
+      position: absolute;
+      right: -10px;
+      top: 44%;
+      color: var(--teal);
+      font-weight: 900;
+    }
+
+    .loop-step:nth-child(5)::after {
+      content: "";
+    }
+
+    .step-num {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      margin-bottom: 10px;
+      border-radius: 999px;
+      background: var(--teal);
+      color: white;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .loop-step h3 {
+      font-size: 16px;
+    }
+
+    .loop-step p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .loop-feedback {
+      margin-top: 12px;
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      background: #172026;
+      color: #e8f2f0;
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    .capability-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 28px;
+    }
+
+    .capability {
+      min-height: 236px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .capability:nth-child(1) { border-top: 5px solid var(--teal); }
+    .capability:nth-child(2) { border-top: 5px solid var(--amber); }
+    .capability:nth-child(3) { border-top: 5px solid var(--indigo); }
+    .capability:nth-child(4) { border-top: 5px solid var(--green); }
+    .capability:nth-child(5) { border-top: 5px solid var(--coral); }
+    .capability:nth-child(6) { border-top: 5px solid #7a5c2e; }
+
+    .capability .index {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+    }
+
+    .capability h3 {
+      margin-top: 10px;
+      font-size: 21px;
+    }
+
+    .capability p {
+      margin-top: 12px;
+      color: var(--muted);
+    }
+
+    .metrics-table {
+      width: 100%;
+      margin-top: 28px;
+      border-collapse: collapse;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      font-size: 15px;
+    }
+
+    .metrics-table th,
+    .metrics-table td {
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .metrics-table th {
+      background: #172026;
+      color: #ffffff;
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .metrics-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .metrics-table td:first-child {
+      width: 23%;
+      color: var(--teal-dark);
+      font-weight: 850;
+    }
+
+    .badge {
+      display: inline-flex;
+      margin: 2px 4px 2px 0;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: #263139;
+      font-size: 12px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .maturity {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 28px;
+      counter-reset: stage;
+    }
+
+    .stage {
+      position: relative;
+      min-height: 250px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    .stage::before {
+      counter-increment: stage;
+      content: counter(stage);
+      position: absolute;
+      right: 16px;
+      top: 6px;
+      color: rgba(23, 32, 38, 0.08);
+      font-size: 92px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .stage h3 {
+      position: relative;
+      margin-top: 26px;
+      font-size: 21px;
+    }
+
+    .stage p {
+      position: relative;
+      margin-top: 12px;
+      color: var(--muted);
+    }
+
+    .stage .signal {
+      position: relative;
+      display: inline-flex;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .stage:nth-child(1) .signal { background: var(--amber-soft); color: #704b16; }
+    .stage:nth-child(2) .signal { background: var(--coral-soft); color: #8f2e2a; }
+    .stage:nth-child(3) .signal { background: var(--teal-soft); color: var(--teal-dark); }
+    .stage:nth-child(4) .signal { background: var(--indigo-soft); color: #333c91; }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 28px;
+    }
+
+    .role {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfc;
+    }
+
+    .role h3 {
+      font-size: 21px;
+    }
+
+    .role p {
+      margin-top: 12px;
+      color: var(--muted);
+    }
+
+    .role ul {
+      margin-bottom: 0;
+    }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .check-item {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 12px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .check-mark {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-weight: 900;
+    }
+
+    .check-item h3 {
+      font-size: 18px;
+    }
+
+    .check-item p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .quote-band {
+      margin-top: 56px;
+      padding: 34px;
+      border-radius: var(--radius);
+      background: #172026;
+      color: #ffffff;
+    }
+
+    .quote-band p {
+      margin: 0;
+      font-size: clamp(22px, 3vw, 34px);
+      font-weight: 850;
+      line-height: 1.45;
+    }
+
+    .quote-band span {
+      display: block;
+      margin-top: 14px;
+      color: #b8c7c4;
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    footer {
+      padding: 30px 56px 44px;
+      border-top: 1px solid var(--line);
+      background: #fbfcfc;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 920px) {
+      .hero {
+        min-height: 520px;
+      }
+
+      .hero-content,
+      main,
+      footer {
+        padding-left: 32px;
+        padding-right: 32px;
+      }
+
+      .lead-grid,
+      .comparison,
+      .role-grid,
+      .checklist {
+        grid-template-columns: 1fr;
+      }
+
+      .foundation {
+        grid-template-columns: 1fr;
+      }
+
+      .foundation-items,
+      .delivery-loop,
+      .capability-grid,
+      .maturity {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .loop-step:nth-child(2)::after,
+      .loop-step:nth-child(4)::after {
+        content: "";
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 0 0 44px;
+      }
+
+      .article-shell {
+        border-left: 0;
+        border-right: 0;
+        border-radius: 0;
+      }
+
+      .hero {
+        min-height: 600px;
+      }
+
+      .hero-content,
+      main,
+      footer {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .hero-content {
+        padding-top: 42px;
+        padding-bottom: 42px;
+      }
+
+      .mobile-break {
+        display: initial;
+      }
+
+      h1 {
+        font-size: 36px;
+      }
+
+      .foundation-items,
+      .delivery-loop,
+      .capability-grid,
+      .maturity {
+        grid-template-columns: 1fr;
+      }
+
+      .loop-step::after {
+        content: "";
+      }
+
+      .metrics-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .metrics-table td:nth-child(3) {
+        min-width: 360px;
+        white-space: normal;
+      }
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+      }
+
+      .page {
+        padding: 0;
+      }
+
+      .article-shell {
+        border: 0;
+        box-shadow: none;
+      }
+
+      .hero {
+        min-height: 420px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <article class="article-shell">
+      <header class="hero">
+        <img src="assets/ai-engineer-harness-hero.png" alt="AI 工程师协调评测、Agent 和交付流水线的主题插图" />
+        <div class="hero-content">
+          <div class="eyebrow">AI Native Engineering</div>
+          <h1>AI 工程师的<br class="mobile-break" />核心竞争力：<br />从抽卡到可验证交付</h1>
+          <p class="subtitle">真正稀缺的不是会不会提示模型，而是能否把不确定的生成能力，收敛成可运行、可评估、可维护的业务结果。</p>
+          <div class="hero-meta">
+            <span class="pill">Harness First</span>
+            <span class="pill">Boundary Aware</span>
+            <span class="pill">Agent Loop</span>
+            <span class="pill">Engineering Closure</span>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <div class="lead-grid">
+          <div class="lead-copy">
+            <p>AI 让软件开发的生产函数发生了变化。过去工程师的核心竞争力常常被理解为“把代码写出来”，而在 AI 原生环境中，代码生成本身正在变成一种可调用能力。</p>
+            <p>新的问题变成了：怎样把模糊想法变成清晰任务？怎样让 Agent 知道边界？怎样在多轮生成中稳定接近验收标准？怎样让一次成功的演示变成可持续维护的系统？</p>
+          </div>
+          <aside class="thesis-box">
+            <div class="label">核心判断</div>
+            <p>AI 工程师不是“更快的码农”，而是为 AI 构建工作环境、判断适用边界、设计验证闭环，并把不确定输出收敛成可靠交付的人。</p>
+          </aside>
+        </div>
+
+        <nav class="toc" aria-label="文章目录">
+          <div class="toc-title">本文结构</div>
+          <div class="toc-links">
+            <a href="#argument">核心观点</a>
+            <a href="#workflow">交付流程</a>
+            <a href="#capabilities">能力模型</a>
+            <a href="#metrics">量化指标</a>
+            <a href="#boundary">能力边界</a>
+            <a href="#roles">岗位映射</a>
+            <a href="#checklist">实践清单</a>
+          </div>
+        </nav>
+
+        <section id="argument">
+          <div class="section-kicker">01 / Argument</div>
+          <h2>“抽卡”是入口，不是终点</h2>
+          <p class="section-intro">用 AI 快速尝试多个方案，本质上是一种搜索。但成熟工程能力不是依赖运气，而是设计一个更容易产出好结果、也更容易淘汰坏结果的系统。</p>
+
+          <div class="comparison">
+            <div class="compare-panel weak">
+              <h3>初级抽卡</h3>
+              <ul>
+                <li>靠单轮 Prompt 试运气。</li>
+                <li>结果好坏主要凭主观感觉。</li>
+                <li>失败样例不沉淀，下次继续踩坑。</li>
+                <li>能做 Demo，但很难稳定上线。</li>
+              </ul>
+            </div>
+            <div class="compare-panel strong">
+              <h3>工程化抽卡</h3>
+              <ul>
+                <li>设计上下文、工具、数据和约束。</li>
+                <li>用测试、Eval、验收标准做评分器。</li>
+                <li>让多 Agent 或多方案并行探索。</li>
+                <li>把成功经验和失败模式反哺 Harness。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="callout">一句话：初级是抽卡，高级是设计卡池、评分器、重抽机制、淘汰机制和沉淀机制。</div>
+        </section>
+
+        <section id="workflow">
+          <div class="section-kicker">02 / Workflow</div>
+          <h2>Harness 应该在最前面，而且持续优化</h2>
+          <p class="section-intro">Harness 不是某个需求开始后的临时步骤，而是 AI 工程师工作的底座。它提供环境、样例、测试、日志、回放和评测，让后续需求可以被可靠执行。</p>
+
+          <div class="flow-wrap" aria-label="AI 工程师交付流程图">
+            <div class="foundation">
+              <div class="foundation-label">常驻层<br />Harness</div>
+              <div class="foundation-items">
+                <div class="foundation-item">运行环境<span>一键启动、依赖固定、数据可复现。</span></div>
+                <div class="foundation-item">测试与 Eval<span>单测、集成测试、任务评测集。</span></div>
+                <div class="foundation-item">观测与回放<span>日志、Trace、成本、延迟、案例复盘。</span></div>
+                <div class="foundation-item">Agent 上下文<span>架构说明、约束、改动范围、风险点。</span></div>
+              </div>
+            </div>
+
+            <div class="loop-title">每个需求的交付循环</div>
+            <div class="delivery-loop">
+              <div class="loop-step">
+                <span class="step-num">1</span>
+                <h3>需求澄清</h3>
+                <p>把模糊想法转成目标、对象、范围、约束。</p>
+              </div>
+              <div class="loop-step">
+                <span class="step-num">2</span>
+                <h3>边界判断</h3>
+                <p>判断 AI 能做、不能做、需要人审的部分。</p>
+              </div>
+              <div class="loop-step">
+                <span class="step-num">3</span>
+                <h3>验收定义</h3>
+                <p>列出当前 case、目标 case、边界 case。</p>
+              </div>
+              <div class="loop-step">
+                <span class="step-num">4</span>
+                <h3>Agent 循环</h3>
+                <p>探索、实现、测试、修复，多轮逼近标准。</p>
+              </div>
+              <div class="loop-step">
+                <span class="step-num">5</span>
+                <h3>收敛交付</h3>
+                <p>人工验收、Review、重构、前后对比。</p>
+              </div>
+            </div>
+            <div class="loop-feedback">每完成一个需求，都应反哺 Harness：补测试、补文档、补失败样例、补 Agent 工作说明。</div>
+          </div>
+        </section>
+
+        <section id="capabilities">
+          <div class="section-kicker">03 / Capability Model</div>
+          <h2>AI 工程师的六项核心能力</h2>
+          <p class="section-intro">会写 Prompt 只是表层能力。更完整的 AI 工程师画像，应该覆盖从环境建设到组织认知校准的完整链路。</p>
+
+          <div class="capability-grid">
+            <article class="capability">
+              <div class="index">Capability 01</div>
+              <h3>Harness 建设能力</h3>
+              <p>搭建一套人和 Agent 都能稳定工作的运行环境，包括安装、启动、测试、Mock、样例数据、日志和回放。</p>
+            </article>
+            <article class="capability">
+              <div class="index">Capability 02</div>
+              <h3>AI 边界判断能力</h3>
+              <p>理解模型擅长什么、不擅长什么，知道哪些输出必须人审，哪些场景不该为了 AI 而 AI。</p>
+            </article>
+            <article class="capability">
+              <div class="index">Capability 03</div>
+              <h3>需求具体化能力</h3>
+              <p>把一句话需求拆成背景、目标、范围、输入输出、验收标准、异常路径和回归风险。</p>
+            </article>
+            <article class="capability">
+              <div class="index">Capability 04</div>
+              <h3>Agent 编排能力</h3>
+              <p>让不同 Agent 承担探索、实现、测试、审查、总结等角色，并通过多轮反馈逼近目标。</p>
+            </article>
+            <article class="capability">
+              <div class="index">Capability 05</div>
+              <h3>工程收敛能力</h3>
+              <p>把 AI 生成的代码整理成可读、可测、可维护的工程资产，而不是停留在“看起来能跑”。</p>
+            </article>
+            <article class="capability">
+              <div class="index">Capability 06</div>
+              <h3>组织校准能力</h3>
+              <p>帮助老板、产品、业务方从 AI 神话和 AI 幻灭中走出来，形成理性的场景判断。</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="metrics">
+          <div class="section-kicker">04 / Metrics</div>
+          <h2>可以量化什么？看五组指标</h2>
+          <p class="section-intro">AI 工程能力要避免停留在“感觉效率变高”。真正可管理的能力，需要被拆成速度、稳定性、需求质量、Agent 协作和工程质量。</p>
+
+          <table class="metrics-table">
+            <thead>
+              <tr>
+                <th>维度</th>
+                <th>关键问题</th>
+                <th>可量化指标</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>落地速度</td>
+                <td>能不能快？</td>
+                <td>
+                  <span class="badge">Idea to Demo Time</span>
+                  <span class="badge">Idea to PR Time</span>
+                  <span class="badge">First Pass Success Rate</span>
+                  <span class="badge">Time to Iterate</span>
+                </td>
+              </tr>
+              <tr>
+                <td>Harness 质量</td>
+                <td>能不能稳？</td>
+                <td>
+                  <span class="badge">One-command Setup Success Rate</span>
+                  <span class="badge">Test/Eval Coverage</span>
+                  <span class="badge">Regression Catch Rate</span>
+                  <span class="badge">Replayability</span>
+                </td>
+              </tr>
+              <tr>
+                <td>需求具体化</td>
+                <td>Agent 是否知道该做什么？</td>
+                <td>
+                  <span class="badge">Acceptance Criteria Completeness</span>
+                  <span class="badge">Scope Clarity</span>
+                  <span class="badge">Ambiguity Rate</span>
+                  <span class="badge">Rework Rate</span>
+                </td>
+              </tr>
+              <tr>
+                <td>Agent 协作</td>
+                <td>能否管理 AI 劳动力？</td>
+                <td>
+                  <span class="badge">Agent Task Pass Rate</span>
+                  <span class="badge">Human Intervention Rate</span>
+                  <span class="badge">Loop Count to Pass</span>
+                  <span class="badge">Parallel Exploration Yield</span>
+                </td>
+              </tr>
+              <tr>
+                <td>工程质量</td>
+                <td>是否能长期维护？</td>
+                <td>
+                  <span class="badge">Review Defect Density</span>
+                  <span class="badge">Test Stability</span>
+                  <span class="badge">Change Failure Rate</span>
+                  <span class="badge">Production Incident Rate</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="boundary">
+          <div class="section-kicker">05 / Boundary</div>
+          <h2>成熟组织会从“AI 万能”走向“边界清晰”</h2>
+          <p class="section-intro">企业老板和团队对 AI 的认知，经常会经历四个阶段。AI 工程师的重要价值，就是把组织从前两个极端带到后两个可执行状态。</p>
+
+          <div class="maturity">
+            <article class="stage">
+              <span class="signal">过度乐观</span>
+              <h3>AI 什么都能做</h3>
+              <p>被宣传、Demo 和短期效果吸引，容易把“能生成”误解成“能负责”。</p>
+            </article>
+            <article class="stage">
+              <span class="signal">落地受挫</span>
+              <h3>AI 什么都不能做</h3>
+              <p>遇到幻觉、成本、权限、质量波动和集成难题后，进入否定阶段。</p>
+            </article>
+            <article class="stage">
+              <span class="signal">场景可用</span>
+              <h3>这个 AI 可以做</h3>
+              <p>开始理解任务边界，找到适合 AI 的输入、输出、流程和兜底方式。</p>
+            </article>
+            <article class="stage">
+              <span class="signal">理性规划</span>
+              <h3>为什么这个不能 AI 做</h3>
+              <p>深入业务本质，能解释风险、责任边界、ROI 和替代方案。</p>
+            </article>
+          </div>
+
+          <div class="callout">能生成，不等于能负责；能演示，不等于能上线；能跑一次，不等于能稳定运行。</div>
+        </section>
+
+        <section id="roles">
+          <div class="section-kicker">06 / Role Mapping</div>
+          <h2>三个 AI 原生岗位的分工</h2>
+          <p class="section-intro">AI 应用开发工程师、AI 解决方案架构师和 AI 产品经理之间不是割裂的三类人，而是围绕“从模型能力到业务结果”的不同切面。</p>
+
+          <div class="role-grid">
+            <article class="role">
+              <h3>AI 应用开发工程师</h3>
+              <p>把模型能力转成可上线、可维护、可迭代的软件系统。</p>
+              <ul>
+                <li>RAG、知识库、Agent、模型 API。</li>
+                <li>结构化输出、工具调用、成本控制。</li>
+                <li>系统评测、测试、部署和稳定性。</li>
+              </ul>
+            </article>
+            <article class="role">
+              <h3>AI 解决方案架构师</h3>
+              <p>把企业现场混乱的业务、数据和流程组织成可执行方案。</p>
+              <ul>
+                <li>场景诊断、PoC 验证、业务流程拆解。</li>
+                <li>客户沟通、ROI 评估、上线推进。</li>
+                <li>理解边界，并能说服组织接受边界。</li>
+              </ul>
+            </article>
+            <article class="role">
+              <h3>AI 产品/项目经理</h3>
+              <p>定义 AI 产品价值、交互方式、输出标准和风险兜底。</p>
+              <ul>
+                <li>需求识别、功能规划、效果评估。</li>
+                <li>AI 交互设计、用户反馈闭环。</li>
+                <li>验收标准、失败兜底和项目节奏。</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="checklist">
+          <div class="section-kicker">07 / Practice Checklist</div>
+          <h2>判断一个人是否具备 AI 工程能力</h2>
+          <p class="section-intro">相比问“你会哪些模型和框架”，更有效的问题是看他能否把 AI 变成一套可复用的工程闭环。</p>
+
+          <div class="checklist">
+            <article class="check-item">
+              <div class="check-mark">✓</div>
+              <div>
+                <h3>能否一键跑通环境？</h3>
+                <p>新同事或 Agent 能不能快速进入同一个可复现上下文。</p>
+              </div>
+            </article>
+            <article class="check-item">
+              <div class="check-mark">✓</div>
+              <div>
+                <h3>能否提前写出验收标准？</h3>
+                <p>在改代码前，就明确当前 case、目标 case 和边界 case。</p>
+              </div>
+            </article>
+            <article class="check-item">
+              <div class="check-mark">✓</div>
+              <div>
+                <h3>能否解释为什么不用 AI？</h3>
+                <p>不是保守，而是能识别责任、权限、数据和稳定性边界。</p>
+              </div>
+            </article>
+            <article class="check-item">
+              <div class="check-mark">✓</div>
+              <div>
+                <h3>能否让 Agent 多轮逼近目标？</h3>
+                <p>会拆任务、打包上下文、读测试结果，并控制修改范围。</p>
+              </div>
+            </article>
+            <article class="check-item">
+              <div class="check-mark">✓</div>
+              <div>
+                <h3>能否沉淀失败样例？</h3>
+                <p>每次踩坑都应变成测试、Eval、文档或工作说明。</p>
+              </div>
+            </article>
+            <article class="check-item">
+              <div class="check-mark">✓</div>
+              <div>
+                <h3>能否把生成结果重构成工程资产？</h3>
+                <p>最终交付的是可维护系统，而不是一次性的 AI 产物。</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <div class="quote-band">
+          <p>AI 工程师的真正价值，是把随机生成变成可控搜索，把单次成功变成稳定交付，把工具红利变成组织能力。</p>
+          <span>最终竞争力不在于“问得多漂亮”，而在于“收敛得多可靠”。</span>
+        </div>
+      </main>
+
+      <footer>
+        <p>本文基于“AI 工程师能力模型、Harness 优先、Agent Loop、AI 能力边界和企业落地阶段”的讨论整理，可作为团队内部培训、技术博客或岗位能力模型草案。</p>
+      </footer>
+    </article>
+  </div>
+</body>
+</html>
