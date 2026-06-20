@@ -11,6 +11,7 @@
 - `sub-agent/` — Sub-agent 配置定义（纯 Markdown）
 - `templates/` — 文档和 Skill 模板
 - `scripts/` — 工具脚本
+- `.github/workflows/deploy-docs.yml` — GitHub Actions：`main` 分支上 docs 相关变更自动发布到 Vercel
 - `docs/.vitepress/` — VitePress 配置、主题和本地构建输出
 - `.opencode/skills/` — 本仓库本地 OpenCode 辅助技能（不通过 manifest 打包）
 - `package.json` — plugins/docs 网站脚本和 docs 网站依赖
@@ -43,3 +44,5 @@ vale --config="docs/.vale.ini" --output=JSON "docs/**/*.md" # 校验 docs Markdo
 ```
 
 不指定平台时，install/uninstall/update 默认操作两个平台。
+
+GitHub Actions 会在 `main` 分支推送且 `docs/**`、Vercel 配置或 docs 依赖发生变化时自动发布生产环境。仓库需要配置 `VERCEL_TOKEN`、`VERCEL_ORG_ID`、`VERCEL_PROJECT_ID` 三个 GitHub Secrets。

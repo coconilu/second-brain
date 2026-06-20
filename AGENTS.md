@@ -1,6 +1,6 @@
 # Second Brain — Agent Guide
 
-This is a **content repository** for authoring and packaging AI agent skills/skills and sub-agents, plus a VitePress docs site for browsing the knowledge base locally or on Vercel. There is no application runtime, test suite, or CI. Plugin packaging is handled by a bash script that transforms Markdown files into platform-specific output. Markdown docs can be checked with Vale using the local config under `docs/`; standalone HTML teaching pages may also live under `docs/`.
+This is a **content repository** for authoring and packaging AI agent skills/skills and sub-agents, plus a VitePress docs site for browsing the knowledge base locally or on Vercel. There is no application runtime or test suite; the only CI/CD is the docs deployment workflow at `.github/workflows/deploy-docs.yml`. Plugin packaging is handled by a bash script that transforms Markdown files into platform-specific output. Markdown docs can be checked with Vale using the local config under `docs/`; standalone HTML teaching pages may also live under `docs/`.
 
 ## Directory layout
 
@@ -15,6 +15,7 @@ dist/                    — generated output (git-ignored: .gitignore)
 manifest.yaml            — registry: declares which skills/agents/commands target which platforms
 docs/                    — general knowledge docs (Markdown and standalone HTML)
 docs/.vitepress/         — VitePress config/theme and generated site output
+.github/workflows/deploy-docs.yml — deploy docs to Vercel on relevant `main` branch pushes
 .opencode/skills/        — local OpenCode helper skills for this repo; not packaged via manifest.yaml
 package.json             — plugin/docs-site scripts and docs-site dependencies
 vercel.json              — Vercel deployment config for the docs site
@@ -88,7 +89,7 @@ Without a platform argument, install/uninstall/update defaults to both platforms
 1. Add or edit Markdown/HTML content under `docs/`. The VitePress sidebar is auto-generated from `docs/index.md` `##` sections — add a link for the new page under the relevant heading; no need to manually edit `config.ts`.
 2. Run `pnpm docs:update-index` to refresh `docs/timeline.md` and the auto-generated standalone HTML pages section in `docs/index.md`.
 3. Run `pnpm docs:dev` for local preview, or `pnpm docs:build` to validate the VitePress build.
-4. Run `pnpm deploy:preview` to build and deploy a Vercel preview, `pnpm deploy` to deploy without a local build, or `pnpm deploy:prod` to build and deploy to production.
+4. Pushes to `main` that touch `docs/**`, Vercel config, or docs dependencies deploy production through `.github/workflows/deploy-docs.yml`. The workflow requires `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` GitHub Secrets. For manual deployment, run `pnpm deploy:preview`, `pnpm deploy`, or `pnpm deploy:prod`.
 5. Do not commit generated `docs/.vitepress/dist/` or cache output.
 
 ## Skill file format
@@ -124,7 +125,7 @@ version: 1.0.0
 
 - **No auto-discovery** — every skill/agent must be explicitly listed in `manifest.yaml`.
 - **Regex-based YAML parsing** — the bash script parses `manifest.yaml` with regex only. Nested structures, string quoting beyond basic `"` / `'` stripping, or unusual YAML formatting may break parsing.
-- **No tests or CI** — validate skill/agent/command packaging manually by running build and inspecting `dist/` output. Docs Markdown has a local Vale check, and the docs site can be validated with `pnpm docs:build`.
+- **No automated tests** — validate skill/agent/command packaging manually by running build and inspecting `dist/` output. Docs Markdown has a local Vale check, and the docs site can be validated with `pnpm docs:build`.
 
 ## Post-generation documentation review
 
