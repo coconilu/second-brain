@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoResearch 启示录：把长任务 Agent 写成可运行协议</title>
+<meta name="description" content="从 AutoResearch 框架出发，拆解长任务 Agent 的状态落盘、反停滞、验证闭环与 Skill 协议化设计。">
+<style>
+  :root{
+    --bg:#101214;
+    --panel:#181c1f;
+    --panel-2:#20262a;
+    --ink:#f1f4f1;
+    --muted:#aeb9b1;
+    --faint:#758177;
+    --line:#344039;
+    --accent:#77c59b;
+    --accent-2:#f2c66d;
+    --danger:#ef7e6d;
+    --blue:#7bb8d9;
+    --paper:#f6f2e9;
+    --paper-ink:#1b1d1b;
+    --mono:"SFMono-Regular","Cascadia Mono","JetBrains Mono",Consolas,monospace;
+    --sans:Inter,"Noto Sans SC","Microsoft YaHei",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:
+      linear-gradient(180deg,rgba(16,18,20,.94),rgba(16,18,20,1) 460px),
+      repeating-linear-gradient(90deg,rgba(119,197,155,.04) 0 1px,transparent 1px 68px),
+      repeating-linear-gradient(0deg,rgba(242,198,109,.035) 0 1px,transparent 1px 68px),
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.78;
+    font-size:17px;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(119,197,155,.45)}
+  a:hover{border-color:var(--accent-2);color:var(--accent-2)}
+  code{
+    font-family:var(--mono);
+    font-size:.9em;
+    color:#e4f6ea;
+    background:rgba(119,197,155,.1);
+    border:1px solid rgba(119,197,155,.18);
+    border-radius:4px;
+    padding:.08rem .32rem;
+  }
+  strong{color:#fff;font-weight:750}
+  .progress{
+    position:fixed;
+    top:0;
+    left:0;
+    height:3px;
+    width:0;
+    z-index:100;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--blue));
+  }
+  .page{
+    width:min(1180px,calc(100vw - 36px));
+    margin:0 auto;
+  }
+  .hero{
+    min-height:92vh;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 360px;
+    gap:56px;
+    align-items:center;
+    padding:72px 0 42px;
+    position:relative;
+  }
+  .hero::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0;
+    width:100%;
+    height:1px;
+    background:linear-gradient(90deg,transparent,var(--line),transparent);
+  }
+  .eyebrow{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:22px;
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.2em;
+    color:var(--accent-2);
+    text-transform:uppercase;
+  }
+  .eyebrow::before{
+    content:"";
+    width:42px;
+    height:1px;
+    background:var(--accent);
+  }
+  h1{
+    margin:0;
+    max-width:13ch;
+    font-family:var(--serif);
+    font-size:clamp(46px,7vw,88px);
+    line-height:1.04;
+    letter-spacing:0;
+    font-weight:900;
+  }
+  .subtitle{
+    max-width:720px;
+    margin:28px 0 0;
+    color:var(--muted);
+    font-size:clamp(19px,2vw,25px);
+    line-height:1.58;
+  }
+  .meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-top:34px;
+  }
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    min-height:32px;
+    padding:5px 11px;
+    border:1px solid rgba(119,197,155,.26);
+    border-radius:999px;
+    color:#cfdbd2;
+    background:rgba(24,28,31,.78);
+    font-family:var(--mono);
+    font-size:12px;
+  }
+  .hero-card{
+    border:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(32,38,42,.84),rgba(24,28,31,.92));
+    border-radius:8px;
+    padding:22px;
+    box-shadow:0 24px 80px rgba(0,0,0,.34);
+  }
+  .mini-title{
+    margin:0 0 16px;
+    font-family:var(--mono);
+    color:var(--accent-2);
+    font-size:12px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+  }
+  .stack{
+    display:grid;
+    gap:10px;
+  }
+  .stack-item{
+    position:relative;
+    border:1px solid rgba(119,197,155,.18);
+    background:rgba(16,18,20,.42);
+    border-radius:6px;
+    padding:13px 14px 13px 42px;
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.55;
+  }
+  .stack-item b{display:block;color:var(--ink);font-size:15px;margin-bottom:2px}
+  .stack-item::before{
+    content:attr(data-step);
+    position:absolute;
+    left:12px;
+    top:14px;
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:rgba(119,197,155,.15);
+    color:var(--accent);
+    font-family:var(--mono);
+    font-size:11px;
+  }
+  .toc{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    padding:22px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .toc a{
+    border:1px solid rgba(174,185,177,.2);
+    border-radius:999px;
+    padding:6px 12px;
+    color:var(--muted);
+    background:rgba(24,28,31,.54);
+    font-size:14px;
+  }
+  .toc a:hover{color:var(--ink);border-color:var(--accent)}
+  main{
+    display:grid;
+    grid-template-columns:minmax(0,760px) minmax(240px,1fr);
+    gap:64px;
+    align-items:start;
+    padding:56px 0 88px;
+  }
+  article{
+    min-width:0;
+  }
+  aside{
+    position:sticky;
+    top:28px;
+    border-left:1px solid var(--line);
+    padding-left:22px;
+  }
+  aside .note{
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.7;
+  }
+  aside ol{
+    margin:18px 0 0;
+    padding-left:18px;
+    color:var(--faint);
+    font-size:13px;
+    font-family:var(--mono);
+  }
+  aside li{margin:9px 0}
+  aside a{color:#c6d0c8;border-color:rgba(198,208,200,.25)}
+  section{margin:0 0 72px}
+  .section-kicker{
+    display:block;
+    color:var(--accent-2);
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    margin-bottom:12px;
+  }
+  h2{
+    margin:0 0 24px;
+    font-family:var(--serif);
+    font-size:clamp(29px,4vw,44px);
+    line-height:1.18;
+    letter-spacing:0;
+  }
+  h3{
+    margin:34px 0 14px;
+    color:#eaf5ee;
+    font-size:21px;
+    line-height:1.35;
+  }
+  p{margin:0 0 18px;color:var(--muted)}
+  .lead{
+    color:#d8e1da;
+    font-family:var(--serif);
+    font-size:24px;
+    line-height:1.65;
+    margin-bottom:28px;
+  }
+  .lead::first-letter{
+    float:left;
+    font-family:var(--serif);
+    font-size:76px;
+    line-height:.78;
+    padding:9px 12px 0 0;
+    color:var(--accent);
+    font-weight:900;
+  }
+  .callout{
+    border:1px solid rgba(242,198,109,.28);
+    background:linear-gradient(180deg,rgba(242,198,109,.09),rgba(242,198,109,.035));
+    border-radius:8px;
+    padding:20px 22px;
+    margin:28px 0;
+  }
+  .callout p:last-child{margin-bottom:0}
+  .callout-label{
+    font-family:var(--mono);
+    color:var(--accent-2);
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .grid-3{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:14px;
+    margin:30px 0;
+  }
+  .card{
+    border:1px solid var(--line);
+    background:rgba(24,28,31,.75);
+    border-radius:8px;
+    padding:18px;
+  }
+  .card .tag{
+    display:inline-flex;
+    margin-bottom:12px;
+    color:var(--accent);
+    font-family:var(--mono);
+    font-size:12px;
+  }
+  .card h3{
+    margin:0 0 10px;
+    font-size:19px;
+  }
+  .card p{
+    font-size:15px;
+    line-height:1.68;
+    margin:0;
+  }
+  .diagram{
+    border:1px solid var(--line);
+    background:#15191b;
+    border-radius:8px;
+    padding:18px;
+    margin:30px 0;
+    overflow:auto;
+  }
+  .diagram svg{
+    display:block;
+    min-width:680px;
+    width:100%;
+    height:auto;
+  }
+  .diagram text{
+    font-family:var(--sans);
+    fill:#e7efe9;
+    font-size:15px;
+  }
+  .diagram .small{
+    fill:#aeb9b1;
+    font-size:12px;
+  }
+  .diagram .box{
+    fill:#20262a;
+    stroke:#415049;
+    rx:8;
+  }
+  .diagram .box2{
+    fill:#192023;
+    stroke:#77c59b;
+    stroke-opacity:.55;
+    rx:8;
+  }
+  .diagram .line{
+    stroke:#77c59b;
+    stroke-width:2;
+    fill:none;
+    marker-end:url(#arrow);
+  }
+  pre{
+    margin:28px 0;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#0c0f10;
+    color:#dce8df;
+    overflow:auto;
+    padding:20px;
+    font-family:var(--mono);
+    font-size:14px;
+    line-height:1.72;
+  }
+  pre code{
+    display:block;
+    padding:0;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    color:inherit;
+    font-size:inherit;
+  }
+  .table-wrap{
+    overflow:auto;
+    margin:28px 0;
+    border:1px solid var(--line);
+    border-radius:8px;
+  }
+  table{
+    width:100%;
+    min-width:720px;
+    border-collapse:collapse;
+    background:rgba(24,28,31,.72);
+  }
+  th,td{
+    padding:15px 16px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+    text-align:left;
+  }
+  th{
+    color:var(--accent-2);
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    background:rgba(16,18,20,.46);
+  }
+  td{color:var(--muted);font-size:15px;line-height:1.65}
+  tr:last-child td{border-bottom:0}
+  .principles{
+    counter-reset:item;
+    display:grid;
+    gap:14px;
+    margin:30px 0;
+  }
+  .principle{
+    counter-increment:item;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:rgba(24,28,31,.7);
+    padding:18px 18px 18px 58px;
+    position:relative;
+  }
+  .principle::before{
+    content:counter(item, decimal-leading-zero);
+    position:absolute;
+    left:18px;
+    top:19px;
+    color:var(--accent);
+    font-family:var(--mono);
+    font-size:13px;
+  }
+  .principle b{display:block;margin-bottom:6px}
+  .principle p{margin:0;font-size:15.5px;line-height:1.68}
+  blockquote{
+    margin:34px 0;
+    border-left:3px solid var(--accent);
+    padding:12px 0 12px 22px;
+    color:#dbe7df;
+    font-family:var(--serif);
+    font-size:22px;
+    line-height:1.58;
+  }
+  blockquote p{color:#dbe7df;margin:0}
+  .paper{
+    background:var(--paper);
+    color:var(--paper-ink);
+    border-radius:8px;
+    padding:26px;
+    margin:34px 0;
+  }
+  .paper h3{
+    color:var(--paper-ink);
+    margin-top:0;
+  }
+  .paper p,.paper li{color:#4c514c}
+  .paper code{
+    color:#143123;
+    background:rgba(119,197,155,.18);
+    border-color:rgba(20,49,35,.14);
+  }
+  .paper ul{
+    margin:12px 0 0;
+    padding-left:22px;
+  }
+  .paper li{margin:10px 0}
+  .sources{
+    border-top:1px solid var(--line);
+    padding-top:28px;
+  }
+  .sources ol{
+    margin:14px 0 0;
+    padding-left:22px;
+  }
+  .sources li{
+    color:var(--muted);
+    margin:11px 0;
+  }
+  footer{
+    border-top:1px solid var(--line);
+    padding:30px 0 46px;
+    color:var(--faint);
+    font-family:var(--mono);
+    font-size:12px;
+  }
+  .reveal{
+    opacity:0;
+    transform:translateY(16px);
+    transition:opacity .55s ease,transform .55s ease;
+  }
+  .reveal.in{opacity:1;transform:none}
+  @media (max-width:980px){
+    .hero{grid-template-columns:1fr;min-height:auto;padding-top:64px}
+    .hero-card{max-width:640px}
+    main{grid-template-columns:1fr;gap:20px}
+    aside{position:static;border-left:0;border-top:1px solid var(--line);padding:22px 0 0;order:-1}
+    .grid-3{grid-template-columns:1fr}
+  }
+  @media (max-width:620px){
+    body{font-size:16px}
+    .page{width:min(100vw - 24px,1180px)}
+    .hero{padding-top:44px}
+    h1{font-size:42px}
+    .subtitle{font-size:18px}
+    .lead{font-size:21px}
+    .toc{overflow:auto;flex-wrap:nowrap;padding-bottom:16px}
+    .toc a{white-space:nowrap}
+    section{margin-bottom:56px}
+    .paper,.callout,.card{padding:18px}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header class="page hero">
+  <div>
+    <div class="eyebrow">AutoResearch / Agent Engineering</div>
+    <h1>把长任务 Agent 写成可运行协议</h1>
+    <p class="subtitle">
+      读 AutoResearch 最有启发的地方，不是“AI 能不能自己做研究”这个标题，而是它把长任务 Agent 的工程纪律讲透了：状态落盘、反停滞、守护进程、外部验证，以及把 Skill 从提示词升级成协议。
+    </p>
+    <div class="meta">
+      <span class="pill">技术博客</span>
+      <span class="pill">长任务 Agent</span>
+      <span class="pill">Skill 协议化</span>
+      <span class="pill">2026-06</span>
+    </div>
+  </div>
+
+  <aside class="hero-card" aria-label="文章结构速览">
+    <p class="mini-title">核心结构</p>
+    <div class="stack">
+      <div class="stack-item" data-step="1"><b>任务规格</b>把目标、边界、验证方式写成稳定文件。</div>
+      <div class="stack-item" data-step="2"><b>状态日志</b>让进度、发现、失败方向都可恢复。</div>
+      <div class="stack-item" data-step="3"><b>反停滞机制</b>识别循环、无进展和等待人类输入。</div>
+      <div class="stack-item" data-step="4"><b>证据闭环</b>让分数能被引用核查和复现实验拉低。</div>
+    </div>
+  </aside>
+</header>
+
+<nav class="page toc" aria-label="目录">
+  <a href="#why">问题意识</a>
+  <a href="#failures">三类失败</a>
+  <a href="#protocol">Skill 协议化</a>
+  <a href="#state">状态落盘</a>
+  <a href="#verification">验证闭环</a>
+  <a href="#multi-agent">多 Agent 边界</a>
+  <a href="#playbook">落地模板</a>
+  <a href="#risks">限制与警惕</a>
+</nav>
+
+<main class="page">
+  <article>
+    <section id="why" class="reveal">
+      <span class="section-kicker">01 / The Real Thesis</span>
+      <h2>这篇文章真正说的，是 Agent 如何跨过“单轮聪明”</h2>
+      <p class="lead">
+        大多数关于自主研究 Agent 的讨论，容易落到一个很诱人的叙事：模型越来越强，所以研究可以自动化。但 AutoResearch 给人的启发恰好相反：模型能力只是地基，真正决定长任务能否跑完的，是模型之外的协议。
+      </p>
+      <p>
+        所谓协议，不只是“你是一个严谨的研究员”这种角色提示词，而是完整的运行制度：任务怎么定义，状态存在哪里，下一步依据什么决策，卡住多久算停滞，谁来检查引用，哪些分数可以被推翻，运行中断后如何恢复。
+      </p>
+      <p>
+        这也是它对工程团队最有价值的地方。我们不必急着相信“AI 可以全自动做研究”，但可以非常务实地学习它的结构：当一个 Agent 要连续工作几十小时、跨多个方向探索、不断产生中间结论时，必须把工作从对话上下文里搬出来，变成文件系统里可审计、可恢复、可验证的工作流。
+      </p>
+
+      <blockquote>
+        <p>长任务 Agent 的核心不是更长的上下文，而是更可靠的外部记忆和更诚实的验证门。</p>
+      </blockquote>
+    </section>
+
+    <section id="failures" class="reveal">
+      <span class="section-kicker">02 / Failure Modes</span>
+      <h2>长任务 Agent 最常死在三种地方</h2>
+      <p>
+        AutoResearch 框架页把长任务失败归纳为几类问题：认知循环、停滞、运行脆弱。换成工程语言，它们分别对应“策略层没有退出条件”“执行层没有下一步驱动”“运行层没有持久化状态”。
+      </p>
+
+      <div class="grid-3">
+        <div class="card">
+          <span class="tag">Loop</span>
+          <h3>认知循环</h3>
+          <p>Agent 不断重述同一个方向，换几种说法继续做相同搜索。看起来一直在工作，实际上没有扩大证据集，也没有改变假设。</p>
+        </div>
+        <div class="card">
+          <span class="tag">Stall</span>
+          <h3>停滞等待</h3>
+          <p>Agent 做完一小段之后进入“等人类确认”的姿态，或者因为一个工具失败就停在原地。长任务因此被切碎成无数人工救援。</p>
+        </div>
+        <div class="card">
+          <span class="tag">Fragility</span>
+          <h3>运行脆弱</h3>
+          <p>上下文一断、窗口一关、进程一重启，任务就失忆。前面哪些路试过、哪些结论被证伪，全靠聊天记录续命。</p>
+        </div>
+      </div>
+
+      <p>
+        这三个问题不是研究任务独有的。写代码、整理知识库、做竞品分析、批量审查文档、跟进 issue，都会遇到。只要任务无法在一次回复里完成，Agent 就会从“回答问题”进入“管理过程”。而过程管理不能靠模型自觉，必须靠外部结构约束。
+      </p>
+    </section>
+
+    <section id="protocol" class="reveal">
+      <span class="section-kicker">03 / Skill As Protocol</span>
+      <h2>Skill 不应该只是提示词，而应该是状态机</h2>
+      <p>
+        AutoResearch 最值得借鉴的设计，是把 <code>SKILL.md</code> 看成一种运行协议。它不是把一堆最佳实践塞进提示词，而是规定 Agent 在不同状态下该读什么文件、写什么文件、触发什么检查、什么时候进入恢复路径。
+      </p>
+
+      <div class="diagram" aria-label="Skill 协议状态图">
+        <svg viewBox="0 0 920 360" role="img">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#77c59b"></path>
+            </marker>
+          </defs>
+          <rect class="box2" x="32" y="70" width="160" height="88"></rect>
+          <text x="56" y="105">任务规格</text>
+          <text class="small" x="56" y="132">task_spec.md</text>
+          <path class="line" d="M192 114 H270"></path>
+
+          <rect class="box" x="270" y="70" width="170" height="88"></rect>
+          <text x="300" y="105">执行循环</text>
+          <text class="small" x="300" y="132">plan → act → record</text>
+          <path class="line" d="M440 114 H520"></path>
+
+          <rect class="box" x="520" y="70" width="170" height="88"></rect>
+          <text x="550" y="105">证据记录</text>
+          <text class="small" x="550" y="132">findings.jsonl</text>
+          <path class="line" d="M690 114 H768"></path>
+
+          <rect class="box2" x="768" y="70" width="122" height="88"></rect>
+          <text x="795" y="105">验证门</text>
+          <text class="small" x="790" y="132">review / audit</text>
+
+          <rect class="box" x="270" y="225" width="170" height="82"></rect>
+          <text x="302" y="258">进度状态</text>
+          <text class="small" x="300" y="284">progress.json</text>
+
+          <rect class="box" x="520" y="225" width="170" height="82"></rect>
+          <text x="550" y="258">尝试方向</text>
+          <text class="small" x="550" y="284">directions_tried.json</text>
+
+          <path class="line" d="M355 158 V225"></path>
+          <path class="line" d="M605 158 V225"></path>
+          <path class="line" d="M605 225 C600 188 520 188 440 225"></path>
+          <path class="line" d="M829 158 C829 332 356 340 356 307"></path>
+          <text class="small" x="614" y="334">失败、降分、换方向都会回写状态</text>
+        </svg>
+      </div>
+
+      <p>
+        这就是“Skill 协议化”的本质：把隐含在优秀操作者脑子里的工作习惯，转成 Agent 必须遵守的状态机。一个好 Skill 至少要回答四个问题：
+      </p>
+
+      <div class="principles">
+        <div class="principle">
+          <b>目标是什么，边界在哪里？</b>
+          <p>任务规格必须写清可交付物、非目标、资源约束、允许使用的工具和验收标准。</p>
+        </div>
+        <div class="principle">
+          <b>状态存在哪里，如何恢复？</b>
+          <p>不要让 Agent 依赖对话上下文记忆进度。每轮行动后更新进度文件，重启后先读状态。</p>
+        </div>
+        <div class="principle">
+          <b>什么算真实进展？</b>
+          <p>进展不能只等于“产生更多文字”。需要新增证据、证伪假设、通过测试、减少未知数。</p>
+        </div>
+        <div class="principle">
+          <b>卡住后怎么换方向？</b>
+          <p>协议需要定义停滞阈值、重复方向检测和替代策略，而不是让 Agent 一直“继续深入”。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="state" class="reveal">
+      <span class="section-kicker">04 / Persistent State</span>
+      <h2>状态落盘，是长任务 Agent 的第一性原理</h2>
+      <p>
+        一旦任务跨过单次对话，文件系统就应该成为事实源。聊天窗口适合协调，文件适合承载状态。AutoResearch 的文件思路可以抽象成四类：
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>文件</th>
+              <th>职责</th>
+              <th>为什么重要</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>task_spec.md</code></td>
+              <td>任务定义、约束、评价标准、交付格式。</td>
+              <td>防止目标漂移。重启、换模型、换 Agent 后仍然知道“为什么做这件事”。</td>
+            </tr>
+            <tr>
+              <td><code>progress.json</code></td>
+              <td>当前阶段、已完成动作、下一步候选、最近阻塞。</td>
+              <td>让任务可以恢复，也让外部守护进程判断是否停滞。</td>
+            </tr>
+            <tr>
+              <td><code>findings.jsonl</code></td>
+              <td>每条发现一行，包含证据、来源、置信度、影响。</td>
+              <td>把“灵感”变成可审计记录，便于后续引用核查和汇总。</td>
+            </tr>
+            <tr>
+              <td><code>directions_tried.json</code></td>
+              <td>已经尝试过的研究方向、失败原因、是否可重开。</td>
+              <td>降低重复探索，帮助 Agent 在停滞后真正换路。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        注意这里的关键不是文件名，而是职责分离。任务规格是“意图”，进度是“当前位置”，发现是“证据”，尝试方向是“负知识”。很多 Agent 系统只记录成功发现，不记录失败路径，于是下一个 Agent 会重新踩一遍同样的坑。
+      </p>
+
+      <pre><code>research-run/
+├── task_spec.md              # 任务目标、边界、验收标准
+├── progress.json             # 当前阶段、下一步、阻塞状态
+├── findings.jsonl            # 证据日志：一行一条发现
+├── directions_tried.json     # 已尝试方向和失败原因
+├── artifacts/                # 中间产物、图表、草稿
+└── reviews/
+    ├── citation_audit.md     # 引用核查
+    ├── reproduction.md       # 可复现性检查
+    └── external_review.md    # 独立审阅意见</code></pre>
+    </section>
+
+    <section id="verification" class="reveal">
+      <span class="section-kicker">05 / Verification Loop</span>
+      <h2>真正可靠的自动化，必须允许自己被证据打脸</h2>
+      <p>
+        AutoResearch 复盘里很有意思的一点，是系统不会永远维护漂亮的上升曲线。引用核查、外部审阅或复现实验发现问题后，原本的结论和评分可以被拉低。这一点比“分数越来越高”的宣传更重要。
+      </p>
+      <p>
+        对 Agent 工程来说，验证不是最后写一句“已完成”，而是一个独立权力中心。执行者负责推进，验证者负责找茬，状态文件负责记录验证结果。只有当验证结果能反过来改变计划、降低置信度、甚至推翻结论时，验证才是真的。
+      </p>
+
+      <div class="callout">
+        <div class="callout-label">设计原则</div>
+        <p>
+          不要只记录“Agent 认为自己完成了什么”，还要记录“哪些外部证据支持它完成了”。一个没有证据门的长任务 Agent，只是一个更会写总结的长输出模型。
+        </p>
+      </div>
+
+      <h3>可以迁移到任何 Agent 工作流的三层验证</h3>
+      <div class="principles">
+        <div class="principle">
+          <b>自检：最低成本，但权重最低</b>
+          <p>让同一个 Agent 检查格式、遗漏项、明显矛盾。适合扫低级错误，不适合作为最终可信依据。</p>
+        </div>
+        <div class="principle">
+          <b>独立复核：换上下文，换判断者</b>
+          <p>让另一个 Agent 或另一个会话只看产物和证据，不继承执行过程中的自我辩护。</p>
+        </div>
+        <div class="principle">
+          <b>外部验证：让世界说话</b>
+          <p>代码跑测试，数据跑复现，引用查原文，事实查来源。能被外部系统判定的，就不要交给语言模型裁判。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="multi-agent" class="reveal">
+      <span class="section-kicker">06 / Multi-Agent Boundary</span>
+      <h2>多 Agent 不是答案，任务形状才是答案</h2>
+      <p>
+        读这类文章很容易得出一个过度简化的结论：既然一个 Agent 会卡住，那就派很多 Agent。实际上，多 Agent 只是并行化和视角隔离的工具，不是质量保证本身。
+      </p>
+      <p>
+        如果任务可以拆成相互独立的搜索、实验、文件修改，多 Agent 很有价值；如果任务需要维护一条长推理链、持续整合上下文、反复打磨同一个理论，单 Agent 的深度串行反而可能更稳定。关键不是数量，而是角色之间是否有明确的信息边界和交付契约。
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>任务形状</th>
+              <th>适合结构</th>
+              <th>原因</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>多来源资料搜集、竞品横向对比、批量审查</td>
+              <td>多 Agent 并行探索</td>
+              <td>各方向之间耦合低，可以独立产出证据包，再由主 Agent 汇总。</td>
+            </tr>
+            <tr>
+              <td>理论推导、架构决策、长文主线打磨</td>
+              <td>单 Agent 深度串行 + 独立复核</td>
+              <td>主线一致性比速度更重要，复核者负责挑战而不是共同写作。</td>
+            </tr>
+            <tr>
+              <td>高风险发布、代码大改、数据结论</td>
+              <td>执行 Agent + 验证 Agent + 外部工具</td>
+              <td>语言模型之间互评仍然不够，必须接入测试、构建、引用核查或人工审阅。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="playbook" class="reveal">
+      <span class="section-kicker">07 / Applied Playbook</span>
+      <h2>如果把它迁移到自己的 Skill 仓库，可以这样落地</h2>
+      <p>
+        对一个维护 skill、sub-agent、commands 和文档的知识库来说，最直接的启发是：不要只写“怎么做”，还要写“做的过程中如何保留状态、如何验证、如何恢复”。下面是一个可迁移的最小模板。
+      </p>
+
+      <div class="paper">
+        <h3>一个长任务 Skill 的最小协议</h3>
+        <ul>
+          <li><strong>Purpose</strong>：一句话说明这个 Skill 解决哪类长期任务，明确不解决什么。</li>
+          <li><strong>Workspace Contract</strong>：规定运行目录、状态文件、产物目录、日志格式。</li>
+          <li><strong>Progress Rules</strong>：每完成一步必须更新哪些字段，哪些字段由验证者更新。</li>
+          <li><strong>Stall Rules</strong>：连续几轮没有新增证据算停滞，停滞后必须换方向还是请求人类输入。</li>
+          <li><strong>Verification Gates</strong>：最终交付前必须通过哪些检查，哪些检查可以自动化，哪些需要人工确认。</li>
+          <li><strong>Recovery</strong>：如果上下文中断，下一个 Agent 先读哪些文件，如何判断从哪里继续。</li>
+        </ul>
+      </div>
+
+      <p>
+        这类协议化 Skill 的价值，不是让 Agent 更听话，而是让团队有能力审计 Agent 的过程。一个人类 reviewer 不需要翻完整聊天记录，只要看 <code>task_spec.md</code>、<code>progress.json</code>、<code>findings.jsonl</code> 和 <code>reviews/</code>，就能知道任务有没有真实推进。
+      </p>
+
+      <h3>反停滞循环可以写得非常机械</h3>
+      <pre><code>while task.status != "complete":
+    state = read("progress.json")
+    evidence_before = count_new_evidence()
+
+    next_action = choose_action(
+        task_spec="task_spec.md",
+        tried="directions_tried.json",
+        findings="findings.jsonl"
+    )
+
+    run(next_action)
+    write_progress()
+    write_findings()
+
+    evidence_after = count_new_evidence()
+    if evidence_after == evidence_before:
+        state.stall_count += 1
+    else:
+        state.stall_count = 0
+
+    if state.stall_count >= 3:
+        mark_current_direction_as_stale()
+        choose_different_direction_or_escalate()</code></pre>
+
+      <p>
+        这里的“机械”是优点。长任务里最危险的不是 Agent 不会想，而是它太会解释自己为什么还在同一条路上继续想。协议要做的事，就是在某些地方剥夺它继续自我合理化的自由。
+      </p>
+    </section>
+
+    <section id="risks" class="reveal">
+      <span class="section-kicker">08 / Limits</span>
+      <h2>值得学，但不能神化</h2>
+      <p>
+        AutoResearch 这类框架最容易被误读成“全自动科学家”。更稳妥的理解是：它展示了一套长任务 Agent harness 的形状，但不自动保证结论等同于外部同行评审。
+      </p>
+
+      <div class="principles">
+        <div class="principle">
+          <b>模拟评审不等于真实同行评审</b>
+          <p>模型可以扮演 reviewer，但它仍然共享语言模型的盲区。关键结论仍需外部专家、实验或真实用户验证。</p>
+        </div>
+        <div class="principle">
+          <b>引用核查只能降低风险，不能消灭幻觉</b>
+          <p>如果资料源本身不可靠，或者 Agent 没有访问到一手材料，核查流程也可能只是更精致地复述错误。</p>
+        </div>
+        <div class="principle">
+          <b>长时间运行会放大成本和偏差</b>
+          <p>72 小时级别的运行不是“免费思考”。token 成本、工具失败、方向偏移和验证负担都会成倍放大。</p>
+        </div>
+      </div>
+
+      <p>
+        所以，最健康的态度是：把它当成工程模式库，而不是能力承诺。我们可以吸收它的状态管理、反停滞机制和验证闭环，同时继续对产出的事实性保持怀疑。
+      </p>
+    </section>
+
+    <section class="reveal">
+      <span class="section-kicker">09 / Closing</span>
+      <h2>最后的启发：Agent 的下一层竞争，是过程质量</h2>
+      <p>
+        当模型能力越来越接近，真正区分 Agent 系统的，会是模型外面的工程环境：任务能否被清楚表达，状态能否恢复，验证能否独立，失败能否留下负知识，团队能否复用一套可靠协议。
+      </p>
+      <p>
+        这也是 AutoResearch 对所有 Agent 工程最朴素的提醒：不要把复杂工作塞进一个更长的 prompt。把它拆成协议、状态、证据和验证门。这样 Agent 才不是在聊天窗口里表演努力，而是在一个可审计的系统里推进工作。
+      </p>
+    </section>
+
+    <section class="sources reveal">
+      <span class="section-kicker">Sources</span>
+      <h2>参考资料</h2>
+      <ol>
+        <li><a href="https://aihot.virxact.com/items/cmqkf6cny05q6slhidvc7xzf4" target="_blank" rel="noopener">AIHot 条目：AutoResearch 相关分享</a></li>
+        <li><a href="https://victorchen96.github.io/auto_research/framework.html" target="_blank" rel="noopener">AutoResearch Framework</a></li>
+        <li><a href="https://victorchen96.github.io/blog_self_play_story.html" target="_blank" rel="noopener">Self-play research story and run notes</a></li>
+      </ol>
+    </section>
+  </article>
+
+  <aside aria-label="阅读提示">
+    <p class="mini-title">阅读提示</p>
+    <p class="note">
+      这篇不是原文翻译，而是面向 Agent 工程的二次解读。核心问题是：如何把长任务从“模型自己坚持一下”改造成可恢复、可验证、可审计的工作流。
+    </p>
+    <ol>
+      <li><a href="#protocol">先看 Skill 协议化</a></li>
+      <li><a href="#state">再看状态文件职责</a></li>
+      <li><a href="#playbook">最后拿落地模板改自己的 Skill</a></li>
+    </ol>
+  </aside>
+</main>
+
+<footer class="page">
+  <div>AutoResearch Agent Protocol · standalone HTML technical blog · authored for second-brain docs</div>
+</footer>
+
+<script>
+  const progress = document.getElementById("progress");
+  function updateProgress(){
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const ratio = max > 0 ? window.scrollY / max : 0;
+    progress.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
+  }
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  updateProgress();
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("in");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: "0px 0px -8% 0px" });
+
+  document.querySelectorAll(".reveal").forEach((node, index) => {
+    node.style.transitionDelay = `${Math.min(index, 4) * 45}ms`;
+    observer.observe(node);
+  });
+</script>
+</body>
+</html>

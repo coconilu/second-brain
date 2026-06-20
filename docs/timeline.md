@@ -4,6 +4,7 @@
 
 ## 2026-06
 
+- [AutoResearch 启示录：把长任务 Agent 写成可运行协议](autoresearch-agent-protocol/) `HTML`{target="_self"}
 - [Claude Code 的 `.claude/workflows`：把复杂 AI 任务写成可复用流程](claude-code-workflows/index.md)
 - [GitHub AI 编程开源项目聚合（2026-06-03 至 2026-06-09）](github-ai-trending/2026-06-03_to_2026-06-09.md)
 - [从 Cursor 到 Qoder：AI 编程界面的四次范式迁移](ide-evolution/) `HTML`{target="_self"}
