@@ -12,6 +12,7 @@
 - [tmux：从一个例子开始](tmux/index.md) — 用会话、窗口、面板搭建稳定的终端工作台。
 - [Claude Code Hooks：从一个例子开始](claude-code-hooks/claude-code-hooks-use.md) — 从自动 lint 入门 hooks。
 - [Claude Code Hooks 完整指南](claude-code-hooks/claude-code-hooks-guide.md) — 系统梳理事件、matcher、退出码和调试方法。
+- [Claude Code 的 `.claude/workflows`：把复杂 AI 任务写成可复用流程](claude-code-workflows/index.md) — 理解项目级 workflows 目录、动态工作流机制和开源实践案例。
 - [OpenCode 插件：从一个通知开始](opencode-plugins-tutorial/index.md) — 用最小插件理解 OpenCode 扩展机制。
 - [Claude Code Plugin：从打包到分发](claude-plugin/claude-plugin.md) — 把 hooks、agents、skills 打包成可复用插件。
 - [Claude Code 会话机制](claude-session/claude-code-session-mechanism.md) — 理解 session、上下文与工作流边界。
@@ -25,6 +26,7 @@
 - [OpenHands 完全教程 · AI 软件开发智能体](openhands-tutorial/) `HTML`{target="_self"} — 从安装、配置、运行和实践场景系统讲解 OpenHands 的使用方式。
 - [Agent 知识库全景图 · 2026](agent-memory-landscape/) `HTML`{target="_self"} — 从记忆类型、知识库形态和工程落地维度梳理 Agent 长期记忆生态。
 - [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"} — 讨论单 Agent 如何动态规划、委派、回收上下文，并协同一组专门化子 Agent 完成复杂任务。
+- [Claude Code 的 `.claude/workflows`：把复杂 AI 任务写成可复用流程](claude-code-workflows/index.md) — 从 Claude Code 项目目录视角理解 workflow 如何编排多个 agent。
 - [Agent 设计模式互动教学稿](agent-design-patterns/) `HTML`{target="_self"} — 用交互式单页讲解感知、记忆、推理、行动、反思、协作六类 Agent 模式。
 - [从 sub-agent 到 agent-team：三个台阶，三套心智模型](claude-sub-agent/sub-agent-and-agent-team.md) — 偏概念和心智模型。
 - [Sub-agent 和 Agent-team：从一个例子开始](claude-sub-agent/sub-agent-and-agent-team-guide.md) — 偏操作和落地模板。
