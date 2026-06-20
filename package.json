@@ -2,6 +2,7 @@
   "name": "second-brain",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@9.15.9",
   "scripts": {
     "plugins:build": "./scripts/sync-plugins.sh build",
     "plugins:install": "./scripts/sync-plugins.sh install",

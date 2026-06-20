@@ -1,0 +1,72 @@
+name: Deploy docs to Vercel
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "vercel.json"
+      - ".github/workflows/deploy-docs.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: docs-vercel-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  VERCEL_ALIAS_DOMAIN: bayes-second-brain.vercel.app
+
+jobs:
+  deploy:
+    name: Build and deploy docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Pull Vercel project settings
+        run: pnpm vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build with Vercel
+        run: pnpm vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy prebuilt output
+        id: deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          deploy_output="$(pnpm vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")"
+          echo "$deploy_output"
+
+          deployment_url="$(echo "$deploy_output" | grep -oE 'https://[^[:space:]]+\.vercel\.app' | tail -1)"
+          if [ -z "$deployment_url" ]; then
+            echo "Could not find deployment URL in Vercel output." >&2
+            exit 1
+          fi
+
+          echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
+
+      - name: Update production alias
+        run: pnpm vercel alias set "${{ steps.deploy.outputs.deployment_url }}" "$VERCEL_ALIAS_DOMAIN" --token="$VERCEL_TOKEN"
