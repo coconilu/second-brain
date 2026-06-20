@@ -1,0 +1,983 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Superpowers v6.0.3 架构与流程编排图解</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --paper: #ffffff;
+      --ink: #1d2733;
+      --muted: #596777;
+      --line: #d7dee8;
+      --amber: #d97706;
+      --amber-soft: #fff4df;
+      --blue: #2563eb;
+      --blue-soft: #eef4ff;
+      --green: #168452;
+      --green-soft: #edf8f2;
+      --red: #b4232d;
+      --red-soft: #fff0f2;
+      --slate: #273344;
+      --code: #101827;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font: 16px/1.68 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 0 24px 72px;
+    }
+
+    .hero {
+      min-height: 430px;
+      margin: 0 -24px 34px;
+      padding: 46px 24px 32px;
+      background:
+        linear-gradient(135deg, rgba(255, 249, 236, 0.96), rgba(240, 246, 255, 0.94)),
+        radial-gradient(circle at 10% 15%, rgba(217, 119, 6, 0.14), transparent 32%),
+        radial-gradient(circle at 90% 25%, rgba(37, 99, 235, 0.12), transparent 30%);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.8fr);
+      gap: 28px;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .brand img {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      box-shadow: 0 16px 34px rgba(30, 41, 59, 0.16);
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: clamp(32px, 6vw, 58px);
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 820px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 19px;
+    }
+
+    .hero-visual {
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 24px 60px rgba(30, 41, 59, 0.14);
+      padding: 18px;
+    }
+
+    .hero-visual img {
+      display: block;
+      width: min(190px, 70%);
+      margin: 0 auto 18px;
+    }
+
+    .pulse-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .pulse {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px 12px;
+    }
+
+    .pulse b {
+      display: inline-grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      color: #fff;
+      background: var(--slate);
+      font-size: 13px;
+    }
+
+    section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 26px;
+      margin: 18px 0;
+      box-shadow: 0 14px 36px rgba(30, 41, 59, 0.05);
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 26px;
+      line-height: 1.28;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 25px 0 10px;
+      font-size: 19px;
+      line-height: 1.35;
+    }
+
+    h4 {
+      margin: 0 0 7px;
+      font-size: 15px;
+    }
+
+    p {
+      margin: 0 0 13px;
+    }
+
+    a {
+      color: var(--blue);
+    }
+
+    code {
+      color: var(--code);
+      background: #eef2f7;
+      border: 1px solid #dfe6f0;
+      border-radius: 5px;
+      padding: 1px 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow: auto;
+      background: #101827;
+      color: #e5edf7;
+      border-radius: 12px;
+      padding: 16px;
+      line-height: 1.45;
+    }
+
+    pre code {
+      background: transparent;
+      border: 0;
+      color: inherit;
+      padding: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 22px;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #f1f5f9;
+    }
+
+    ul,
+    ol {
+      margin-top: 8px;
+      padding-left: 24px;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .chip {
+      border: 1px solid #e7bc7b;
+      background: #fff8ed;
+      color: #8a4b04;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .meta-grid,
+    .card-grid,
+    .two-col,
+    .three-col {
+      display: grid;
+      gap: 14px;
+    }
+
+    .meta-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-top: 22px;
+    }
+
+    .two-col {
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    }
+
+    .three-col {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .card,
+    .fact,
+    .gate,
+    .artifact {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 15px;
+      background: #fbfcfe;
+    }
+
+    .fact {
+      background: var(--blue-soft);
+      border-color: #c8d9ff;
+    }
+
+    .gate {
+      background: var(--red-soft);
+      border-color: #f2bbc1;
+    }
+
+    .artifact {
+      background: var(--green-soft);
+      border-color: #badfc9;
+    }
+
+    .callout {
+      margin: 16px 0;
+      padding: 14px 16px;
+      border-left: 5px solid var(--amber);
+      background: var(--amber-soft);
+      border-radius: 10px;
+    }
+
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 8px 18px;
+      margin-top: 14px;
+    }
+
+    .toc a {
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 9px 11px;
+      background: #fbfcfe;
+      text-decoration: none;
+      color: var(--ink);
+    }
+
+    .stack-diagram {
+      display: grid;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .layer {
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      gap: 14px;
+      align-items: stretch;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .layer-title {
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--slate);
+      padding: 14px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .layer-body {
+      padding: 14px 16px;
+    }
+
+    .flow-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .flow-card {
+      position: relative;
+      min-height: 135px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .flow-card .num {
+      display: inline-grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      margin-bottom: 10px;
+      background: var(--amber);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .mermaid {
+      background: #fbfcfe;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      color: var(--ink);
+      margin: 15px 0 22px;
+    }
+
+    figure {
+      margin: 16px 0;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fbfcfe;
+      padding: 18px;
+    }
+
+    figcaption {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .mini-map {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      min-width: 720px;
+    }
+
+    .mini-node {
+      min-height: 92px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 12px;
+    }
+
+    .mini-node strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 820px) {
+      .hero-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual {
+        max-width: 480px;
+      }
+
+      .layer {
+        grid-template-columns: 1fr;
+      }
+
+      .layer-title {
+        min-height: 54px;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="brand">
+        <img src="assets/app-icon.png" alt="Superpowers app icon">
+        <div>
+          <strong>Superpowers</strong>
+          <div class="small">Coding agent skills and runtime bootstrap</div>
+        </div>
+      </div>
+      <h1>Superpowers v6.0.3 架构与流程编排图解</h1>
+      <p class="lead">
+        这份报告基于最新拉取后的本地代码重新生成。Superpowers 是一套给 coding agent 使用的工程方法论插件，
+        通过会话启动注入、技能库、平台工具映射、TDD、子代理执行、review gate 和分支收尾流程，把代理约束成可验证、可复盘、可交付的开发者。
+      </p>
+      <div class="chips">
+        <span class="chip">version 6.0.3</span>
+        <span class="chip">commit 896224c</span>
+        <span class="chip">生成日期 2026-06-20</span>
+        <span class="chip">仓库已 fast-forward pull</span>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <img src="assets/superpowers-small.svg" alt="Superpowers logo">
+      <div class="pulse-stack">
+        <div class="pulse"><b>01</b><span>启动时注入 using-superpowers bootstrap</span></div>
+        <div class="pulse"><b>02</b><span>按任务触发具体 skill，而不是一次塞入全部流程</span></div>
+        <div class="pulse"><b>03</b><span>通过 spec、plan、tests、review、ledger 留下证据链</span></div>
+        <div class="pulse"><b>04</b><span>以人类伙伴审批作为关键状态转换门</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <section>
+    <h2>目录</h2>
+    <div class="toc">
+      <a href="#summary">1. 总览</a>
+      <a href="#latest">2. 本次拉取后的关键变化</a>
+      <a href="#layers">3. 分层架构</a>
+      <a href="#bootstrap">4. 启动注入与平台适配</a>
+      <a href="#skills">5. 技能库设计</a>
+      <a href="#main-flow">6. 主开发流程</a>
+      <a href="#sdd">7. SDD 子代理编排</a>
+      <a href="#visual">8. 可视化 Brainstorm Companion</a>
+      <a href="#gates">9. 质量门禁</a>
+      <a href="#tests">10. 测试与 eval</a>
+      <a href="#contrib">11. 贡献约束</a>
+      <a href="#code-map">12. 读源码路线</a>
+    </div>
+  </section>
+
+  <section id="summary">
+    <h2>1. 总览</h2>
+    <div class="two-col">
+      <div class="fact">
+        <h3>它是什么</h3>
+        <p>
+          Superpowers 是一套跨 harness 的 agentic skills framework。核心不是业务代码，而是
+          <code>skills/*/SKILL.md</code> 里的流程协议，以及把这些协议在会话开始时送进模型上下文的 runtime bootstrap。
+        </p>
+      </div>
+      <div class="fact">
+        <h3>它怎么工作</h3>
+        <p>
+          会话开始时，平台适配层注入 <code>using-superpowers</code>。这个元技能要求代理在任何回应、澄清问题、文件读取或实现动作之前，先判断是否有相关技能必须激活。
+        </p>
+      </div>
+    </div>
+
+    <figure>
+      <div class="mini-map">
+        <div class="mini-node"><strong>用户想法</strong><span>功能、bug、PR、review、技能修改</span></div>
+        <div class="mini-node"><strong>元技能</strong><span>using-superpowers 检查技能触发</span></div>
+        <div class="mini-node"><strong>流程技能</strong><span>brainstorming、TDD、debugging、SDD</span></div>
+        <div class="mini-node"><strong>工程证据</strong><span>spec、plan、tests、commits、reviews</span></div>
+      </div>
+      <figcaption>图 1：Superpowers 的核心不是单个命令，而是一条由技能、产物和门禁组成的工程证据链。</figcaption>
+    </figure>
+
+    <div class="callout">
+      <strong>一句话：</strong>它把 coding agent 的默认行为从“收到需求就写代码”改造成“先判断技能，先澄清需求，先写设计和计划，先写失败测试，再实现，再 review，再用新鲜证据声明完成”。
+    </div>
+  </section>
+
+  <section id="latest">
+    <h2>2. 本次拉取后的关键变化</h2>
+    <p>这次 pull 后仓库从之前阅读到的 <code>5.1.0</code> 进入 <code>6.0.3</code>。架构报告必须按新版理解。</p>
+    <div class="three-col">
+      <div class="card">
+        <h4>新增 harness</h4>
+        <p>README 现在列出 Claude Code、Antigravity、Codex App/CLI、Cursor、Factory Droid、Gemini CLI、Copilot CLI、Kimi Code、OpenCode 和 Pi。</p>
+      </div>
+      <div class="card">
+        <h4>SDD review 重构</h4>
+        <p>每个任务不再派 spec reviewer 和 quality reviewer 两个代理，而是派一个 <code>task-reviewer-prompt.md</code>，一次返回 spec compliance 与 code quality 两个 verdict。</p>
+      </div>
+      <div class="card">
+        <h4>文件交接降低 token</h4>
+        <p>任务 brief、implementer report、review diff package 通过文件传递，避免把长 diff 和长报告永久塞进主会话上下文。</p>
+      </div>
+      <div class="card">
+        <h4>进度 ledger</h4>
+        <p>SDD 进度写入 <code>.superpowers/sdd/progress.md</code>。上下文压缩后，控制器可以根据 ledger 和 git log 恢复，而不是重派已完成任务。</p>
+      </div>
+      <div class="card">
+        <h4>Visual companion 加固</h4>
+        <p>Brainstorm Companion 有会话 key、cookie、WebSocket 鉴权、路径沙箱、重启复用端口、4 小时 idle timeout。</p>
+      </div>
+      <div class="card">
+        <h4>测试职责拆分</h4>
+        <p><code>tests/</code> 保留插件代码测试；真实 LLM 行为测试迁往外部 <code>evals/</code> drill harness。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="layers">
+    <h2>3. 分层架构</h2>
+    <p>Superpowers 的代码很薄，但流程很厚。最清晰的看法是把它分成六层。</p>
+
+    <div class="stack-diagram">
+      <div class="layer">
+        <div class="layer-title">分发层</div>
+        <div class="layer-body"><code>.claude-plugin</code>、<code>.codex-plugin</code>、<code>.cursor-plugin</code>、<code>.kimi-plugin</code>、<code>gemini-extension.json</code>、<code>.opencode</code>、<code>.pi</code>。负责让不同 harness 安装同一套技能。</div>
+      </div>
+      <div class="layer">
+        <div class="layer-title">启动层</div>
+        <div class="layer-body"><code>hooks/session-start</code>、<code>hooks/session-start-codex</code>、OpenCode message transform、Pi context hook、Gemini context file。负责把 <code>using-superpowers</code> 注入首轮上下文。</div>
+      </div>
+      <div class="layer">
+        <div class="layer-title">技能层</div>
+        <div class="layer-body"><code>skills/*/SKILL.md</code>。包含 brainstorming、writing-plans、TDD、systematic-debugging、SDD、review、finish 等流程。</div>
+      </div>
+      <div class="layer">
+        <div class="layer-title">工具映射层</div>
+        <div class="layer-body"><code>skills/using-superpowers/references/*-tools.md</code> 与部分 manifest inline mapping。把“创建 todo、调 skill、派 subagent、读写文件”等动作映射到各平台真实工具。</div>
+      </div>
+      <div class="layer">
+        <div class="layer-title">执行层</div>
+        <div class="layer-body">spec、plan、worktree、task brief、report file、review package、progress ledger、commit。这里形成可审查的工程产物。</div>
+      </div>
+      <div class="layer">
+        <div class="layer-title">验证层</div>
+        <div class="layer-body">TDD red-green、root-cause debugging、task review、whole-branch review、fresh verification、plugin tests、drill evals。</div>
+      </div>
+    </div>
+
+    <pre class="mermaid">
+flowchart TB
+  User["Human partner"] --> Harness["Coding harness"]
+  Harness --> Adapter["Distribution and adapter layer"]
+  Adapter --> Bootstrap["Session-start bootstrap"]
+  Bootstrap --> Meta["using-superpowers meta skill"]
+  Meta --> Router{"Which skill applies?"}
+  Router --> Brain["brainstorming"]
+  Router --> Debug["systematic-debugging"]
+  Router --> Plan["writing-plans"]
+  Router --> TDD["test-driven-development"]
+  Router --> SDD["subagent-driven-development"]
+  Router --> Finish["finishing-a-development-branch"]
+  Brain --> Spec["Spec document"]
+  Plan --> PlanFile["Implementation plan"]
+  SDD --> Evidence["Briefs, reports, review packages, ledger, commits"]
+  TDD --> Evidence
+  Debug --> Evidence
+  Finish --> Outcome["merge, PR, keep, discard"]
+    </pre>
+  </section>
+
+  <section id="bootstrap">
+    <h2>4. 启动注入与平台适配</h2>
+    <p>
+      <code>docs/porting-to-a-new-harness.md</code> 把 Superpowers 的跨平台机制总结成三个不变量：技能共享、工具映射按平台提供、bootstrap 必须在每个会话开始时自动注入。
+    </p>
+
+    <h3>4.1 三种集成形态</h3>
+    <div class="three-col">
+      <div class="artifact">
+        <h4>Shape A：Shell hook</h4>
+        <p>Claude Code、Codex、Cursor、Copilot CLI 类似。平台在 SessionStart 执行脚本，脚本读取 <code>using-superpowers/SKILL.md</code> 并输出 JSON additional context。</p>
+      </div>
+      <div class="artifact">
+        <h4>Shape B：In-process plugin</h4>
+        <p>OpenCode 和 Pi。插件在进程内注册技能目录，并通过 message/context lifecycle 插入 bootstrap。</p>
+      </div>
+      <div class="artifact">
+        <h4>Shape C：Instructions file</h4>
+        <p>例如 Gemini extension 通过 <code>contextFileName: "GEMINI.md"</code> 让 harness 加载扩展内自带的上下文文件。</p>
+      </div>
+    </div>
+
+    <h3>4.2 平台入口表</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>平台</th>
+          <th>入口</th>
+          <th>bootstrap 方式</th>
+          <th>备注</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Claude Code</td>
+          <td><code>.claude-plugin/plugin.json</code> + <code>hooks/hooks.json</code></td>
+          <td><code>hooks/session-start</code> 输出 <code>hookSpecificOutput.additionalContext</code></td>
+          <td>startup、clear、compact 都注入。</td>
+        </tr>
+        <tr>
+          <td>Codex</td>
+          <td><code>.codex-plugin/plugin.json</code> + <code>hooks/hooks-codex.json</code></td>
+          <td>专用 <code>hooks/session-start-codex</code></td>
+          <td>v6 改为独立 Codex SessionStart hook。</td>
+        </tr>
+        <tr>
+          <td>Cursor</td>
+          <td><code>.cursor-plugin/plugin.json</code> + <code>hooks/hooks-cursor.json</code></td>
+          <td><code>sessionStart</code> 调 <code>run-hook.cmd session-start</code></td>
+          <td>使用 Cursor 的 <code>additional_context</code> 字段。</td>
+        </tr>
+        <tr>
+          <td>Kimi Code</td>
+          <td><code>.kimi-plugin/plugin.json</code></td>
+          <td><code>sessionStart.skill: "using-superpowers"</code></td>
+          <td>manifest 内含详细 Kimi tool mapping，例如 <code>AskUserQuestion</code>、<code>TodoList</code>、<code>Agent</code>。</td>
+        </tr>
+        <tr>
+          <td>OpenCode</td>
+          <td><code>.opencode/plugins/superpowers.js</code></td>
+          <td><code>experimental.chat.messages.transform</code> 插入第一个 user message</td>
+          <td>模块级缓存 bootstrap，避免每个 agent step 读文件。</td>
+        </tr>
+        <tr>
+          <td>Pi</td>
+          <td><code>.pi/extensions/superpowers.ts</code></td>
+          <td><code>session_start</code> 和 <code>session_compact</code> 后在 <code>context</code> 事件注入</td>
+          <td>注册 skillPaths，Pi 无标准 subagent/todo 时有 fallback 说明。</td>
+        </tr>
+        <tr>
+          <td>Gemini CLI</td>
+          <td><code>gemini-extension.json</code> + <code>GEMINI.md</code></td>
+          <td>扩展声明 context file</td>
+          <td><code>GEMINI.md</code> 引用 using-superpowers 和 Gemini tool mapping。</td>
+        </tr>
+        <tr>
+          <td>Antigravity</td>
+          <td><code>skills/using-superpowers/references/antigravity-tools.md</code> 等</td>
+          <td>README 说明 <code>agy plugin install</code> 后运行 session-start hook</td>
+          <td>v6 新增，要求通过标准 React todo acceptance test。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <pre class="mermaid">
+flowchart LR
+  subgraph A["Shape A: shell hook"]
+    HookCfg["hooks-*.json"] --> RunHook["run-hook.cmd"]
+    RunHook --> Shell["session-start script"]
+    Shell --> Json["additionalContext JSON"]
+  end
+  subgraph B["Shape B: plugin callback"]
+    Plugin["JS/TS extension"] --> Register["Register skills path"]
+    Plugin --> Transform["Mutate message/context"]
+  end
+  subgraph C["Shape C: context file"]
+    Manifest["Extension manifest"] --> Context["Declared context file"]
+  end
+  Json --> Boot["using-superpowers bootstrap"]
+  Transform --> Boot
+  Context --> Boot
+    </pre>
+  </section>
+
+  <section id="skills">
+    <h2>5. 技能库设计</h2>
+    <p>技能是项目的真正核心。每个技能用 frontmatter 描述触发场景，正文则给出强流程、红旗、反合理化、检查清单和交接规则。</p>
+    <table>
+      <thead>
+        <tr>
+          <th>技能</th>
+          <th>触发场景</th>
+          <th>作用</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>using-superpowers</code></td><td>会话开始</td><td>元技能。任何行动前先判断技能是否适用。</td></tr>
+        <tr><td><code>brainstorming</code></td><td>创造性工作、功能、组件、行为修改</td><td>先探索上下文、提问、比较方案、分段确认设计，最后写 spec。</td></tr>
+        <tr><td><code>writing-plans</code></td><td>已有 spec 或多步需求</td><td>写实施计划，新增 Global Constraints 和 Interfaces，控制任务边界。</td></tr>
+        <tr><td><code>using-git-worktrees</code></td><td>开始功能实现或执行计划前</td><td>检测现有隔离，优先 harness 原生 worktree，再 fallback 到项目内 <code>.worktrees/</code>。</td></tr>
+        <tr><td><code>subagent-driven-development</code></td><td>执行独立任务计划</td><td>每任务 fresh implementer、task reviewer、文件交接、progress ledger、最终 whole-branch review。</td></tr>
+        <tr><td><code>executing-plans</code></td><td>没有或不使用子代理时执行计划</td><td>顺序执行计划，遇到 blocker 停下，不猜。</td></tr>
+        <tr><td><code>test-driven-development</code></td><td>功能、bugfix、重构、行为变化</td><td>红绿重构。没有先看见失败测试，就不能写生产代码。</td></tr>
+        <tr><td><code>systematic-debugging</code></td><td>bug、测试失败、异常行为</td><td>先读错误、复现、查变化、追数据流，再假设和修复。</td></tr>
+        <tr><td><code>requesting-code-review</code></td><td>任务完成、重大功能、合并前</td><td>派 reviewer 子代理，基于 base/head SHA 审查 diff。</td></tr>
+        <tr><td><code>receiving-code-review</code></td><td>收到 review 反馈</td><td>先理解和验证，再实现或技术性 push back。</td></tr>
+        <tr><td><code>verification-before-completion</code></td><td>任何完成声明前</td><td>必须有刚运行过的验证命令和输出证据。</td></tr>
+        <tr><td><code>finishing-a-development-branch</code></td><td>实现完成，需要集成选择</td><td>测试、检测环境、给 merge/PR/keep/discard 选项，按 provenance 清理 worktree。</td></tr>
+        <tr><td><code>dispatching-parallel-agents</code></td><td>多个独立问题可并行</td><td>按问题域派并行子代理，之后整合与全量验证。</td></tr>
+        <tr><td><code>writing-skills</code></td><td>创建或修改技能</td><td>把技能写作当作 TDD，用 pressure scenario 和 eval 验证行为。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="main-flow">
+    <h2>6. 主开发流程</h2>
+    <p>主流程是一个状态机，每一步都有下一步的指定技能和产物。</p>
+    <div class="flow-cards">
+      <div class="flow-card"><span class="num">1</span><h4>Brainstorm</h4><p>探索上下文、一问一答、方案权衡、设计审批。</p></div>
+      <div class="flow-card"><span class="num">2</span><h4>Spec</h4><p>写入 <code>docs/superpowers/specs/</code>，自审，再交给人类审阅。</p></div>
+      <div class="flow-card"><span class="num">3</span><h4>Plan</h4><p>写入 <code>docs/superpowers/plans/</code>，包含 Global Constraints、Interfaces、精确测试和 commit。</p></div>
+      <div class="flow-card"><span class="num">4</span><h4>Worktree</h4><p>确认隔离环境和 clean baseline，避免污染当前分支。</p></div>
+      <div class="flow-card"><span class="num">5</span><h4>Execute</h4><p>优先 SDD，fallback 到 inline executing-plans。</p></div>
+      <div class="flow-card"><span class="num">6</span><h4>Finish</h4><p> fresh tests 后选择 merge、PR、keep 或 discard。</p></div>
+    </div>
+
+    <pre class="mermaid">
+flowchart TD
+  Idea["User idea or feature request"] --> Brain["brainstorming"]
+  Brain --> Design{"Design approved?"}
+  Design -- "no" --> Brain
+  Design -- "yes" --> Spec["Write spec and commit"]
+  Spec --> HumanSpec{"Human reviewed spec?"}
+  HumanSpec -- "changes" --> Spec
+  HumanSpec -- "approved" --> Plan["writing-plans"]
+  Plan --> PlanFile["Implementation plan"]
+  PlanFile --> Worktree["using-git-worktrees"]
+  Worktree --> Exec{"Execution path"}
+  Exec -- "recommended" --> SDD["subagent-driven-development"]
+  Exec -- "fallback" --> Inline["executing-plans"]
+  SDD --> Finish["finishing-a-development-branch"]
+  Inline --> Finish
+  Finish --> Result["merge / PR / keep / discard"]
+    </pre>
+  </section>
+
+  <section id="sdd">
+    <h2>7. SDD 子代理编排</h2>
+    <p>
+      v6 的 SDD 是这次最大变化。它把主会话变成控制器，把实现、review、修复都通过文件交接给子代理，并用 ledger 抵抗上下文压缩。
+    </p>
+
+    <pre class="mermaid">
+flowchart TD
+  Start["Read plan once<br>note global constraints"] --> Preflight["Pre-flight plan review<br>find conflicts before Task 1"]
+  Preflight --> Ledger["Check .superpowers/sdd/progress.md"]
+  Ledger --> Brief["scripts/task-brief PLAN N<br>writes task brief file"]
+  Brief --> Impl["Implementer subagent<br>reads brief, writes report file"]
+  Impl --> Status{"DONE / CONCERNS / CONTEXT / BLOCKED"}
+  Status -- "NEEDS_CONTEXT" --> Context["Controller adds context"] --> Impl
+  Status -- "BLOCKED" --> Escalate["More context, stronger model, split task, or ask human"] --> Impl
+  Status -- "DONE" --> Package["scripts/review-package BASE HEAD<br>writes diff package file"]
+  Package --> Review["Task reviewer<br>brief + report + diff package"]
+  Review --> Verdict{"Spec OK and quality approved?"}
+  Verdict -- "no" --> Fix["One fix subagent for all Critical/Important findings"] --> Package
+  Verdict -- "yes" --> Mark["Append progress ledger<br>mark todo complete"]
+  Mark --> More{"More tasks?"}
+  More -- "yes" --> Brief
+  More -- "no" --> Whole["Whole-branch review<br>requesting-code-review"]
+  Whole --> Finish["finishing-a-development-branch"]
+    </pre>
+
+    <h3>7.1 文件交接机制</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>文件/脚本</th>
+          <th>用途</th>
+          <th>为什么这样设计</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>scripts/task-brief</code></td>
+          <td>从 plan 中抽取任务全文到独立 brief 文件。</td>
+          <td>implementer 读文件，不让主会话粘贴长任务文本。</td>
+        </tr>
+        <tr>
+          <td><code>task-N-report.md</code></td>
+          <td>implementer 写完整报告、测试结果和 TDD evidence。</td>
+          <td>主会话只接收短状态，细节放文件，reviewer 可直接读取。</td>
+        </tr>
+        <tr>
+          <td><code>scripts/review-package</code></td>
+          <td>生成 commit list、diff stat、完整 diff 的 review package。</td>
+          <td>避免 diff 进入控制器上下文，同时让 reviewer 一次读取完整证据。</td>
+        </tr>
+        <tr>
+          <td><code>.superpowers/sdd/progress.md</code></td>
+          <td>记录任务完成状态和 commit range。</td>
+          <td>上下文压缩后可恢复，不重复派发已完成任务。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>7.2 Reviewer 的新版职责</h3>
+    <div class="two-col">
+      <div class="artifact">
+        <h4>Spec Compliance Verdict</h4>
+        <p>检查是否缺需求、加了额外功能、误解任务；无法从 diff 验证的跨任务要求标为 <code>Cannot verify from diff</code>，交给控制器处理。</p>
+      </div>
+      <div class="artifact">
+        <h4>Code Quality Verdict</h4>
+        <p>检查结构、错误处理、测试质量、文件职责、YAGNI、DRY。reviewer 是只读的，不能改 working tree、index、HEAD 或 branch。</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>新版 SDD 的核心收益：</strong>一次 task review 给出 spec 和 quality 两个 verdict，减少 reviewer 数量；长文本转文件传递，减少 token；ledger 提供恢复点，减少压缩后的重复执行。
+    </div>
+  </section>
+
+  <section id="visual">
+    <h2>8. 可视化 Brainstorm Companion</h2>
+    <p>
+      <code>brainstorming/visual-companion.md</code> 描述了一个浏览器伴侣：当问题“看图比读文字更清楚”时，agent 可以启动本地小服务器，推送 mockup、流程图、布局选项，让用户在浏览器里点击选择。
+    </p>
+
+    <pre class="mermaid">
+flowchart LR
+  Agent["Agent"] --> Start["scripts/start-server.sh"]
+  Start --> Server["server.cjs<br>HTTP + WebSocket"]
+  Server --> Browser["Browser tab<br>?key=session token"]
+  Agent --> Screen["Write newest HTML<br>content directory"]
+  Screen --> Server
+  Browser --> Events["state/events<br>clicks and selections"]
+  Events --> Agent
+  Server --> Security["Token auth, cookie, sandboxed files,<br>no-store headers, 4h idle timeout"]
+    </pre>
+
+    <h3>8.1 安全模型</h3>
+    <ul>
+      <li>URL 带一次性 <code>?key=...</code>，HTTP 和 WebSocket 都必须携带 key。</li>
+      <li>浏览器首载后把 key 放入 tab-scoped storage/cookie，刷新和静态资源也能验证。</li>
+      <li>文件服务拒绝 symlink、dotfiles、路径穿越和 macOS resource fork。</li>
+      <li>服务器写入 key 文件时尽量设置 owner-only 权限。</li>
+      <li>默认绑定 loopback，可通过 <code>--host</code> 和 <code>--url-host</code> 支持远程/容器场景。</li>
+    </ul>
+
+    <h3>8.2 图文协作循环</h3>
+    <div class="flow-cards">
+      <div class="flow-card"><span class="num">1</span><h4>Offer</h4><p>只有即将进入视觉问题时，单独发消息征求用户同意。</p></div>
+      <div class="flow-card"><span class="num">2</span><h4>Render</h4><p>写 HTML fragment 到 <code>screen_dir</code>，服务器自动包 frame。</p></div>
+      <div class="flow-card"><span class="num">3</span><h4>Interact</h4><p>用户在浏览器里看 mockup、点击选项，也可以在终端回复文字。</p></div>
+      <div class="flow-card"><span class="num">4</span><h4>Read</h4><p>agent 读 <code>state_dir/events</code>，合并终端反馈，再迭代。</p></div>
+    </div>
+  </section>
+
+  <section id="gates">
+    <h2>9. 质量门禁</h2>
+    <div class="three-col">
+      <div class="gate"><h4>设计门禁</h4><p><code>brainstorming</code>：设计获批前不得实现、scaffold 或调用实现技能。</p></div>
+      <div class="gate"><h4>TDD 门禁</h4><p><code>test-driven-development</code>：没有先看见失败测试，不得写生产代码。</p></div>
+      <div class="gate"><h4>根因门禁</h4><p><code>systematic-debugging</code>：完成根因调查前不得提出修复。</p></div>
+      <div class="gate"><h4>验证门禁</h4><p><code>verification-before-completion</code>：没有刚运行的验证输出，不得声称完成。</p></div>
+      <div class="gate"><h4>review 门禁</h4><p><code>subagent-driven-development</code>：每任务 task review，最后 whole-branch review。</p></div>
+      <div class="gate"><h4>PR 门禁</h4><p><code>CLAUDE.md</code> 与 PR 模板：查重、真实问题、人类审 diff、披露 agent 环境、target <code>dev</code>。</p></div>
+    </div>
+  </section>
+
+  <section id="tests">
+    <h2>10. 测试与 eval</h2>
+    <p>v6 文档把测试分成两类。</p>
+    <div class="two-col">
+      <div class="artifact">
+        <h3><code>tests/</code>：插件代码测试</h3>
+        <p>验证非 LLM 代码是否工作，例如 brainstorm server、OpenCode plugin loading、bootstrap caching、Codex plugin sync、Kimi manifest、shell lint。</p>
+      </div>
+      <div class="artifact">
+        <h3><code>evals/</code>：真实 agent 行为评估</h3>
+        <p>使用 drill harness 驱动真实 Claude Code、Codex、Gemini CLI 会话，并由 LLM actor/verifier 判断技能合规。该目录现在作为外部 eval harness，而非内置 tests 主体。</p>
+      </div>
+    </div>
+    <pre><code>cd evals
+uv sync --extra dev
+export ANTHROPIC_API_KEY=sk-...
+uv run drill run triggering-test-driven-development -b claude</code></pre>
+  </section>
+
+  <section id="contrib">
+    <h2>11. 贡献约束</h2>
+    <p>
+      仓库的 <code>CLAUDE.md</code> 和 PR 模板对 agent 贡献非常强硬。原因是维护者明确观察到大量 agent PR 被拒，常见问题包括没读模板、重复 PR、编造问题、隐藏 agent 来源、把项目特定内容塞进 core。
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>要求</th>
+          <th>含义</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>完整填写 PR 模板</td><td>不能空白、不能占位、不能只写泛泛总结。</td></tr>
+        <tr><td>搜索 open 和 closed PR</td><td>发现重复必须停止，不再开同类 PR。</td></tr>
+        <tr><td>证明真实问题</td><td>必须描述具体 session、错误、失败模式或用户体验。</td></tr>
+        <tr><td>确认属于 core</td><td>领域特定、工具特定、第三方推广应做独立插件。</td></tr>
+        <tr><td>披露 authoring environment</td><td>model、harness、harness version、installed plugins 都要写。</td></tr>
+        <tr><td>人类审完整 diff</td><td>没有人类明确批准，不提交 PR。</td></tr>
+        <tr><td>target <code>dev</code></td><td><code>main</code> 是发布分支，活跃开发先到 <code>dev</code>。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="code-map">
+    <h2>12. 读源码路线</h2>
+    <p>如果你要继续深挖，建议按这个顺序读。</p>
+    <ol>
+      <li><code>README.md</code>：项目定位、支持平台、基础 workflow。</li>
+      <li><code>RELEASE-NOTES.md</code>：v6.0.0 到 v6.0.3 的设计变化，尤其 SDD、visual companion、new harness。</li>
+      <li><code>skills/using-superpowers/SKILL.md</code>：全局技能触发协议。</li>
+      <li><code>hooks/session-start</code>、<code>hooks/session-start-codex</code>、<code>.opencode/plugins/superpowers.js</code>、<code>.pi/extensions/superpowers.ts</code>：不同 bootstrap 形态。</li>
+      <li><code>docs/porting-to-a-new-harness.md</code>：跨平台集成的 invariants 和三种 shape。</li>
+      <li><code>skills/brainstorming/SKILL.md</code> 与 <code>skills/brainstorming/visual-companion.md</code>：从需求澄清到可视化协作。</li>
+      <li><code>skills/writing-plans/SKILL.md</code>：新版 plan 的 Global Constraints、Interfaces、task right-sizing。</li>
+      <li><code>skills/subagent-driven-development/SKILL.md</code>、<code>implementer-prompt.md</code>、<code>task-reviewer-prompt.md</code>：新版 SDD 的控制器、实现者、reviewer 协议。</li>
+      <li><code>skills/test-driven-development/SKILL.md</code>、<code>skills/systematic-debugging/SKILL.md</code>、<code>skills/verification-before-completion/SKILL.md</code>：三大质量纪律。</li>
+      <li><code>docs/testing.md</code>：插件测试与行为 eval 的分工。</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>结论</h2>
+    <p>
+      Superpowers 的设计不是“给代理多几条建议”，而是把软件交付拆成可触发、可验证、可恢复的流程单元。v6 的重点是跨平台中立化、SDD 降本增严、文件化交接、可视化协作安全加固，以及把技能行为测试提升为 eval 问题。
+    </p>
+    <p class="small">
+      本报告生成自本地仓库 <code>/Users/chenmeili/Documents/GitHub/superpowers</code>，拉取后 HEAD 为 <code>896224c</code>，版本为 <code>6.0.3</code>。
+    </p>
+  </section>
+</main>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "default",
+    flowchart: { useMaxWidth: true, htmlLabels: true },
+    sequence: { useMaxWidth: true }
+  });
+</script>
+</body>
+</html>
