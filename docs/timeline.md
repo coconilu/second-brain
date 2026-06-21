@@ -4,8 +4,9 @@
 
 ## 2026-06
 
-- [AI 工程师的核心竞争力：从抽卡到可验证交付](ai-engineer-methodology/) `HTML`{target="_self"}
+- [Flue 技术解读：把大模型装进 Agent Harness](flue-agent-harness/) `HTML`{target="_self"}
 - [从 Prompt 工程到 Agent Loop：Agent 工程范式的六层演进](agent-loop-engineering/) `HTML`{target="_self"}
+- [AI 工程师的核心竞争力：从抽卡到可验证交付](ai-engineer-methodology/) `HTML`{target="_self"}
 - [Superpowers v6.0.3 架构与流程编排图解](superpowers-architecture-flow/) `HTML`{target="_self"}
 - [Claude Code 的 `.claude/workflows`：把复杂 AI 任务写成可复用流程](claude-code-workflows/index.md)
 - [AutoResearch 启示录：把长任务 Agent 写成可运行协议](autoresearch-agent-protocol/) `HTML`{target="_self"}
