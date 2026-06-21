@@ -27,6 +27,7 @@
 - [Agent 知识库全景图 · 2026](agent-memory-landscape/) `HTML`{target="_self"} — 从记忆类型、知识库形态和工程落地维度梳理 Agent 长期记忆生态。
 - [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"} — 讨论单 Agent 如何动态规划、委派、回收上下文，并协同一组专门化子 Agent 完成复杂任务。
 - [从 Prompt 工程到 Agent Loop：Agent 工程范式的六层演进](agent-loop-engineering/) `HTML`{target="_self"} — 梳理 Prompt、上下文、MCP、Skills、Harness 与 Agent Loop 的递进关系。
+- [Deep Agents 实战 — 从零构建生产级 AI Agent 的完整指南](https://datawhalechina.github.io/deepagents-in-action/) `外链` — Datawhale 的 Deep Agents 实战教程，讲解生产级 AI Agent 的构建方法。
 - [Claude Code 的 `.claude/workflows`：把复杂 AI 任务写成可复用流程](claude-code-workflows/index.md) — 从 Claude Code 项目目录视角理解 workflow 如何编排多个 agent。
 - [Superpowers v6.0.3 架构与流程编排图解](superpowers-architecture-flow/) `HTML`{target="_self"} — 解析 Superpowers 的技能注入、会话启动、流程编排和质量门设计。
 - [AutoResearch 启示录：把长任务 Agent 写成可运行协议](autoresearch-agent-protocol/) `HTML`{target="_self"} — 从 AutoResearch 框架提炼长任务 Agent 的状态落盘、反停滞、验证闭环与 Skill 协议化方法。
