@@ -39,6 +39,7 @@
 
 ## 对比与选型
 
+- [Phaser、PixiJS 与 Cocos Creator：休闲小游戏技术选型指南](game-stack-blog/) `HTML`{target="_self"} — 对比三种休闲小游戏技术栈的定位、替代关系、选型流程和落地架构。
 - [2026 前端 UI 方案对决：Radix Themes + Mantine vs shadcn/ui + Tailwind CSS](ui-framework-comparison/) `HTML`{target="_self"} — 对比两类前端 UI 技术栈的设计哲学、工程成本和适用场景。
 - [2026 终端工具选型：Ghostty、cmux、tmux、Zellij、Warp 怎么选](terminal-tools-2026/index.md) — 对比 Ghostty、cmux、tmux、Zellij、Warp、WezTerm、Kitty、Solo 等工具的定位和适用场景。
 - [OpenCode vs Claude Code](opencode-vs-claudecode/index.md) — 终端 AI 编程助手的功能、生态和体验对比。
@@ -97,6 +98,7 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
+- [Phaser、PixiJS 与 Cocos Creator：休闲小游戏技术选型指南](game-stack-blog/) `HTML`{target="_self"}
 - [ComfyUI 官方文档导读：从第一张图到自动化工作流](comfyui-docs-blog/) `HTML`{target="_self"}
 - [HyperFrames 是什么？HTML 生成视频框架科普](hyperframes-explainer/) `HTML`{target="_self"}
 - [Flue 技术解读：把大模型装进 Agent Harness](flue-agent-harness/) `HTML`{target="_self"}

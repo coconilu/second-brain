@@ -1,0 +1,1230 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Phaser、PixiJS 与 Cocos Creator：休闲小游戏技术选型指南</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #18202a;
+      --muted: #607080;
+      --soft: #f5f7f9;
+      --line: #dbe3ea;
+      --panel: #ffffff;
+      --phaser: #2f8f83;
+      --pixi: #d65f37;
+      --cocos: #3266a8;
+      --accent: #8a5a32;
+      --shadow: 0 18px 48px rgba(24, 32, 42, 0.12);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, #eef4f3 0, #f8faf9 360px, #ffffff 720px),
+        #ffffff;
+      line-height: 1.72;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: var(--cocos);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    .page {
+      min-height: 100vh;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid rgba(219, 227, 234, 0.86);
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+    }
+
+    .nav-inner {
+      width: min(1120px, calc(100% - 36px));
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 64px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background:
+        linear-gradient(135deg, var(--phaser), var(--cocos));
+      box-shadow: 0 8px 20px rgba(47, 143, 131, 0.24);
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      font-size: 14px;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .nav-links a:hover {
+      color: var(--ink);
+    }
+
+    .hero {
+      width: min(1120px, calc(100% - 36px));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 48px;
+      align-items: center;
+      padding: 78px 0 44px;
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--phaser);
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 780px;
+      font-size: clamp(38px, 6vw, 72px);
+      font-weight: 900;
+    }
+
+    .lead {
+      margin: 22px 0 0;
+      max-width: 720px;
+      color: #3e4d5b;
+      font-size: clamp(18px, 2.1vw, 22px);
+    }
+
+    .headline-line {
+      display: block;
+      white-space: nowrap;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 42px;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 760;
+      text-decoration: none;
+      box-shadow: 0 8px 20px rgba(24, 32, 42, 0.06);
+    }
+
+    .button.primary {
+      border-color: transparent;
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .button svg {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+    }
+
+    .hero-visual {
+      position: relative;
+      min-height: 430px;
+    }
+
+    .engine-map {
+      position: relative;
+      min-height: 430px;
+      padding: 24px;
+      border: 1px solid rgba(219, 227, 234, 0.9);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.92), rgba(246,249,250,0.9)),
+        radial-gradient(circle at 80% 16%, rgba(214, 95, 55, 0.15), transparent 36%),
+        radial-gradient(circle at 8% 90%, rgba(47, 143, 131, 0.15), transparent 32%);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .axis-label {
+      position: absolute;
+      color: #6b7a88;
+      font-size: 12px;
+      font-weight: 760;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .axis-label.top {
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .axis-label.bottom {
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .axis-label.left {
+      top: 50%;
+      left: 16px;
+      transform: translateY(-50%) rotate(-90deg);
+      transform-origin: center;
+    }
+
+    .axis-label.right {
+      top: 50%;
+      right: 16px;
+      transform: translateY(-50%) rotate(90deg);
+      transform-origin: center;
+    }
+
+    .engine-card {
+      position: absolute;
+      width: min(205px, 42%);
+      padding: 18px;
+      border: 1px solid rgba(219, 227, 234, 0.95);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 14px 32px rgba(24, 32, 42, 0.12);
+    }
+
+    .engine-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 21px;
+      line-height: 1.15;
+    }
+
+    .engine-card span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      display: block;
+    }
+
+    .engine-card.phaser {
+      left: 36px;
+      bottom: 72px;
+      border-top: 5px solid var(--phaser);
+    }
+
+    .engine-card.pixi {
+      right: 36px;
+      bottom: 92px;
+      border-top: 5px solid var(--pixi);
+    }
+
+    .engine-card.cocos {
+      left: 50%;
+      top: 72px;
+      transform: translateX(-50%);
+      border-top: 5px solid var(--cocos);
+    }
+
+    .map-lines {
+      position: absolute;
+      inset: 68px 44px 56px;
+      pointer-events: none;
+    }
+
+    .map-lines::before,
+    .map-lines::after {
+      content: "";
+      position: absolute;
+      background: rgba(96, 112, 128, 0.22);
+    }
+
+    .map-lines::before {
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+    }
+
+    .map-lines::after {
+      top: 54%;
+      left: 0;
+      right: 0;
+      height: 1px;
+    }
+
+    main {
+      width: min(1120px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 10px 0 84px;
+    }
+
+    section {
+      padding: 56px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-heading {
+      display: grid;
+      grid-template-columns: minmax(0, 0.68fr) minmax(260px, 0.32fr);
+      gap: 36px;
+      align-items: end;
+      margin-bottom: 26px;
+    }
+
+    h2 {
+      font-size: clamp(28px, 4vw, 46px);
+      font-weight: 900;
+    }
+
+    .section-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .takeaway {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    .takeaway-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 22px;
+      box-shadow: 0 10px 28px rgba(24, 32, 42, 0.06);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 9px;
+      border-radius: 7px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 780;
+    }
+
+    .tag.phaser { background: var(--phaser); }
+    .tag.pixi { background: var(--pixi); }
+    .tag.cocos { background: var(--cocos); }
+
+    .takeaway-item h3 {
+      margin-top: 15px;
+      font-size: 23px;
+    }
+
+    .takeaway-item p {
+      margin: 12px 0 0;
+      color: var(--muted);
+    }
+
+    .quote-band {
+      margin-top: 28px;
+      padding: 26px;
+      border-left: 6px solid var(--accent);
+      border-radius: 8px;
+      background: #fff8ef;
+      font-size: 22px;
+      font-weight: 820;
+      line-height: 1.45;
+    }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 12px 30px rgba(24, 32, 42, 0.06);
+    }
+
+    .compare-table th,
+    .compare-table td {
+      padding: 17px 18px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .compare-table th {
+      background: #f1f5f7;
+      font-size: 14px;
+      color: #34424f;
+      white-space: nowrap;
+    }
+
+    .compare-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .compare-table td:first-child {
+      font-weight: 800;
+      color: #2c3945;
+      white-space: nowrap;
+    }
+
+    .layer-figure {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(280px, 1.1fr);
+      gap: 32px;
+      align-items: center;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfd;
+    }
+
+    .layer-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .layer {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 16px 18px;
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 14px;
+      align-items: center;
+      box-shadow: 0 8px 22px rgba(24, 32, 42, 0.05);
+    }
+
+    .layer .badge {
+      width: 58px;
+      height: 58px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 900;
+      font-size: 20px;
+    }
+
+    .layer h3 {
+      font-size: 19px;
+      margin-bottom: 4px;
+    }
+
+    .layer p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .badge.render { background: var(--pixi); }
+    .badge.framework { background: var(--phaser); }
+    .badge.engine { background: var(--cocos); }
+
+    .code-window {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #23313e;
+      background: #111923;
+      box-shadow: var(--shadow);
+    }
+
+    .code-title {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      min-height: 38px;
+      padding: 0 14px;
+      background: #1c2733;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #d95f50;
+    }
+
+    .dot:nth-child(2) { background: #e5b84d; }
+    .dot:nth-child(3) { background: #61b65f; }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      color: #d6e2ee;
+      font: 14px/1.65 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    .code-comment {
+      color: #7f96aa;
+    }
+
+    .code-key {
+      color: #8dd3c7;
+    }
+
+    .code-value {
+      color: #f2c078;
+    }
+
+    .decision {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .decision-card {
+      min-height: 190px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 10px 28px rgba(24, 32, 42, 0.06);
+    }
+
+    .decision-card h3 {
+      font-size: 21px;
+    }
+
+    .decision-card p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .decision-card .pick {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      font-weight: 850;
+      color: var(--ink);
+    }
+
+    .flow {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 20px;
+      overflow: hidden;
+      box-shadow: 0 12px 30px rgba(24, 32, 42, 0.06);
+    }
+
+    .flow svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr);
+      gap: 34px;
+      align-items: start;
+    }
+
+    .article-copy p {
+      margin: 0 0 18px;
+      color: #34424f;
+      font-size: 17px;
+    }
+
+    .article-copy strong {
+      color: var(--ink);
+    }
+
+    .checklist {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 12px;
+    }
+
+    .checklist li {
+      position: relative;
+      padding: 14px 16px 14px 46px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: #34424f;
+    }
+
+    .checklist li::before {
+      content: "";
+      position: absolute;
+      left: 16px;
+      top: 19px;
+      width: 14px;
+      height: 8px;
+      border-left: 3px solid var(--phaser);
+      border-bottom: 3px solid var(--phaser);
+      transform: rotate(-45deg);
+    }
+
+    .architecture {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .arch-block {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 20px;
+    }
+
+    .arch-block h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .arch-block ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    .arch-block li + li {
+      margin-top: 6px;
+    }
+
+    .final-card {
+      padding: 32px;
+      border-radius: 8px;
+      background: #14202b;
+      color: #fff;
+      display: grid;
+      grid-template-columns: minmax(0, 0.62fr) minmax(260px, 0.38fr);
+      gap: 28px;
+      align-items: center;
+    }
+
+    .final-card h2 {
+      color: #fff;
+    }
+
+    .final-card p {
+      color: #c9d6df;
+      margin: 16px 0 0;
+      font-size: 18px;
+    }
+
+    .mini-matrix {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mini-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #e8f0f6;
+    }
+
+    .mini-row span:last-child {
+      font-weight: 850;
+      color: #fff;
+    }
+
+    footer {
+      width: min(1120px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 28px 0 42px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 920px) {
+      .hero,
+      .section-heading,
+      .layer-figure,
+      .split,
+      .final-card {
+        grid-template-columns: 1fr;
+      }
+
+      .takeaway,
+      .decision,
+      .architecture {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hero {
+        padding-top: 50px;
+      }
+
+      .nav-inner {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 14px 0;
+      }
+
+      .nav-links {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .takeaway,
+      .decision,
+      .architecture {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual,
+      .engine-map {
+        min-height: 520px;
+      }
+
+      .engine-card {
+        width: calc(100% - 52px);
+        left: 26px;
+        right: auto;
+        transform: none;
+      }
+
+      .engine-card.cocos {
+        top: 68px;
+        left: 26px;
+        transform: none;
+      }
+
+      .engine-card.phaser {
+        top: 222px;
+        bottom: auto;
+      }
+
+      .engine-card.pixi {
+        top: 374px;
+        bottom: auto;
+      }
+
+      .axis-label,
+      .map-lines {
+        display: none;
+      }
+
+      .compare-table {
+        display: block;
+        overflow-x: auto;
+      }
+
+      .layer {
+        grid-template-columns: 1fr;
+      }
+
+      .layer .badge {
+        width: 48px;
+        height: 48px;
+      }
+
+      section {
+        padding: 42px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="nav">
+      <div class="nav-inner">
+        <div class="brand">
+          <span class="brand-mark">2D</span>
+          <span>休闲小游戏技术选型</span>
+        </div>
+        <nav class="nav-links" aria-label="文章导航">
+          <a href="#summary">一句话结论</a>
+          <a href="#layers">三者定位</a>
+          <a href="#replace">能否替代</a>
+          <a href="#choose">怎么选</a>
+          <a href="#architecture">落地架构</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="hero">
+      <div>
+        <p class="eyebrow">Phaser vs PixiJS vs Cocos Creator</p>
+        <h1>
+          <span class="headline-line">休闲小游戏，</span>
+          <span class="headline-line">到底该用</span>
+          <span class="headline-line">轻框架、渲染库，</span>
+          <span class="headline-line">还是完整引擎？</span>
+        </h1>
+        <p class="lead">
+          当 Godot 让你感觉项目开始“掌控不住”，问题未必是引擎不够强，而是你需要重新选择抽象层级。
+          Phaser、PixiJS、Cocos Creator 并不是简单的三选一，它们分别站在不同高度。
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="#summary" aria-label="跳到核心结论">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14m0 0 6-6m-6 6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            先看结论
+          </a>
+          <a class="button" href="#flow" aria-label="跳到技术选型流程">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M6 4h12v6H6zM4 18h6v2H4zM14 18h6v2h-6zM12 10v4m-5 0h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            看选择流程
+          </a>
+        </div>
+      </div>
+
+      <aside class="hero-visual" aria-label="三种技术的抽象层级示意图">
+        <div class="engine-map">
+          <div class="map-lines"></div>
+          <span class="axis-label top">完整工作流</span>
+          <span class="axis-label bottom">轻量代码控制</span>
+          <span class="axis-label left">游戏框架</span>
+          <span class="axis-label right">渲染能力</span>
+
+          <div class="engine-card cocos">
+            <strong>Cocos Creator</strong>
+            <span>完整引擎和编辑器，偏商业化、多平台、小游戏发布流程。</span>
+          </div>
+
+          <div class="engine-card phaser">
+            <strong>Phaser</strong>
+            <span>代码优先的 2D 游戏框架，适合快速做完整 Web 小游戏。</span>
+          </div>
+
+          <div class="engine-card pixi">
+            <strong>PixiJS</strong>
+            <span>高性能 2D 渲染工具，适合自己搭框架或做复杂互动视觉。</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <main>
+      <section id="summary">
+        <div class="section-heading">
+          <h2>一句话结论</h2>
+          <p class="section-note">先定层级，再定技术。不要把“渲染库”和“完整引擎”放在同一个问题里硬比。</p>
+        </div>
+
+        <div class="takeaway">
+          <article class="takeaway-item">
+            <span class="tag phaser">Phaser</span>
+            <h3>轻游戏框架</h3>
+            <p>它已经帮你准备好场景、输入、资源、动画、物理、摄像机、音频和游戏循环。</p>
+          </article>
+          <article class="takeaway-item">
+            <span class="tag cocos">Cocos Creator</span>
+            <h3>完整游戏引擎</h3>
+            <p>它提供编辑器、组件系统、资源管线、跨平台发布和更完整的工程工作流。</p>
+          </article>
+          <article class="takeaway-item">
+            <span class="tag pixi">PixiJS</span>
+            <h3>2D 渲染工具</h3>
+            <p>它擅长把大量图片、容器、滤镜和动效高性能地画出来，但游戏框架要自己补。</p>
+          </article>
+        </div>
+
+        <div class="quote-band">
+          Phaser 是轻游戏框架，Cocos 是完整引擎，PixiJS 是渲染工具。
+        </div>
+      </section>
+
+      <section id="layers">
+        <div class="section-heading">
+          <h2>它们不是同一层东西</h2>
+          <p class="section-note">理解这一点，很多争论会自动消失。</p>
+        </div>
+
+        <div class="layer-figure">
+          <div class="layer-stack" aria-label="技术层级">
+            <div class="layer">
+              <div class="badge render">R</div>
+              <div>
+                <h3>渲染层：PixiJS</h3>
+                <p>负责画面显示、精灵、容器、滤镜、纹理和 WebGL/Canvas 细节。</p>
+              </div>
+            </div>
+            <div class="layer">
+              <div class="badge framework">F</div>
+              <div>
+                <h3>游戏框架层：Phaser</h3>
+                <p>在渲染之上加入游戏常用系统，让你更快完成一个可玩的作品。</p>
+              </div>
+            </div>
+            <div class="layer">
+              <div class="badge engine">E</div>
+              <div>
+                <h3>完整引擎层：Cocos Creator</h3>
+                <p>覆盖编辑器、资源管理、组件、动画、发布和团队协作流程。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="code-window" aria-label="抽象层级代码示意">
+            <div class="code-title"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <pre><code><span class="code-comment">// PixiJS：我来画，但游戏规则你来组织</span>
+renderer.draw(sprite, position, effects)
+
+<span class="code-comment">// Phaser：我给你一套 2D 游戏运行方式</span>
+scene.preload()
+scene.create()
+scene.update(time, delta)
+
+<span class="code-comment">// Cocos Creator：我给你编辑器和完整工程体系</span>
+node.addComponent(PlayerController)
+assetBundle.load("level-01")</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="compare">
+        <div class="section-heading">
+          <h2>对比表</h2>
+          <p class="section-note">如果你的目标是休闲小游戏，这张表基本能覆盖核心取舍。</p>
+        </div>
+
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>维度</th>
+              <th>Phaser</th>
+              <th>PixiJS</th>
+              <th>Cocos Creator</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>本质</td>
+              <td>2D 游戏框架</td>
+              <td>2D 渲染库</td>
+              <td>完整游戏引擎</td>
+            </tr>
+            <tr>
+              <td>开发体验</td>
+              <td>代码优先，浏览器调试舒服</td>
+              <td>自由度高，需要自己定架构</td>
+              <td>编辑器优先，节点和组件驱动</td>
+            </tr>
+            <tr>
+              <td>上手成本</td>
+              <td>中低，适合快速做原型</td>
+              <td>低到中，但后期架构成本高</td>
+              <td>中高，需要适应引擎工作流</td>
+            </tr>
+            <tr>
+              <td>游戏系统</td>
+              <td>场景、资源、输入、物理、摄像机、音频都有</td>
+              <td>主要提供渲染，游戏系统要自建或引入库</td>
+              <td>系统完整，覆盖资源、动画、物理、发布</td>
+            </tr>
+            <tr>
+              <td>适合项目</td>
+              <td>Web 休闲小游戏、2D 原型、活动页游戏</td>
+              <td>互动视觉、复杂画布、编辑器、地图、动效 UI</td>
+              <td>商业小游戏、移动端、多平台、团队生产</td>
+            </tr>
+            <tr>
+              <td>掌控感</td>
+              <td>强，接近普通 TypeScript 项目</td>
+              <td>很强，但需要自己管更多工程细节</td>
+              <td>取决于是否喜欢引擎式工作流</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="replace">
+        <div class="section-heading">
+          <h2>Cocos Creator + PixiJS 能替代 Phaser 吗？</h2>
+          <p class="section-note">答案是：分别可以，但“组合起来替代”通常不是自然选择。</p>
+        </div>
+
+        <div class="split">
+          <div class="article-copy">
+            <p>
+              <strong>Cocos Creator 可以替代 Phaser</strong>，尤其当你重视编辑器、资产流程、微信小游戏、移动端发布、多平台打包和商业化生产时。
+              它不是 Phaser 的轻量替代品，而是更完整、更重的引擎方案。
+            </p>
+            <p>
+              <strong>PixiJS 也可以替代 Phaser</strong>，但它替代的是 Phaser 的渲染部分。你仍然需要自己处理场景切换、游戏循环、碰撞、输入映射、音频、存档和状态管理。
+            </p>
+            <p>
+              <strong>Cocos Creator + PixiJS 通常不推荐</strong>。Cocos 本身已经有渲染系统和完整工作流，再引入 PixiJS 往往会让两个渲染体系并存，增加复杂度。
+              除非你有很明确的历史包袱或特殊渲染需求，否则这不是首选架构。
+            </p>
+          </div>
+
+          <ul class="checklist" aria-label="替代关系判断">
+            <li>想要完整引擎和发布管线：Cocos Creator 可以替代 Phaser。</li>
+            <li>想自己搭框架并掌控渲染：PixiJS 可以替代 Phaser。</li>
+            <li>想快速做完整 2D Web 小游戏：Phaser 仍然更直接。</li>
+            <li>想摆脱 Godot 的引擎感：谨慎选择 Cocos，因为它也是完整引擎。</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="choose">
+        <div class="section-heading">
+          <h2>怎么选</h2>
+          <p class="section-note">从你的游戏形态出发，比从技术名气出发更可靠。</p>
+        </div>
+
+        <div class="decision">
+          <article class="decision-card">
+            <div>
+              <h3>动作感强</h3>
+              <p>有角色、碰撞、关卡、粒子、音效、摄像机和实时反馈。</p>
+            </div>
+            <div class="pick">选 Phaser</div>
+          </article>
+          <article class="decision-card">
+            <div>
+              <h3>界面感强</h3>
+              <p>主要是拖拽、合成、卡牌、面板、列表和经营数值。</p>
+            </div>
+            <div class="pick">选 React + DOM，必要时加 PixiJS</div>
+          </article>
+          <article class="decision-card">
+            <div>
+              <h3>商业小游戏</h3>
+              <p>重视微信小游戏、移动端包体、广告、渠道 SDK 和团队流程。</p>
+            </div>
+            <div class="pick">选 Cocos Creator</div>
+          </article>
+          <article class="decision-card">
+            <div>
+              <h3>视觉画布</h3>
+              <p>核心是大量元素渲染、缩放、拖拽、滤镜和复杂动效。</p>
+            </div>
+            <div class="pick">选 PixiJS</div>
+          </article>
+        </div>
+
+        <div id="flow" class="flow" style="margin-top: 28px;" aria-label="技术选择流程图">
+          <svg viewBox="0 0 1040 420" role="img" aria-labelledby="flow-title flow-desc">
+            <title id="flow-title">休闲小游戏技术选择流程</title>
+            <desc id="flow-desc">从项目形态判断应该选择 Phaser、PixiJS、Cocos Creator 或前端 DOM 技术。</desc>
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#607080"></path>
+              </marker>
+              <style>
+                .box { fill: #fff; stroke: #dbe3ea; stroke-width: 2; rx: 8; }
+                .start { fill: #14202b; stroke: #14202b; }
+                .t { font: 700 22px Inter, sans-serif; fill: #18202a; }
+                .s { font: 500 15px Inter, sans-serif; fill: #607080; }
+                .w { fill: #fff; }
+                .line { stroke: #607080; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+              </style>
+            </defs>
+
+            <rect class="box start" x="30" y="145" width="180" height="88"></rect>
+            <text class="t w" x="120" y="181" text-anchor="middle">你的游戏</text>
+            <text class="s w" x="120" y="207" text-anchor="middle">先看核心形态</text>
+
+            <path class="line" d="M210 189 H285"></path>
+
+            <rect class="box" x="285" y="52" width="205" height="90"></rect>
+            <text class="t" x="388" y="88" text-anchor="middle">游戏性优先</text>
+            <text class="s" x="388" y="115" text-anchor="middle">关卡、碰撞、角色</text>
+
+            <rect class="box" x="285" y="168" width="205" height="90"></rect>
+            <text class="t" x="388" y="204" text-anchor="middle">界面操作优先</text>
+            <text class="s" x="388" y="231" text-anchor="middle">拖拽、面板、卡牌</text>
+
+            <rect class="box" x="285" y="284" width="205" height="90"></rect>
+            <text class="t" x="388" y="320" text-anchor="middle">发布流程优先</text>
+            <text class="s" x="388" y="347" text-anchor="middle">渠道、SDK、多平台</text>
+
+            <path class="line" d="M210 189 C245 189 245 97 285 97"></path>
+            <path class="line" d="M210 189 H285"></path>
+            <path class="line" d="M210 189 C245 189 245 329 285 329"></path>
+
+            <path class="line" d="M490 97 H585"></path>
+            <path class="line" d="M490 213 H585"></path>
+            <path class="line" d="M490 329 H585"></path>
+
+            <rect class="box" x="585" y="52" width="190" height="90" style="stroke:#2f8f83;"></rect>
+            <text class="t" x="680" y="88" text-anchor="middle">Phaser</text>
+            <text class="s" x="680" y="115" text-anchor="middle">完整 2D 游戏框架</text>
+
+            <rect class="box" x="585" y="168" width="190" height="90" style="stroke:#d65f37;"></rect>
+            <text class="t" x="680" y="204" text-anchor="middle">DOM / PixiJS</text>
+            <text class="s" x="680" y="231" text-anchor="middle">界面 + 渲染增强</text>
+
+            <rect class="box" x="585" y="284" width="190" height="90" style="stroke:#3266a8;"></rect>
+            <text class="t" x="680" y="320" text-anchor="middle">Cocos Creator</text>
+            <text class="s" x="680" y="347" text-anchor="middle">完整引擎工作流</text>
+
+            <path class="line" d="M775 97 H850"></path>
+            <path class="line" d="M775 213 H850"></path>
+            <path class="line" d="M775 329 H850"></path>
+
+            <rect class="box" x="850" y="145" width="160" height="88"></rect>
+            <text class="t" x="930" y="181" text-anchor="middle">控制复杂度</text>
+            <text class="s" x="930" y="207" text-anchor="middle">别过度选型</text>
+          </svg>
+        </div>
+      </section>
+
+      <section id="architecture">
+        <div class="section-heading">
+          <h2>如果选择 Phaser，建议这样组织</h2>
+          <p class="section-note">真正的掌控感来自边界，而不是把所有代码都塞进 Scene。</p>
+        </div>
+
+        <div class="article-copy">
+          <p>
+            Phaser 项目最常见的失控方式，是把规则、输入、动画、资源、存档、UI 全部写进一个 Scene。
+            更稳的做法是：<strong>Phaser 负责舞台，TypeScript 模块负责规则，DOM 或前端框架负责文字密集的 UI。</strong>
+          </p>
+        </div>
+
+        <div class="architecture">
+          <div class="arch-block">
+            <h3>game/</h3>
+            <ul>
+              <li>Scenes</li>
+              <li>Sprites</li>
+              <li>Animation</li>
+              <li>Input plumbing</li>
+            </ul>
+          </div>
+          <div class="arch-block">
+            <h3>sim/</h3>
+            <ul>
+              <li>Game state</li>
+              <li>Rules</li>
+              <li>Progression</li>
+              <li>Save data</li>
+            </ul>
+          </div>
+          <div class="arch-block">
+            <h3>ui/</h3>
+            <ul>
+              <li>HUD</li>
+              <li>Menus</li>
+              <li>Settings</li>
+              <li>Result screens</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="code-window" style="margin-top: 28px;" aria-label="推荐目录结构">
+          <div class="code-title"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <pre><code>src/
+  game/
+    scenes/
+      BootScene.ts
+      PreloadScene.ts
+      GameScene.ts
+    assets.ts
+    input.ts
+  sim/
+    state.ts
+    rules.ts
+    progression.ts
+    save.ts
+  ui/
+    hud/
+    menus/
+    result/
+
+<span class="code-comment">// 原则：Scene 不做全部决策，只把 sim 的结果表现出来。</span></code></pre>
+        </div>
+      </section>
+
+      <section>
+        <div class="final-card">
+          <div>
+            <h2>最终建议</h2>
+            <p>
+              如果你做的是 2D 休闲小游戏，并且从 Godot 迁出的原因是“想要更轻、更透明、更像普通代码项目”，
+              那么 Phaser + TypeScript + Vite 是最值得先试的方案。
+            </p>
+          </div>
+          <div class="mini-matrix" aria-label="最终选择速查">
+            <div class="mini-row"><span>动作型 2D 休闲</span><span>Phaser</span></div>
+            <div class="mini-row"><span>互动视觉画布</span><span>PixiJS</span></div>
+            <div class="mini-row"><span>商业化小游戏</span><span>Cocos</span></div>
+            <div class="mini-row"><span>界面驱动玩法</span><span>React / DOM</span></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>本文面向 2D 休闲小游戏选型，不讨论大型 3D 项目、主机游戏管线或深度原生平台优化。</p>
+    </footer>
+  </div>
+</body>
+</html>
