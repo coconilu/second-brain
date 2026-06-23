@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ComfyUI 官方文档导读：从第一张图到自动化工作流</title>
+    <meta
+      name="description"
+      content="一篇图文并茂的中文博客，基于 ComfyUI 官方文档梳理入门、界面、工作流、API、Cloud 与 Custom Nodes。"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #12171f;
+        --muted: #586173;
+        --paper: #f6f2ea;
+        --surface: #ffffff;
+        --soft: #e8ded0;
+        --line: #d8caba;
+        --charcoal: #101820;
+        --cyan: #06a8c9;
+        --blue: #2357d7;
+        --coral: #e35b45;
+        --green: #2f855a;
+        --gold: #b7791f;
+        --code-bg: #111827;
+        --code-fg: #e5eefb;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          linear-gradient(180deg, rgba(246, 242, 234, 0.85), var(--paper) 36rem),
+          radial-gradient(circle at 16% 12%, rgba(6, 168, 201, 0.16), transparent 32rem),
+          radial-gradient(circle at 86% 5%, rgba(227, 91, 69, 0.12), transparent 28rem);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", "Microsoft YaHei", sans-serif;
+        line-height: 1.76;
+      }
+
+      img,
+      svg {
+        display: block;
+        max-width: 100%;
+      }
+
+      a {
+        color: var(--blue);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 3px;
+      }
+
+      .hero {
+        min-height: 88vh;
+        position: relative;
+        display: grid;
+        align-items: end;
+        overflow: hidden;
+        color: #fff;
+        background: var(--charcoal);
+      }
+
+      .hero img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.82;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(16, 24, 32, 0.05), rgba(16, 24, 32, 0.92)),
+          linear-gradient(90deg, rgba(16, 24, 32, 0.92), rgba(16, 24, 32, 0.3) 58%, rgba(16, 24, 32, 0.72));
+      }
+
+      .hero-inner {
+        position: relative;
+        z-index: 1;
+        width: min(1160px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 96px 0 76px;
+      }
+
+      .kicker,
+      .eyebrow {
+        margin: 0 0 16px;
+        color: #8de8f6;
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.16;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        max-width: 890px;
+        margin: 0;
+        font-size: clamp(42px, 7vw, 84px);
+        font-weight: 850;
+      }
+
+      .hero-subtitle {
+        max-width: 780px;
+        margin: 26px 0 0;
+        color: rgba(255, 255, 255, 0.86);
+        font-size: clamp(18px, 2.3vw, 24px);
+      }
+
+      .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 30px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        padding: 7px 12px;
+        border: 1px solid rgba(255, 255, 255, 0.26);
+        border-radius: 999px;
+        color: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(12px);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .wrap {
+        width: min(1120px, calc(100% - 40px));
+        margin: 0 auto;
+      }
+
+      .toc {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid rgba(16, 24, 32, 0.12);
+        background: rgba(246, 242, 234, 0.88);
+        backdrop-filter: blur(18px);
+      }
+
+      .toc nav {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 12px 0;
+      }
+
+      .toc a {
+        flex: 0 0 auto;
+        padding: 8px 12px;
+        border-radius: 999px;
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 740;
+      }
+
+      .toc a:hover {
+        background: rgba(6, 168, 201, 0.12);
+      }
+
+      main {
+        padding: 64px 0 88px;
+      }
+
+      section {
+        margin: 0 0 80px;
+      }
+
+      .section-head {
+        max-width: 780px;
+        margin-bottom: 28px;
+      }
+
+      h2 {
+        margin: 0 0 16px;
+        font-size: clamp(30px, 4.2vw, 48px);
+      }
+
+      h3 {
+        margin: 0 0 10px;
+        font-size: 20px;
+      }
+
+      p {
+        margin: 0 0 18px;
+      }
+
+      .lead {
+        color: var(--muted);
+        font-size: 19px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 18px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.78);
+        box-shadow: 0 18px 50px rgba(18, 23, 31, 0.07);
+      }
+
+      .card-pad {
+        padding: 24px;
+      }
+
+      .span-4 {
+        grid-column: span 4;
+      }
+
+      .span-5 {
+        grid-column: span 5;
+      }
+
+      .span-7 {
+        grid-column: span 7;
+      }
+
+      .span-12 {
+        grid-column: span 12;
+      }
+
+      .stat {
+        display: grid;
+        align-content: space-between;
+        min-height: 180px;
+      }
+
+      .stat strong {
+        color: var(--coral);
+        font-size: 42px;
+        line-height: 1;
+      }
+
+      .stat span {
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .visual-panel {
+        position: relative;
+        min-height: 420px;
+        overflow: hidden;
+        background: #111821;
+      }
+
+      .visual-panel svg {
+        width: 100%;
+        height: 100%;
+        min-height: 420px;
+      }
+
+      .caption {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .flow-list {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .flow-list li {
+        display: grid;
+        grid-template-columns: 38px 1fr;
+        gap: 12px;
+        align-items: start;
+      }
+
+      .num {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border-radius: 50%;
+        color: #fff;
+        background: var(--charcoal);
+        font-weight: 800;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 28px;
+        margin: 0 8px 8px 0;
+        padding: 4px 9px;
+        border-radius: 999px;
+        background: rgba(6, 168, 201, 0.12);
+        color: #075c6f;
+        font-size: 13px;
+        font-weight: 760;
+      }
+
+      .roadmap {
+        position: relative;
+        padding: 8px 0 0;
+      }
+
+      .roadmap::before {
+        content: "";
+        position: absolute;
+        top: 20px;
+        bottom: 20px;
+        left: 22px;
+        width: 2px;
+        background: linear-gradient(var(--cyan), var(--coral));
+      }
+
+      .milestone {
+        position: relative;
+        display: grid;
+        grid-template-columns: 46px 1fr;
+        gap: 14px;
+        margin-bottom: 20px;
+      }
+
+      .dot {
+        position: relative;
+        z-index: 1;
+        width: 46px;
+        height: 46px;
+        border: 2px solid var(--paper);
+        border-radius: 50%;
+        background: var(--cyan);
+        box-shadow: 0 0 0 6px rgba(6, 168, 201, 0.16);
+      }
+
+      .milestone:nth-child(even) .dot {
+        background: var(--coral);
+        box-shadow: 0 0 0 6px rgba(227, 91, 69, 0.16);
+      }
+
+      .milestone-body {
+        padding: 18px 20px;
+      }
+
+      .code {
+        overflow: auto;
+        margin: 0;
+        padding: 22px;
+        border-radius: 8px;
+        color: var(--code-fg);
+        background: var(--code-bg);
+        font-size: 14px;
+        line-height: 1.62;
+      }
+
+      .compare {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .compare th,
+      .compare td {
+        padding: 16px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .compare th {
+        background: #17202b;
+        color: #fff;
+      }
+
+      .hf-stage {
+        overflow: hidden;
+        color: #eaf7fb;
+        background:
+          radial-gradient(circle at 18% 28%, rgba(6, 168, 201, 0.24), transparent 28%),
+          radial-gradient(circle at 82% 72%, rgba(227, 91, 69, 0.2), transparent 30%),
+          #111821;
+      }
+
+      .hf-inner {
+        min-height: 440px;
+        padding: clamp(24px, 5vw, 54px);
+        display: grid;
+        grid-template-columns: 0.92fr 1.08fr;
+        gap: 34px;
+        align-items: center;
+      }
+
+      .hf-screen {
+        position: relative;
+        min-height: 320px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .hf-node {
+        position: absolute;
+        width: 160px;
+        padding: 13px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .hf-node small {
+        display: block;
+        margin-top: 4px;
+        color: rgba(234, 247, 251, 0.72);
+        font-weight: 600;
+      }
+
+      .n1 {
+        left: 8%;
+        top: 14%;
+      }
+
+      .n2 {
+        right: 9%;
+        top: 28%;
+        border-color: rgba(6, 168, 201, 0.64);
+      }
+
+      .n3 {
+        left: 30%;
+        bottom: 12%;
+        border-color: rgba(227, 91, 69, 0.58);
+      }
+
+      .hf-line {
+        position: absolute;
+        height: 2px;
+        background: linear-gradient(90deg, var(--cyan), var(--coral));
+        transform-origin: left center;
+        opacity: 0.9;
+      }
+
+      .l1 {
+        left: 34%;
+        top: 31%;
+        width: 34%;
+        transform: rotate(12deg);
+      }
+
+      .l2 {
+        left: 38%;
+        top: 58%;
+        width: 31%;
+        transform: rotate(-24deg);
+      }
+
+      .source-list {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition:
+          opacity 700ms ease,
+          transform 700ms ease;
+      }
+
+      .reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      footer {
+        padding: 34px 0;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.5);
+      }
+
+      @media (max-width: 860px) {
+        .hero {
+          min-height: 82vh;
+        }
+
+        .span-4,
+        .span-5,
+        .span-7,
+        .span-12 {
+          grid-column: 1 / -1;
+        }
+
+        .hf-inner {
+          grid-template-columns: 1fr;
+        }
+
+        .visual-panel,
+        .visual-panel svg {
+          min-height: 320px;
+        }
+
+        .compare {
+          display: block;
+          overflow-x: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <img src="assets/comfyui-docs-hero.png" alt="节点式 AI 图像工作流的技术插画" />
+      <div class="hero-inner">
+        <p class="kicker">ComfyUI 官方文档导读</p>
+        <h1>从第一张图到可编排的 AI 生成流水线</h1>
+        <p class="hero-subtitle">
+          ComfyUI 不只是一个“拖节点出图”的界面。官方文档真正有价值的地方，是把入门生成、工作流模板、Cloud、API、自定义节点和服务端扩展串成一条可持续迭代的路线。
+        </p>
+        <div class="hero-meta">
+          <span class="pill">基于 docs.comfy.org</span>
+          <span class="pill">中文技术博客</span>
+          <span class="pill">含 HyperFrames 风格动效</span>
+          <span class="pill">2026-06-22</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="toc">
+      <div class="wrap">
+        <nav aria-label="文章目录">
+          <a href="#map">文档地图</a>
+          <a href="#first-image">第一张图</a>
+          <a href="#workflow">工作流思维</a>
+          <a href="#api">API 与自动化</a>
+          <a href="#nodes">自定义节点</a>
+          <a href="#cloud">Cloud</a>
+          <a href="#hyperframes">HyperFrames</a>
+          <a href="#sources">来源</a>
+        </nav>
+      </div>
+    </div>
+
+    <main class="wrap">
+      <section id="map" class="reveal">
+        <div class="section-head">
+          <p class="eyebrow">01 / Map</p>
+          <h2>先把官方文档当成一张路线图</h2>
+          <p class="lead">
+            对新手来说，ComfyUI 文档最容易被低估的部分不是某个按钮说明，而是它把“本地创作工具”和“可自动化生成系统”放在同一套知识体系里。
+          </p>
+        </div>
+
+        <div class="grid">
+          <article class="card card-pad span-4 stat">
+            <strong>1</strong>
+            <div>
+              <h3>入门路径</h3>
+              <span>安装、首次生成、理解 Prompt、模型与基础节点。</span>
+            </div>
+          </article>
+          <article class="card card-pad span-4 stat">
+            <strong>2</strong>
+            <div>
+              <h3>创作路径</h3>
+              <span>界面布局、工作流模板、节点组合和可复用图谱。</span>
+            </div>
+          </article>
+          <article class="card card-pad span-4 stat">
+            <strong>3</strong>
+            <div>
+              <h3>工程路径</h3>
+              <span>API Nodes、Custom Nodes、服务端路由和云端执行。</span>
+            </div>
+          </article>
+
+          <div class="card visual-panel span-7" aria-label="ComfyUI 知识结构图">
+            <svg viewBox="0 0 760 420" role="img" aria-labelledby="map-title map-desc">
+              <title id="map-title">ComfyUI 文档结构图</title>
+              <desc id="map-desc">从入门生成流向工作流，再到 API、云端和自定义节点。</desc>
+              <defs>
+                <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="8" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              <rect width="760" height="420" fill="#111821" />
+              <path d="M138 118 C230 70 287 170 372 136 C486 90 525 148 622 118" stroke="#06a8c9" stroke-width="4" fill="none" opacity=".72" />
+              <path d="M142 302 C258 248 314 330 416 278 C508 231 560 310 634 264" stroke="#e35b45" stroke-width="4" fill="none" opacity=".72" />
+              <g filter="url(#glow)">
+                <rect x="64" y="72" width="172" height="92" rx="12" fill="#182532" stroke="#5ee7ff" />
+                <text x="92" y="112" fill="#eaf7fb" font-size="20" font-weight="800">First Image</text>
+                <text x="92" y="139" fill="#9fc4cf" font-size="13">prompt + model + queue</text>
+
+                <rect x="294" y="116" width="172" height="92" rx="12" fill="#182532" stroke="#f78c72" />
+                <text x="322" y="156" fill="#eaf7fb" font-size="20" font-weight="800">Workflow</text>
+                <text x="322" y="183" fill="#9fc4cf" font-size="13">nodes as reusable graph</text>
+
+                <rect x="524" y="70" width="172" height="92" rx="12" fill="#182532" stroke="#5ee7ff" />
+                <text x="552" y="110" fill="#eaf7fb" font-size="20" font-weight="800">API Nodes</text>
+                <text x="552" y="137" fill="#9fc4cf" font-size="13">external services</text>
+
+                <rect x="170" y="252" width="172" height="92" rx="12" fill="#182532" stroke="#f78c72" />
+                <text x="198" y="292" fill="#eaf7fb" font-size="20" font-weight="800">Cloud</text>
+                <text x="198" y="319" fill="#9fc4cf" font-size="13">remote compute path</text>
+
+                <rect x="426" y="236" width="172" height="92" rx="12" fill="#182532" stroke="#5ee7ff" />
+                <text x="454" y="276" fill="#eaf7fb" font-size="20" font-weight="800">Custom Nodes</text>
+                <text x="454" y="303" fill="#9fc4cf" font-size="13">extend the system</text>
+              </g>
+            </svg>
+          </div>
+
+          <article class="card card-pad span-5">
+            <h3>怎么读最省力？</h3>
+            <p>
+              先别急着翻全部节点。更高效的阅读顺序是：先跑通第一张图，再读界面概览，接着看工作流模板，最后进入 API、自定义节点和 Cloud 章节。
+            </p>
+            <p>
+              这样做的好处是，你会先拥有一个可以运行的“最小闭环”，后续每一页文档都能落回到真实工作流里验证。
+            </p>
+            <span class="tag">Getting Started</span>
+            <span class="tag">Interface</span>
+            <span class="tag">Templates</span>
+            <span class="tag">Development</span>
+          </article>
+        </div>
+      </section>
+
+      <section id="first-image" class="reveal">
+        <div class="section-head">
+          <p class="eyebrow">02 / First Image</p>
+          <h2>第一张图不是目标，是坐标系</h2>
+          <p class="lead">
+            官方的首次生成教程把关键概念压缩得很紧：加载模型、输入提示词、连接采样器、解码图像、把任务送入队列。它像一张“最小节点图”，告诉你 ComfyUI 的语法长什么样。
+          </p>
+        </div>
+
+        <div class="grid">
+          <article class="card card-pad span-5">
+            <ol class="flow-list">
+              <li>
+                <span class="num">1</span>
+                <div>
+                  <h3>模型决定生成空间</h3>
+                  <p>Checkpoint、VAE、CLIP 等节点不是“高级选项”，而是生成链路的入口。先理解数据从哪里来，后面调参才不会盲目。</p>
+                </div>
+              </li>
+              <li>
+                <span class="num">2</span>
+                <div>
+                  <h3>Prompt 是条件，不是咒语</h3>
+                  <p>正向与负向提示词通过条件节点进入采样流程。把它看成可组合的输入，比把它看成神秘短句更稳定。</p>
+                </div>
+              </li>
+              <li>
+                <span class="num">3</span>
+                <div>
+                  <h3>队列让实验可重复</h3>
+                  <p>Queue Prompt 不是简单的“生成按钮”。它把当前图谱提交为一次明确任务，是后来自动化和批处理的基础。</p>
+                </div>
+              </li>
+            </ol>
+          </article>
+
+          <div class="card visual-panel span-7">
+            <svg viewBox="0 0 760 420" role="img" aria-label="第一张图的节点链路示意图">
+              <rect width="760" height="420" fill="#111821" />
+              <g fill="none" stroke="#5ee7ff" stroke-width="3" opacity=".9">
+                <path d="M185 128 H312" />
+                <path d="M446 128 H575" />
+                <path d="M185 292 H312" />
+                <path d="M380 172 V248" />
+                <path d="M446 292 H575" />
+              </g>
+              <g font-family="Inter, system-ui" font-weight="800">
+                <rect x="56" y="86" width="132" height="84" rx="10" fill="#202d3c" stroke="#5ee7ff" />
+                <text x="84" y="134" fill="#fff" font-size="18">Model</text>
+
+                <rect x="304" y="86" width="148" height="84" rx="10" fill="#202d3c" stroke="#f78c72" />
+                <text x="342" y="123" fill="#fff" font-size="18">KSampler</text>
+                <text x="340" y="148" fill="#9fc4cf" font-size="12">steps / seed / cfg</text>
+
+                <rect x="572" y="86" width="132" height="84" rx="10" fill="#202d3c" stroke="#5ee7ff" />
+                <text x="604" y="134" fill="#fff" font-size="18">Decode</text>
+
+                <rect x="56" y="250" width="132" height="84" rx="10" fill="#202d3c" stroke="#f78c72" />
+                <text x="82" y="287" fill="#fff" font-size="18">Prompt</text>
+                <text x="85" y="312" fill="#9fc4cf" font-size="12">positive / negative</text>
+
+                <rect x="304" y="250" width="148" height="84" rx="10" fill="#202d3c" stroke="#5ee7ff" />
+                <text x="344" y="299" fill="#fff" font-size="18">Latent</text>
+
+                <rect x="572" y="250" width="132" height="84" rx="10" fill="#202d3c" stroke="#f78c72" />
+                <text x="596" y="287" fill="#fff" font-size="18">Preview</text>
+                <text x="605" y="312" fill="#9fc4cf" font-size="12">save image</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <section id="workflow" class="reveal">
+        <div class="section-head">
+          <p class="eyebrow">03 / Workflow</p>
+          <h2>ComfyUI 的核心能力，是把创作步骤变成图谱</h2>
+          <p class="lead">
+            节点图并不只是可视化界面。它也是一种“可解释、可复用、可迁移”的工作流格式：你能保存它、分享它、改造它，也能在自动化环境中提交它。
+          </p>
+        </div>
+
+        <div class="grid">
+          <article class="card card-pad span-4">
+            <h3>模板：少走弯路</h3>
+            <p>官方模板教程适合用来拆解常见任务，例如文生图、图生图、局部重绘、视频或高级模型链路。模板不是答案，而是学习节点组合的样本。</p>
+          </article>
+          <article class="card card-pad span-4">
+            <h3>界面：把调试显性化</h3>
+            <p>Interface Overview 解释了画布、菜单、队列、节点库和运行状态。熟悉这些区域，会明显降低排错成本。</p>
+          </article>
+          <article class="card card-pad span-4">
+            <h3>工作流：沉淀实验资产</h3>
+            <p>一次稳定的工作流，通常比一次惊艳的单图更有价值。它可以被参数化、复用、移植到团队流程里。</p>
+          </article>
+
+          <div class="card card-pad span-12">
+            <table class="compare">
+              <thead>
+                <tr>
+                  <th>阅读目标</th>
+                  <th>建议看的文档</th>
+                  <th>你应该验证什么</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>想快速出第一张图</td>
+                  <td>Getting Started / First Generation</td>
+                  <td>模型是否可加载，队列是否能跑完，输出是否能保存。</td>
+                </tr>
+                <tr>
+                  <td>想理解界面</td>
+                  <td>Interface Overview</td>
+                  <td>节点搜索、连接、队列、历史记录、预览和保存的位置。</td>
+                </tr>
+                <tr>
+                  <td>想复用复杂流程</td>
+                  <td>Templates / Tutorials</td>
+                  <td>模板里哪些节点是必需，哪些只是风格或质量增强。</td>
+                </tr>
+                <tr>
+                  <td>想接入业务系统</td>
+                  <td>API Nodes / Development Routes</td>
+                  <td>如何提交 prompt、查询历史、读取输出和处理 WebSocket 消息。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="api" class="reveal">
+        <div class="section-head">
+          <p class="eyebrow">04 / Automation</p>
+          <h2>当工作流稳定后，API 才真正有意义</h2>
+          <p class="lead">
+            官方文档里的 API Nodes 与服务端路由，把 ComfyUI 从一个桌面创作工具扩展成可集成系统。思路是：先把图谱调稳定，再把输入参数和输出读取自动化。
+          </p>
+        </div>
+
+        <div class="grid">
+          <article class="card card-pad span-5">
+            <h3>常见自动化链路</h3>
+            <div class="roadmap">
+              <div class="milestone">
+                <span class="dot"></span>
+                <div class="card milestone-body">
+                  <h3>准备 workflow JSON</h3>
+                  <p>把已验证的节点图保存为可提交的工作流数据。</p>
+                </div>
+              </div>
+              <div class="milestone">
+                <span class="dot"></span>
+                <div class="card milestone-body">
+                  <h3>替换业务参数</h3>
+                  <p>把 prompt、seed、尺寸、输入图等变量从外部系统注入。</p>
+                </div>
+              </div>
+              <div class="milestone">
+                <span class="dot"></span>
+                <div class="card milestone-body">
+                  <h3>提交任务并监听</h3>
+                  <p>调用服务端路由提交任务，通过历史记录或 WebSocket 获取进度。</p>
+                </div>
+              </div>
+              <div class="milestone">
+                <span class="dot"></span>
+                <div class="card milestone-body">
+                  <h3>读取输出资产</h3>
+                  <p>把生成图、预览图或中间结果回传到应用、素材库或审核流程。</p>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card card-pad span-7">
+            <h3>一个工程化伪代码</h3>
+            <pre class="code"><code>// 伪代码：结构参考官方服务端路由文档，字段以你的 workflow 为准
+const workflow = await loadWorkflow("portrait-workflow.json");
+
+workflow.nodes.prompt.text = form.prompt;
+workflow.nodes.seed.value = form.seed ?? randomSeed();
+workflow.nodes.size.width = form.width;
+workflow.nodes.size.height = form.height;
+
+const job = await comfy.queuePrompt(workflow);
+await comfy.waitForCompletion(job.prompt_id);
+
+const outputs = await comfy.getHistory(job.prompt_id);
+return comfy.resolveImages(outputs);</code></pre>
+            <p class="caption">
+              真实字段会随你的节点图变化；官方 Routes 文档用于确认服务端暴露的路由、队列和输出读取方式。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="nodes" class="reveal">
+        <div class="section-head">
+          <p class="eyebrow">05 / Extension</p>
+          <h2>Custom Nodes 是 ComfyUI 的生态接口</h2>
+          <p class="lead">
+            当你发现自己总在重复同一段预处理、调用同一个外部模型、或包装同一套业务规则时，自定义节点就比“手工接很多节点”更清晰。
+          </p>
+        </div>
+
+        <div class="grid">
+          <article class="card card-pad span-4">
+            <h3>什么时候需要自定义节点？</h3>
+            <p>重复逻辑、专有模型、外部 API、公司内部素材系统、审核/打标流程，都适合被封装成节点。</p>
+          </article>
+          <article class="card card-pad span-4">
+            <h3>什么时候不需要？</h3>
+            <p>如果只是一次性实验，先用现有节点拼出来。过早封装会让探索速度变慢。</p>
+          </article>
+          <article class="card card-pad span-4">
+            <h3>读文档时抓什么？</h3>
+            <p>看节点输入输出、类型声明、目录结构、安装方式和依赖管理。这些决定节点能否被别人稳定复用。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="cloud" class="reveal">
+        <div class="section-head">
+          <p class="eyebrow">06 / Cloud</p>
+          <h2>Cloud 不是替代本地，而是另一条执行路径</h2>
+          <p class="lead">
+            官方文档将 ComfyUI Cloud 与本地体验放在同一站点里，说明它更像是工作流执行方式的扩展：本地适合深度调试，云端适合算力弹性、分享与部署。
+          </p>
+        </div>
+
+        <div class="grid">
+          <article class="card card-pad span-5">
+            <h3>本地与云端的分工</h3>
+            <p>
+              本地 ComfyUI 适合安装模型、调节点、验证细节；Cloud 适合把稳定工作流搬到更强或更易共享的环境里运行。对团队来说，关键不是二选一，而是决定哪一步在哪里发生。
+            </p>
+            <span class="tag">Local debug</span>
+            <span class="tag">Cloud compute</span>
+            <span class="tag">Workflow sharing</span>
+          </article>
+          <div class="card visual-panel span-7">
+            <svg viewBox="0 0 760 420" role="img" aria-label="本地和云端执行路径对比">
+              <rect width="760" height="420" fill="#111821" />
+              <rect x="82" y="94" width="234" height="232" rx="18" fill="#1d2a38" stroke="#5ee7ff" />
+              <rect x="444" y="94" width="234" height="232" rx="18" fill="#1d2a38" stroke="#f78c72" />
+              <path d="M326 210 H434" stroke="#eaf7fb" stroke-width="4" stroke-dasharray="12 10" />
+              <text x="134" y="142" fill="#fff" font-size="26" font-weight="850">Local</text>
+              <text x="115" y="190" fill="#9fc4cf" font-size="16">模型调试</text>
+              <text x="115" y="222" fill="#9fc4cf" font-size="16">节点实验</text>
+              <text x="115" y="254" fill="#9fc4cf" font-size="16">工作流验证</text>
+              <text x="502" y="142" fill="#fff" font-size="26" font-weight="850">Cloud</text>
+              <text x="476" y="190" fill="#9fc4cf" font-size="16">弹性算力</text>
+              <text x="476" y="222" fill="#9fc4cf" font-size="16">远程运行</text>
+              <text x="476" y="254" fill="#9fc4cf" font-size="16">协作交付</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <section id="hyperframes" class="reveal">
+        <div class="section-head">
+          <p class="eyebrow">07 / HyperFrames Touch</p>
+          <h2>这篇博客里用了一个 HyperFrames 风格的“时间轴展示”</h2>
+          <p class="lead">
+            你提到希望用上之前装好的 HyperFrames，所以我把页面中的视觉叙事做成了“场景、节点、连线、时间轴”的动效结构。它不是完整视频渲染工程，但保留了 HyperFrames 常用的 HTML + GSAP + timeline 思路。
+          </p>
+        </div>
+
+        <div class="card hf-stage" data-composition-id="comfyui-docs-blog-stage" data-duration="8">
+          <div class="hf-inner">
+            <div>
+              <p class="eyebrow">Scene strip</p>
+              <h2>文档也可以像工作流一样被编排</h2>
+              <p>
+                阅读顺序、节点概念、API 路由和云端执行，被整理成一条从“会用”到“能集成”的路线。这个模块使用 GSAP 做入场动画；如果放进 HyperFrames 项目，也能进一步变成视频片段。
+              </p>
+            </div>
+            <div class="hf-screen" aria-label="HyperFrames 风格节点动效模块">
+              <span class="hf-line l1"></span>
+              <span class="hf-line l2"></span>
+              <div class="hf-node n1">Docs<small>official source</small></div>
+              <div class="hf-node n2">Workflow<small>node graph</small></div>
+              <div class="hf-node n3">Automation<small>API + Cloud</small></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="sources" class="reveal">
+        <div class="section-head">
+          <p class="eyebrow">Sources</p>
+          <h2>官方来源与延伸阅读</h2>
+          <p class="lead">
+            以下链接均指向 ComfyUI 官方文档站。部分深层页面在命令行抓取时偶发连接中断，但浏览器通常可直接访问。
+          </p>
+        </div>
+        <div class="card card-pad">
+          <ul class="source-list">
+            <li><a href="https://docs.comfy.org/" target="_blank" rel="noreferrer">ComfyUI Official Documentation</a></li>
+            <li><a href="https://docs.comfy.org/get_started/first_generation" target="_blank" rel="noreferrer">Getting Started with AI Image Generation</a></li>
+            <li><a href="https://docs.comfy.org/interface/overview" target="_blank" rel="noreferrer">ComfyUI Interface Overview</a></li>
+            <li><a href="https://docs.comfy.org/tutorials/templates/overview" target="_blank" rel="noreferrer">Workflow Templates</a></li>
+            <li><a href="https://docs.comfy.org/tutorials/api-nodes/overview" target="_blank" rel="noreferrer">API Nodes</a></li>
+            <li><a href="https://docs.comfy.org/custom-nodes/overview" target="_blank" rel="noreferrer">Custom Nodes Overview</a></li>
+            <li><a href="https://docs.comfy.org/development/comfyui-server/comms_routes" target="_blank" rel="noreferrer">ComfyUI Server Routes</a></li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        生成文件：<strong>comfyui-docs-blog.html</strong>。主视觉为本地生成图片，内容整理自 ComfyUI 官方文档。
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script>
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-visible");
+              observer.unobserve(entry.target);
+            }
+          }
+        },
+        { threshold: 0.14 },
+      );
+
+      document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+
+      if (window.gsap) {
+        gsap.from(".hero .kicker, .hero h1, .hero-subtitle, .hero-meta", {
+          y: 34,
+          opacity: 0,
+          duration: 0.8,
+          ease: "power3.out",
+          stagger: 0.12,
+        });
+
+        const stage = document.querySelector(".hf-stage");
+        const runStage = () => {
+          gsap.from(".hf-node", {
+            y: 28,
+            scale: 0.94,
+            opacity: 0,
+            duration: 0.7,
+            ease: "back.out(1.5)",
+            stagger: 0.14,
+          });
+          gsap.from(".hf-line", {
+            scaleX: 0,
+            opacity: 0,
+            duration: 0.8,
+            ease: "power2.out",
+            stagger: 0.18,
+            delay: 0.22,
+          });
+        };
+        const stageObserver = new IntersectionObserver(
+          ([entry]) => {
+            if (entry.isIntersecting) {
+              runStage();
+              stageObserver.disconnect();
+            }
+          },
+          { threshold: 0.35 },
+        );
+        if (stage) stageObserver.observe(stage);
+      }
+    </script>
+  </body>
+</html>

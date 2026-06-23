@@ -1,0 +1,916 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HyperFrames 是什么？HTML 生成视频框架科普</title>
+    <meta
+      name="description"
+      content="一篇图文并茂的中文科普文章，介绍 heygen-com/hyperframes 的定位、工作原理、技术栈、适用场景以及和 Remotion 的区别。"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #151515;
+        --muted: #616161;
+        --paper: #f7f5ef;
+        --surface: #ffffff;
+        --soft: #ece8dd;
+        --line: #d9d4c8;
+        --blue: #155eef;
+        --cyan: #0e7490;
+        --green: #177245;
+        --amber: #a15c07;
+        --rose: #b42318;
+        --code: #101828;
+        --code-bg: #f3f5f7;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.72;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      a {
+        color: var(--blue);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 3px;
+      }
+
+      .hero {
+        position: relative;
+        min-height: 86vh;
+        display: grid;
+        align-items: end;
+        overflow: hidden;
+        background: #0b0f14;
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(180deg, rgba(4, 8, 12, 0.18), rgba(4, 8, 12, 0.88)),
+          url("https://static.heygen.ai/hyperframes-oss/docs/images/hyperframes-logo-motion-1280.webp");
+        background-size: cover;
+        background-position: center;
+      }
+
+      .hero-inner {
+        position: relative;
+        width: min(1120px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 88px 0 72px;
+        color: #fff;
+      }
+
+      .kicker {
+        margin: 0 0 18px;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0;
+        color: #b8f0ff;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.16;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        max-width: 820px;
+        margin: 0;
+        font-size: 56px;
+        font-weight: 760;
+      }
+
+      h2 {
+        margin: 0 0 20px;
+        font-size: 34px;
+      }
+
+      h3 {
+        margin: 0 0 10px;
+        font-size: 19px;
+      }
+
+      .hero-subtitle {
+        max-width: 780px;
+        margin: 24px 0 0;
+        font-size: 20px;
+        color: rgba(255, 255, 255, 0.84);
+      }
+
+      .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 30px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        padding: 6px 12px;
+        border: 1px solid rgba(255, 255, 255, 0.26);
+        border-radius: 999px;
+        color: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 14px;
+      }
+
+      main {
+        width: min(1120px, calc(100% - 40px));
+        margin: 0 auto;
+      }
+
+      section {
+        padding: 72px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .lead {
+        max-width: 840px;
+        font-size: 22px;
+        color: #303030;
+      }
+
+      .grid {
+        display: grid;
+        gap: 18px;
+      }
+
+      .grid.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card {
+        min-height: 100%;
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .stat {
+        font-size: 32px;
+        font-weight: 760;
+        line-height: 1;
+      }
+
+      .stat-label {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .callout {
+        margin: 28px 0;
+        padding: 22px 24px;
+        border-left: 5px solid var(--cyan);
+        background: #edf8fb;
+      }
+
+      .callout strong {
+        color: #0a566a;
+      }
+
+      .figure {
+        margin: 28px 0;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .figure img {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+      }
+
+      .caption {
+        margin: 0;
+        padding: 12px 16px;
+        color: var(--muted);
+        font-size: 14px;
+        border-top: 1px solid var(--line);
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 28px;
+      }
+
+      .step {
+        position: relative;
+        min-height: 142px;
+        padding: 18px 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .step:not(:last-child)::after {
+        content: ">";
+        position: absolute;
+        right: -12px;
+        top: 50%;
+        width: 20px;
+        height: 20px;
+        transform: translateY(-50%);
+        color: var(--cyan);
+        font-weight: 800;
+        text-align: center;
+        background: var(--paper);
+      }
+
+      .step-num {
+        display: inline-grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        margin-bottom: 12px;
+        border-radius: 999px;
+        color: #fff;
+        background: var(--cyan);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .step p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      .code-window {
+        margin: 28px 0;
+        overflow: hidden;
+        border: 1px solid #cfd5dc;
+        border-radius: 8px;
+        background: var(--code-bg);
+      }
+
+      .code-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 10px 14px;
+        border-bottom: 1px solid #d9dee5;
+        color: #475467;
+        font-size: 13px;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: #d92d20;
+      }
+
+      .dot:nth-child(2) {
+        background: #f79009;
+      }
+
+      .dot:nth-child(3) {
+        background: #12b76a;
+        margin-right: 8px;
+      }
+
+      pre {
+        margin: 0;
+        padding: 18px;
+        overflow-x: auto;
+        color: var(--code);
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      code {
+        font-family:
+          "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      }
+
+      .tag {
+        color: #b45309;
+      }
+
+      .attr {
+        color: #155eef;
+      }
+
+      .str {
+        color: #087443;
+      }
+
+      .comment {
+        color: #667085;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 24px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      th,
+      td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #f0eee8;
+        font-size: 14px;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .badge.blue {
+        color: var(--blue);
+        background: #e8efff;
+      }
+
+      .badge.green {
+        color: var(--green);
+        background: #e7f6ee;
+      }
+
+      .badge.amber {
+        color: var(--amber);
+        background: #fff2dd;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: 0.95fr 1.05fr;
+        gap: 34px;
+        align-items: center;
+      }
+
+      .mini-timeline {
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .track {
+        display: grid;
+        grid-template-columns: 88px 1fr;
+        gap: 12px;
+        align-items: center;
+        margin: 14px 0;
+      }
+
+      .track-name {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .bar-line {
+        position: relative;
+        height: 24px;
+        border-radius: 999px;
+        background: #f0eee8;
+        overflow: hidden;
+      }
+
+      .bar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        border-radius: 999px;
+      }
+
+      .bar.video {
+        left: 0;
+        width: 100%;
+        background: #b8e7f2;
+      }
+
+      .bar.title {
+        left: 17%;
+        width: 66%;
+        background: #c7d7ff;
+      }
+
+      .bar.audio {
+        left: 0;
+        width: 100%;
+        background: #cdebdc;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .legend span::before {
+        content: "";
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin-right: 6px;
+        border-radius: 999px;
+        vertical-align: -1px;
+      }
+
+      .legend .v::before {
+        background: #8fd6e7;
+      }
+
+      .legend .t::before {
+        background: #9bb8ff;
+      }
+
+      .legend .a::before {
+        background: #9ed8b9;
+      }
+
+      .source-list {
+        padding-left: 20px;
+      }
+
+      .source-list li {
+        margin: 8px 0;
+      }
+
+      footer {
+        width: min(1120px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 34px 0 56px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      @media (max-width: 900px) {
+        h1 {
+          font-size: 40px;
+        }
+
+        .hero {
+          min-height: 78vh;
+        }
+
+        .grid.two,
+        .grid.three,
+        .split,
+        .flow {
+          grid-template-columns: 1fr;
+        }
+
+        .step:not(:last-child)::after {
+          display: none;
+        }
+      }
+
+      @media (max-width: 560px) {
+        h1 {
+          font-size: 32px;
+        }
+
+        h2 {
+          font-size: 28px;
+        }
+
+        .hero-inner,
+        main,
+        footer {
+          width: min(100% - 28px, 1120px);
+        }
+
+        section {
+          padding: 50px 0;
+        }
+
+        .lead,
+        .hero-subtitle {
+          font-size: 18px;
+        }
+
+        th,
+        td {
+          padding: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero-inner">
+        <p class="kicker">heygen-com/hyperframes 项目科普</p>
+        <h1>HyperFrames：把 HTML 写成视频的开源渲染框架</h1>
+        <p class="hero-subtitle">
+          它不是普通 Web 框架，而是一套围绕 HTML、CSS、媒体、动画和逐帧渲染构建的视频生产工具链。
+          你写网页式的 composition，它负责预览、seek、捕获、编码，最后输出 MP4。
+        </p>
+        <div class="hero-meta" aria-label="项目摘要">
+          <span class="pill">TypeScript monorepo</span>
+          <span class="pill">Node.js 22+</span>
+          <span class="pill">Chrome + FFmpeg</span>
+          <span class="pill">Apache-2.0</span>
+          <span class="pill">Built for agents</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <h2>先说结论</h2>
+        <p class="lead">
+          HyperFrames 可以理解为“视频领域的 HTML 渲染管线”。它让开发者或 AI agent 用普通
+          HTML 描述一个视频画面，用 <code>data-start</code>、<code>data-duration</code>、
+          <code>data-track-index</code> 这类属性描述时间轴，再由渲染器逐帧捕获网页状态并编码成视频。
+        </p>
+        <div class="grid three">
+          <article class="card">
+            <h3>不是传统前端框架</h3>
+            <p>
+              它不替代 React/Vue，也不主要用来做网站业务逻辑。它的目标是把浏览器当作视频画布。
+            </p>
+          </article>
+          <article class="card">
+            <h3>也不是普通录屏工具</h3>
+            <p>
+              录屏依赖真实时间流逝；HyperFrames 的关键是把每一帧 seek 到确定状态后再捕获。
+            </p>
+          </article>
+          <article class="card">
+            <h3>特别适合 AI 生成</h3>
+            <p>
+              大模型很擅长写 HTML/CSS/JS，这让 agent 能直接生成、修改、预览和渲染视频。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="split">
+          <div>
+            <h2>为什么“HTML 生成视频”有意义？</h2>
+            <p>
+              传统剪辑软件适合人手工操作，但很难被 CI、脚本或 AI agent 稳定驱动。代码生成视频工具虽然可自动化，
+              但如果创作模型过重，AI 会把大量精力花在项目结构、框架约束和构建流程上。
+            </p>
+            <p>
+              HyperFrames 的选择是：让视频的源文件尽量接近网页。文字、图片、视频、音频、CSS、Canvas、
+              WebGL、GSAP、Lottie、Three.js 都已经是浏览器熟悉的东西。它把这些能力收束到一个可渲染的视频时间轴里。
+            </p>
+          </div>
+          <div class="mini-timeline" aria-label="HTML 时间轴示意图">
+            <h3>一个 6 秒 composition 的时间轴</h3>
+            <div class="track">
+              <span class="track-name">Track 0</span>
+              <div class="bar-line"><span class="bar video"></span></div>
+            </div>
+            <div class="track">
+              <span class="track-name">Track 1</span>
+              <div class="bar-line"><span class="bar title"></span></div>
+            </div>
+            <div class="track">
+              <span class="track-name">Track 2</span>
+              <div class="bar-line"><span class="bar audio"></span></div>
+            </div>
+            <div class="legend">
+              <span class="v">背景视频 0-6s</span>
+              <span class="t">标题 1-5s</span>
+              <span class="a">音乐 0-6s</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-window">
+          <div class="code-title">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            index.html
+          </div>
+          <pre><code><span class="tag">&lt;div</span> <span class="attr">data-composition-id</span>=<span class="str">"launch"</span> <span class="attr">data-width</span>=<span class="str">"1920"</span> <span class="attr">data-height</span>=<span class="str">"1080"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;video</span>
+    <span class="attr">data-start</span>=<span class="str">"0"</span>
+    <span class="attr">data-duration</span>=<span class="str">"6"</span>
+    <span class="attr">data-track-index</span>=<span class="str">"0"</span>
+    <span class="attr">src</span>=<span class="str">"intro.mp4"</span><span class="tag">&gt;&lt;/video&gt;</span>
+
+  <span class="tag">&lt;h1</span> <span class="attr">class</span>=<span class="str">"clip"</span> <span class="attr">data-start</span>=<span class="str">"1"</span> <span class="attr">data-duration</span>=<span class="str">"4"</span> <span class="attr">data-track-index</span>=<span class="str">"1"</span><span class="tag">&gt;</span>
+    Launch day
+  <span class="tag">&lt;/h1&gt;</span>
+
+  <span class="tag">&lt;audio</span> <span class="attr">data-start</span>=<span class="str">"0"</span> <span class="attr">data-duration</span>=<span class="str">"6"</span> <span class="attr">data-track-index</span>=<span class="str">"2"</span> <span class="attr">src</span>=<span class="str">"music.wav"</span><span class="tag">&gt;&lt;/audio&gt;</span>
+<span class="tag">&lt;/div&gt;</span></code></pre>
+        </div>
+      </section>
+
+      <section>
+        <h2>它的核心流程</h2>
+        <p>
+          HyperFrames 最重要的设计不是“能把网页录成视频”，而是“能把网页 seek 到某一帧应该有的状态”。
+          这让它可以做确定性渲染、回归测试和批量生产。
+        </p>
+        <div class="flow" aria-label="HyperFrames 渲染流程">
+          <article class="step">
+            <span class="step-num">1</span>
+            <h3>写 HTML</h3>
+            <p>用 composition、clip 和 data 属性定义画面、时间和轨道。</p>
+          </article>
+          <article class="step">
+            <span class="step-num">2</span>
+            <h3>浏览器预览</h3>
+            <p>通过 CLI 或 Studio 热更新预览，编辑 HTML 就能看到效果。</p>
+          </article>
+          <article class="step">
+            <span class="step-num">3</span>
+            <h3>逐帧 seek</h3>
+            <p>根据 fps 计算每一帧时间，驱动动画和媒体到准确状态。</p>
+          </article>
+          <article class="step">
+            <span class="step-num">4</span>
+            <h3>Chrome 捕获</h3>
+            <p>在 headless Chrome 中捕获当前帧像素，而不是依赖实时播放。</p>
+          </article>
+          <article class="step">
+            <span class="step-num">5</span>
+            <h3>FFmpeg 编码</h3>
+            <p>把帧序列和音频轨混合，输出 MP4、WebM 或 MOV。</p>
+          </article>
+        </div>
+        <div class="callout">
+          <strong>关键点：</strong>
+          只要动画、随机数、网络资源和字体环境都可控，同一份输入就能稳定生成同一份视频。
+          严肃生产环境通常会用 Docker 固定 Chrome、字体和 FFmpeg 版本。
+        </div>
+      </section>
+
+      <section>
+        <h2>它由哪些部分组成？</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>模块</th>
+              <th>作用</th>
+              <th>一句话理解</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>hyperframes</code> / CLI</td>
+              <td>初始化、预览、lint、截图、渲染、本地转写等</td>
+              <td><span class="badge blue">入口工具</span></td>
+            </tr>
+            <tr>
+              <td><code>@hyperframes/core</code></td>
+              <td>类型、HTML 解析、runtime、linter、frame adapter</td>
+              <td><span class="badge green">规则层</span></td>
+            </tr>
+            <tr>
+              <td><code>@hyperframes/engine</code></td>
+              <td>用 Puppeteer / Chrome / FFmpeg 做页面到视频捕获</td>
+              <td><span class="badge amber">捕获引擎</span></td>
+            </tr>
+            <tr>
+              <td><code>@hyperframes/producer</code></td>
+              <td>完整渲染流水线：capture、encode、audio mix</td>
+              <td><span class="badge amber">生产管线</span></td>
+            </tr>
+            <tr>
+              <td><code>@hyperframes/studio</code></td>
+              <td>浏览器里的 composition 编辑与预览界面</td>
+              <td><span class="badge blue">人类界面</span></td>
+            </tr>
+            <tr>
+              <td><code>@hyperframes/player</code></td>
+              <td>可嵌入网页的 <code>&lt;hyperframes-player&gt;</code> 组件</td>
+              <td><span class="badge green">播放组件</span></td>
+            </tr>
+            <tr>
+              <td>AWS Lambda / GCP Cloud Run</td>
+              <td>云端分布式渲染和批量任务</td>
+              <td><span class="badge amber">规模化渲染</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>适合什么场景？</h2>
+        <div class="grid three">
+          <article class="card">
+            <div class="stat">01</div>
+            <h3>产品发布视频</h3>
+            <p>把页面、功能截图、动效、旁白和字幕组合成短视频。</p>
+          </article>
+          <article class="card">
+            <div class="stat">02</div>
+            <h3>PR walkthrough</h3>
+            <p>用代码 diff、旁白和字幕自动生成变更讲解视频。</p>
+          </article>
+          <article class="card">
+            <div class="stat">03</div>
+            <h3>数据可视化</h3>
+            <p>做图表 race、地图动画、指标看板和动态报告。</p>
+          </article>
+          <article class="card">
+            <div class="stat">04</div>
+            <h3>网站转视频</h3>
+            <p>抓取网页视觉资产，把页面转成品牌介绍或功能演示。</p>
+          </article>
+          <article class="card">
+            <div class="stat">05</div>
+            <h3>批量模板渲染</h3>
+            <p>用变量生成不同人名、品牌色、图片和文案的视频。</p>
+          </article>
+          <article class="card">
+            <div class="stat">06</div>
+            <h3>AI agent 视频生成</h3>
+            <p>让 agent 从脚本、PDF、CSV、网页或仓库自动生成视频。</p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>和 Remotion 的区别</h2>
+        <p>
+          两者都证明了“浏览器可以作为视频渲染器”。真正的分歧在创作模型：
+          Remotion 把视频写成 React 组件；HyperFrames 把视频写成 HTML 页面。
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>对比项</th>
+              <th>HyperFrames</th>
+              <th>Remotion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>创作模型</td>
+              <td>HTML + CSS + seekable animation</td>
+              <td>React / TSX components</td>
+            </tr>
+            <tr>
+              <td>构建步骤</td>
+              <td>可无构建，<code>index.html</code> 直接预览</td>
+              <td>通常需要 bundler 和 React 项目</td>
+            </tr>
+            <tr>
+              <td>AI agent 友好度</td>
+              <td>高，LLM 直接写网页式代码</td>
+              <td>需要理解 Remotion + React 约束</td>
+            </tr>
+            <tr>
+              <td>动画库</td>
+              <td>通过 adapter 把 GSAP、Lottie、Three.js 等 seek 到指定帧</td>
+              <td>React 每帧渲染为主，第三方动画时钟需要额外处理</td>
+            </tr>
+            <tr>
+              <td>优势场景</td>
+              <td>网页转视频、AI 生成、模板批量化、可视编辑</td>
+              <td>React 团队、类型化组件体系、成熟云渲染生态</td>
+            </tr>
+            <tr>
+              <td>许可证</td>
+              <td>Apache-2.0</td>
+              <td>Remotion License，商业场景需看当前条款</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>为什么它强调“确定性”？</h2>
+        <p>
+          自动化视频生产最怕“今天渲出来 A，明天同样输入渲出来 B”。HyperFrames 试图把视频生成变成
+          CI 里可以测试、可以回归、可以批量复现的过程。
+        </p>
+        <div class="grid two">
+          <article class="card">
+            <h3>会破坏确定性的东西</h3>
+            <p>
+              <code>Date.now()</code>、未设种子的随机数、渲染时网络请求、系统字体差异、真实时间驱动的动画循环，
+              都可能导致每次输出不同。
+            </p>
+          </article>
+          <article class="card">
+            <h3>它的解决方式</h3>
+            <p>
+              通过 frame clock、adapter seek、readiness gate、固定 fps 和固定画布尺寸，让页面状态由帧号决定。
+            </p>
+          </article>
+        </div>
+        <div class="figure">
+          <img
+            src="https://static.heygen.ai/hyperframes-oss/docs/images/design-templates/blockframe.png"
+            alt="HyperFrames design template preview"
+          />
+          <p class="caption">
+            HyperFrames 生态还包含可复用设计模板、catalog blocks 和 studio/editor 方向的工具。
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>成熟度与风险</h2>
+        <div class="grid two">
+          <article class="card">
+            <h3>值得关注的优点</h3>
+            <p>
+              项目定位清晰，文档完整，包拆分合理，已经覆盖本地 CLI、Studio、Player、AWS Lambda、GCP Cloud Run、
+              registry、agent skills 等生产链路。
+            </p>
+          </article>
+          <article class="card">
+            <h3>需要保守评估的地方</h3>
+            <p>
+              项目仍然很新，部分 API 还标注实验状态。真实生产中要重点验证字体一致性、渲染速度、云端成本、
+              动画 adapter 覆盖度和团队对 HTML 作为视频源文件的接受度。
+            </p>
+          </article>
+        </div>
+        <div class="callout">
+          <strong>我的判断：</strong>
+          如果你要做 AI 自动生成视频、网页转视频、批量模板视频，它很值得试；如果你的视频系统已经深度绑定
+          React 组件和 Remotion 生态，迁移价值需要具体算账。
+        </div>
+      </section>
+
+      <section>
+        <h2>一句话带走</h2>
+        <p class="lead">
+          HyperFrames 是一个用 HTML/CSS/JS 定义视频、用 Chrome 逐帧渲染、用 FFmpeg 输出文件的开源视频生成框架。
+          它的真正野心，是把“视频创作”变成 AI agent 和自动化系统都能稳定执行的工程流程。
+        </p>
+      </section>
+
+      <section>
+        <h2>资料来源</h2>
+        <ul class="source-list">
+          <li><a href="https://github.com/heygen-com/hyperframes">GitHub: heygen-com/hyperframes</a></li>
+          <li><a href="https://hyperframes.heygen.com/introduction">HyperFrames Introduction</a></li>
+          <li><a href="https://hyperframes.heygen.com/quickstart">Quickstart</a></li>
+          <li><a href="https://hyperframes.heygen.com/concepts/determinism">Deterministic Rendering</a></li>
+          <li><a href="https://hyperframes.heygen.com/concepts/frame-adapters">Frame Adapters</a></li>
+          <li><a href="https://hyperframes.heygen.com/guides/hyperframes-vs-remotion">HyperFrames vs Remotion</a></li>
+          <li><a href="https://www.npmjs.com/package/hyperframes">npm: hyperframes</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        本文档基于 2026-06-22 对公开仓库、官方文档和 npm 包信息的阅读整理。图片来自 HyperFrames 官方公开文档资源。
+      </p>
+    </footer>
+  </body>
+</html>

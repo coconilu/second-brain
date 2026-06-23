@@ -47,6 +47,8 @@
 
 ## AI 工具生态
 
+- [ComfyUI 官方文档导读：从第一张图到自动化工作流](comfyui-docs-blog/) `HTML`{target="_self"} — 基于 ComfyUI 官方文档梳理入门生成、界面、工作流模板、API、Cloud 与 Custom Nodes。
+- [HyperFrames 是什么？HTML 生成视频框架科普](hyperframes-explainer/) `HTML`{target="_self"} — 介绍用 HTML/CSS/JS 定义视频、Chrome 逐帧渲染、FFmpeg 输出文件的开源视频生成框架。
 - [Claude Cowork:把 Claude Code 的 Agent 能力搬进桌面](claude-cowork-blog/) `HTML`{target="_self"} — 介绍 Claude Cowork 如何把 Claude Code 的 Agent 协作能力迁移到桌面工作流。
 - [读懂大模型榜单：一张能力地图的使用说明](llm-leaderboard-guide/) `HTML`{target="_self"} — 从评测维度和能力地图角度解读大模型榜单的正确使用方式。
 - [大模型术语图鉴](llm-glossary/) `HTML`{target="_self"} — 以可检索图鉴形式解释大模型基础术语、训练推理概念和工程实践关键词。
@@ -95,6 +97,8 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
+- [ComfyUI 官方文档导读：从第一张图到自动化工作流](comfyui-docs-blog/) `HTML`{target="_self"}
+- [HyperFrames 是什么？HTML 生成视频框架科普](hyperframes-explainer/) `HTML`{target="_self"}
 - [Flue 技术解读：把大模型装进 Agent Harness](flue-agent-harness/) `HTML`{target="_self"}
 - [从 Prompt 工程到 Agent Loop：Agent 工程范式的六层演进](agent-loop-engineering/) `HTML`{target="_self"}
 - [AI 工程师的核心竞争力：从抽卡到可验证交付](ai-engineer-methodology/) `HTML`{target="_self"}

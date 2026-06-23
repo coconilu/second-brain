@@ -4,6 +4,8 @@
 
 ## 2026-06
 
+- [ComfyUI 官方文档导读：从第一张图到自动化工作流](comfyui-docs-blog/) `HTML`{target="_self"}
+- [HyperFrames 是什么？HTML 生成视频框架科普](hyperframes-explainer/) `HTML`{target="_self"}
 - [Flue 技术解读：把大模型装进 Agent Harness](flue-agent-harness/) `HTML`{target="_self"}
 - [从 Prompt 工程到 Agent Loop：Agent 工程范式的六层演进](agent-loop-engineering/) `HTML`{target="_self"}
 - [AI 工程师的核心竞争力：从抽卡到可验证交付](ai-engineer-methodology/) `HTML`{target="_self"}
