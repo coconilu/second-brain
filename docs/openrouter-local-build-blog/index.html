@@ -1,0 +1,1057 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>我们真的需要自己搭一个 OpenRouter 吗？</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f7f8;
+      --paper: #ffffff;
+      --ink: #16202a;
+      --muted: #667085;
+      --line: #d7e0e7;
+      --teal: #0f766e;
+      --teal-dark: #0b4f4a;
+      --teal-soft: #e4f4f1;
+      --amber: #b45309;
+      --amber-soft: #fff5df;
+      --blue: #2563eb;
+      --blue-soft: #eaf1ff;
+      --rose: #be123c;
+      --rose-soft: #fff1f2;
+      --slate: #243241;
+      --code-bg: #101820;
+      --code-ink: #edf4f7;
+      --shadow: 0 24px 70px rgba(22, 32, 42, 0.11);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(180deg, #edf6f4 0, #f4f7f8 360px),
+        var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      line-height: 1.72;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    a {
+      color: var(--teal);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+
+    p {
+      margin: 0 0 16px;
+    }
+
+    ul,
+    ol {
+      margin: 0 0 18px;
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    code,
+    pre {
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    }
+
+    :not(pre) > code {
+      background: #eef3f6;
+      border: 1px solid #d9e4ea;
+      border-radius: 5px;
+      color: #263746;
+      font-size: 0.94em;
+      padding: 1px 5px;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 36px 20px 72px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(420px, 1.08fr);
+      gap: 30px;
+      align-items: stretch;
+      margin-bottom: 30px;
+    }
+
+    .hero-copy {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 34px;
+      min-height: 520px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      border: 1px solid #b7ded8;
+      border-radius: 999px;
+      background: var(--teal-soft);
+      color: var(--teal-dark);
+      font-size: 13px;
+      font-weight: 750;
+      letter-spacing: 0;
+      padding: 5px 12px;
+      margin-bottom: 18px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.24;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: 42px;
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      font-size: 28px;
+      margin: 54px 0 18px;
+    }
+
+    h3 {
+      font-size: 20px;
+      margin: 0 0 10px;
+    }
+
+    .lead {
+      color: #4f5f6f;
+      font-size: 18px;
+      margin-bottom: 22px;
+    }
+
+    .hero-points {
+      display: grid;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .hero-point {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: start;
+      color: #344150;
+      font-size: 15px;
+    }
+
+    .hero-point span {
+      display: inline-grid;
+      place-items: center;
+      height: 34px;
+      width: 34px;
+      border-radius: 50%;
+      background: #f1f6f5;
+      border: 1px solid #cbdedc;
+      color: var(--teal-dark);
+      font-weight: 800;
+    }
+
+    .hero-visual {
+      min-height: 520px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(18, 32, 42, 0.12);
+      background: #dfe8e8;
+    }
+
+    .hero-visual img {
+      width: 100%;
+      height: 100%;
+      min-height: 520px;
+      object-fit: cover;
+    }
+
+    .hero-caption {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 18px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.62);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      color: #334155;
+      font-size: 14px;
+      backdrop-filter: blur(12px);
+    }
+
+    .article-shell {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 18px 45px rgba(22, 32, 42, 0.07);
+      padding: 42px;
+    }
+
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 0 0 34px;
+    }
+
+    .toc a {
+      display: block;
+      min-height: 72px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--ink);
+      background: #f8fbfc;
+      padding: 12px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .toc strong {
+      display: block;
+      color: var(--teal-dark);
+      margin-bottom: 2px;
+      font-size: 13px;
+    }
+
+    .takeaway {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 18px;
+      align-items: center;
+      border: 1px solid #b8ddd7;
+      background: var(--teal-soft);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin: 16px 0 34px;
+    }
+
+    .takeaway-mark {
+      border-radius: var(--radius);
+      background: #0f766e;
+      color: white;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .takeaway-mark strong {
+      display: block;
+      font-size: 30px;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .takeaway-mark span {
+      font-size: 13px;
+      opacity: 0.88;
+    }
+
+    .section-kicker {
+      color: var(--teal-dark);
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 0.82fr);
+      gap: 24px;
+      align-items: start;
+      margin: 18px 0 8px;
+    }
+
+    .info-panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      background: #f8fbfc;
+    }
+
+    .info-panel h3 {
+      margin-bottom: 12px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: white;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.15;
+      color: var(--teal-dark);
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 3px;
+    }
+
+    .gateway-map {
+      position: relative;
+      border: 1px solid #cbd7df;
+      border-radius: var(--radius);
+      background: #f7fafb;
+      padding: 24px;
+      overflow: hidden;
+      min-height: 360px;
+    }
+
+    .gateway-map::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(#e2edf1 1px, transparent 1px),
+        linear-gradient(90deg, #e2edf1 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: 0.56;
+    }
+
+    .map-stack {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1.1fr 1fr;
+      gap: 18px;
+      align-items: center;
+      min-height: 310px;
+    }
+
+    .map-column {
+      display: grid;
+      gap: 12px;
+    }
+
+    .map-node {
+      border: 1px solid #ccd8df;
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.94);
+      padding: 12px;
+      box-shadow: 0 12px 28px rgba(22, 32, 42, 0.06);
+    }
+
+    .map-node strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 3px;
+    }
+
+    .map-node span {
+      color: var(--muted);
+      display: block;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .gateway-core {
+      color: white;
+      border: 0;
+      background: linear-gradient(135deg, #0b4f4a, #11877e 58%, #c47a19);
+      padding: 22px;
+      text-align: center;
+      box-shadow: 0 22px 46px rgba(15, 118, 110, 0.24);
+    }
+
+    .gateway-core strong {
+      font-size: 22px;
+      margin-bottom: 7px;
+    }
+
+    .gateway-core span {
+      color: rgba(255, 255, 255, 0.86);
+    }
+
+    .flow-lines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .flow-lines path {
+      fill: none;
+      stroke: #0f766e;
+      stroke-width: 2.2;
+      stroke-dasharray: 6 7;
+      opacity: 0.55;
+    }
+
+    .flow-lines path:nth-child(2),
+    .flow-lines path:nth-child(5) {
+      stroke: #c47a19;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin: 20px 0 28px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      padding: 18px;
+      min-height: 220px;
+      box-shadow: 0 12px 30px rgba(22, 32, 42, 0.05);
+    }
+
+    .card-accent {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      margin-bottom: 14px;
+      color: white;
+      font-weight: 850;
+    }
+
+    .card:nth-child(1) .card-accent {
+      background: var(--teal);
+    }
+
+    .card:nth-child(2) .card-accent {
+      background: var(--blue);
+    }
+
+    .card:nth-child(3) .card-accent {
+      background: var(--amber);
+    }
+
+    .card p {
+      color: #4d5b6a;
+      font-size: 15px;
+      margin-bottom: 0;
+    }
+
+    .compare {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin: 20px 0 26px;
+    }
+
+    .compare-box {
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      padding: 20px;
+    }
+
+    .compare-box.no {
+      background: var(--rose-soft);
+      border-color: #fecdd3;
+    }
+
+    .compare-box.yes {
+      background: var(--blue-soft);
+      border-color: #c8d8ff;
+    }
+
+    .compare-box h3 {
+      margin-bottom: 12px;
+    }
+
+    .solution-row {
+      display: grid;
+      grid-template-columns: 170px 1fr 1fr;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 18px 0 28px;
+    }
+
+    .solution-row > div {
+      padding: 18px;
+      border-right: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .solution-row > div:last-child {
+      border-right: 0;
+    }
+
+    .solution-title {
+      background: #f1f8f7 !important;
+    }
+
+    .solution-title strong {
+      display: block;
+      color: var(--teal-dark);
+      font-size: 18px;
+      margin-bottom: 5px;
+    }
+
+    .solution-title span,
+    .solution-row p {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .code {
+      background: var(--code-bg);
+      color: var(--code-ink);
+      border-radius: var(--radius);
+      padding: 18px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.54;
+      border: 1px solid #203342;
+    }
+
+    .code pre {
+      margin: 0;
+      white-space: pre;
+    }
+
+    .roadmap {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 20px 0 28px;
+      counter-reset: step;
+    }
+
+    .step {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+      background: #f8fbfc;
+      min-height: 170px;
+      counter-increment: step;
+    }
+
+    .step::before {
+      content: counter(step);
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--slate);
+      color: white;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .step p {
+      color: var(--muted);
+      font-size: 15px;
+      margin: 0;
+    }
+
+    .pullquote {
+      border-left: 5px solid var(--amber);
+      background: var(--amber-soft);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin: 26px 0;
+      color: #5d3b0d;
+      font-size: 18px;
+      font-weight: 680;
+    }
+
+    .check-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding: 0;
+      list-style: none;
+      margin: 18px 0 26px;
+    }
+
+    .check-list li {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--teal);
+      border-radius: var(--radius);
+      background: #ffffff;
+      padding: 13px 14px;
+      margin: 0;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 44px;
+      padding-top: 22px;
+    }
+
+    @media (max-width: 940px) {
+      .hero,
+      .two-col,
+      .takeaway,
+      .compare,
+      .solution-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-copy,
+      .hero-visual,
+      .hero-visual img {
+        min-height: auto;
+      }
+
+      .toc,
+      .card-grid,
+      .roadmap,
+      .check-list {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .solution-row > div {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .solution-row > div:last-child {
+        border-bottom: 0;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .page {
+        padding: 18px 12px 42px;
+      }
+
+      .hero-copy,
+      .article-shell {
+        padding: 22px 18px;
+      }
+
+      h1 {
+        font-size: 31px;
+      }
+
+      h2 {
+        font-size: 23px;
+        margin-top: 42px;
+      }
+
+      .toc,
+      .card-grid,
+      .roadmap,
+      .check-list,
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .map-stack {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-lines {
+        display: none;
+      }
+
+      .gateway-map {
+        min-height: auto;
+      }
+
+      .hero-caption {
+        position: static;
+        border-radius: 0;
+        background: white;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-copy">
+        <div>
+          <div class="eyebrow">LLM Gateway / API Router</div>
+          <h1>我们真的需要自己搭一个 OpenRouter 吗？</h1>
+          <p class="lead">
+            OpenRouter 的价值不是“又多了一个模型接口”，而是把多模型、多供应商、计费、fallback 和协议适配压成一个统一入口。问题是：这件事值不值得从零复刻？
+          </p>
+        </div>
+        <div class="hero-points" aria-label="文章重点">
+          <div class="hero-point">
+            <span>01</span>
+            <div><strong>目标背景：</strong>为什么应用侧会需要一个 LLM API Gateway。</div>
+          </div>
+          <div class="hero-point">
+            <span>02</span>
+            <div><strong>没必要的原因：</strong>完整复刻 OpenRouter 的成本远高于一个 HTTP 代理。</div>
+          </div>
+          <div class="hero-point">
+            <span>03</span>
+            <div><strong>可落地方案：</strong>LiteLLM Proxy、One API / New API、本地模型网关。</div>
+          </div>
+        </div>
+      </div>
+
+      <figure class="hero-visual">
+        <img src="assets/openrouter-gateway-hero.png" alt="一个 LLM 网关连接多个模型供应商和本地服务器的技术插图" />
+        <figcaption class="hero-caption">
+          图解：业务应用只连一个网关，网关在背后处理模型选择、供应商路由、fallback 和本地模型接入。
+        </figcaption>
+      </figure>
+    </section>
+
+    <article class="article-shell">
+      <nav class="toc" aria-label="目录">
+        <a href="#background"><strong>背景</strong>为什么会想自建</a>
+        <a href="#why-not"><strong>取舍</strong>为什么不用复刻</a>
+        <a href="#solutions"><strong>方案</strong>现在怎么落地</a>
+        <a href="#roadmap"><strong>路线</strong>从哪里开始做</a>
+      </nav>
+
+      <section class="takeaway">
+        <div class="takeaway-mark">
+          <strong>结论</strong>
+          <span>一句话版</span>
+        </div>
+        <p>
+          如果只是个人或团队内部稳定调用多个大模型，不需要完整复刻 OpenRouter。更现实的做法是搭一个轻量 LLM Gateway：统一 OpenAI-compatible API，接入外部供应商和本地模型，再补上鉴权、限流、预算、日志和 fallback。
+        </p>
+      </section>
+
+      <section id="background">
+        <div class="section-kicker">01 / 目标背景</div>
+        <h2>为什么大家会想到“自建 OpenRouter”</h2>
+        <div class="two-col">
+          <div>
+            <p>
+              模型供应商变多之后，应用侧的问题已经不只是“怎么调一个模型”。一个产品可能同时需要低价模型、长上下文模型、代码模型、多模态模型、私有部署模型，以及某个供应商临时不可用时的备用链路。
+            </p>
+            <p>
+              OpenRouter 解决的是这类基础设施问题：开发者用接近 OpenAI Chat Completions 的方式请求模型，平台在背后完成模型映射、provider 路由、fallback、计费统计、密钥管理和响应格式统一。
+            </p>
+            <p>
+              所以，“自建 OpenRouter”的准确说法其实是：为自己的业务搭一层可控的 LLM API Gateway。
+            </p>
+          </div>
+          <aside class="info-panel">
+            <h3>它通常想解决什么</h3>
+            <div class="metric-grid">
+              <div class="metric">
+                <strong>1 个</strong>
+                <span>统一入口和统一协议</span>
+              </div>
+              <div class="metric">
+                <strong>N 家</strong>
+                <span>模型供应商和本地模型</span>
+              </div>
+              <div class="metric">
+                <strong>可切换</strong>
+                <span>模型、价格、上下文和能力</span>
+              </div>
+              <div class="metric">
+                <strong>可观测</strong>
+                <span>token、成本、延迟、错误率</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="gateway-map" aria-label="LLM API Gateway 架构图">
+          <svg class="flow-lines" viewBox="0 0 900 360" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M180 88 C280 88 286 170 388 170" />
+            <path d="M180 180 C280 180 286 180 388 180" />
+            <path d="M180 272 C280 272 286 190 388 190" />
+            <path d="M520 150 C632 92 690 80 790 82" />
+            <path d="M520 178 C632 180 690 180 790 180" />
+            <path d="M520 206 C632 270 690 274 790 276" />
+          </svg>
+          <div class="map-stack">
+            <div class="map-column">
+              <div class="map-node">
+                <strong>业务应用</strong>
+                <span>Web、Agent、RAG、内部工具</span>
+              </div>
+              <div class="map-node">
+                <strong>统一协议</strong>
+                <span>OpenAI-compatible endpoint</span>
+              </div>
+              <div class="map-node">
+                <strong>内部密钥</strong>
+                <span>用户 key、项目 key、服务 key</span>
+              </div>
+            </div>
+
+            <div class="map-node gateway-core">
+              <strong>LLM Gateway</strong>
+              <span>鉴权、路由、fallback、参数转换、日志、预算、审计</span>
+            </div>
+
+            <div class="map-column">
+              <div class="map-node">
+                <strong>商业模型</strong>
+                <span>OpenAI、Anthropic、Gemini、DeepSeek 等</span>
+              </div>
+              <div class="map-node">
+                <strong>聚合平台</strong>
+                <span>OpenRouter 或其他 provider 聚合入口</span>
+              </div>
+              <div class="map-node">
+                <strong>本地模型</strong>
+                <span>Ollama、vLLM、私有云部署</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="why-not">
+        <div class="section-kicker">02 / 没必要的原因</div>
+        <h2>完整复刻 OpenRouter，ROI 通常不划算</h2>
+        <p>
+          很多人会低估 OpenRouter 的复杂度，以为它只是一个“转发请求的代理”。如果只是本地自用，这么理解问题不大；但要做到生产级，真正困难的不是转发 HTTP，而是长期维护一整套模型供应链和运行体系。
+        </p>
+
+        <div class="card-grid">
+          <section class="card">
+            <div class="card-accent">A</div>
+            <h3>供应商资源不是代码能解决的</h3>
+            <p>
+              自建网关不会自动获得上游 provider 的价格折扣、共享容量、速率配额或商务权限。你仍然要分别申请、充值和维护每一家 API key。
+            </p>
+          </section>
+          <section class="card">
+            <div class="card-accent">B</div>
+            <h3>模型能力变化太快</h3>
+            <p>
+              tools、JSON mode、vision、reasoning、streaming usage、上下文长度、价格和错误格式都会变化。完整复刻意味着你要持续追这些细节。
+            </p>
+          </section>
+          <section class="card">
+            <div class="card-accent">C</div>
+            <h3>难点在稳定性和账务</h3>
+            <p>
+              对外服务马上会碰到限流、滥用防护、请求排队、余额扣减、异常退款、密钥泄露、审计和合规删除。
+            </p>
+          </section>
+        </div>
+
+        <div class="compare">
+          <div class="compare-box no">
+            <h3>不值得从零做的情况</h3>
+            <ul>
+              <li>只是想一个接口调多个模型。</li>
+              <li>请求量还不大，人工切换 provider 也能接受。</li>
+              <li>没有团队长期维护 provider 适配和安全逻辑。</li>
+              <li>核心业务不是模型分发平台。</li>
+            </ul>
+          </div>
+          <div class="compare-box yes">
+            <h3>值得自建控制面的情况</h3>
+            <ul>
+              <li>需要内部统一入口、预算和审计。</li>
+              <li>要混合商业模型、本地模型和私有云模型。</li>
+              <li>需要按任务类型、租户、数据等级选模型。</li>
+              <li>模型调用成本和稳定性已经影响业务。</li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="pullquote">
+          不要把目标定成“我要本地搭一个 OpenRouter”。更好的目标是：“我要为自己的应用搭一个可观测、可控、可替换的 LLM API Gateway”。
+        </p>
+      </section>
+
+      <section id="solutions">
+        <div class="section-kicker">03 / 可落地方案</div>
+        <h2>现在已经能落地的三条路线</h2>
+        <p>
+          现实可行的路线不是“复刻 OpenRouter”，而是按需求搭一个分层网关。先选成熟开源项目，再把自己的治理逻辑接上去。
+        </p>
+
+        <div class="solution-row">
+          <div class="solution-title">
+            <strong>LiteLLM Proxy</strong>
+            <span>工程集成优先</span>
+          </div>
+          <div>
+            <h3>适合什么</h3>
+            <p>研发团队、Agent 平台、RAG 服务、模型评测系统、AI IDE 插件。</p>
+          </div>
+          <div>
+            <h3>核心优势</h3>
+            <p>OpenAI-compatible、provider 覆盖广、配置简单，对现有 OpenAI SDK 迁移友好。</p>
+          </div>
+        </div>
+
+        <div class="code">
+          <pre># config.yaml
+model_list:
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+
+  - model_name: claude-sonnet
+    litellm_params:
+      model: anthropic/claude-sonnet-4
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  - model_name: local-llama
+    litellm_params:
+      model: openai/local-llama
+      api_base: http://localhost:11434/v1
+      api_key: anything</pre>
+        </div>
+
+        <div class="code">
+          <pre># 启动示例
+litellm --config config.yaml --port 4000</pre>
+        </div>
+
+        <p>应用侧只需要把 OpenAI SDK 的 <code>base_url</code> 指向内部网关：</p>
+
+        <div class="code">
+          <pre>from openai import OpenAI
+
+client = OpenAI(
+    api_key="internal-user-key",
+    base_url="http://localhost:4000/v1",
+)
+
+response = client.chat.completions.create(
+    model="claude-sonnet",
+    messages=[
+        {"role": "user", "content": "用三句话解释 LLM Gateway 的价值"}
+    ],
+)
+
+print(response.choices[0].message.content)</pre>
+        </div>
+
+        <div class="solution-row">
+          <div class="solution-title">
+            <strong>One API / New API</strong>
+            <span>管理后台优先</span>
+          </div>
+          <div>
+            <h3>适合什么</h3>
+            <p>团队内部中转、多用户 key 管理、小规模 API 平台、实验室额度分发。</p>
+          </div>
+          <div>
+            <h3>核心优势</h3>
+            <p>渠道配置、用户额度、用量统计和后台操作更完整，适合偏运营型的内部平台。</p>
+          </div>
+        </div>
+
+        <div class="solution-row">
+          <div class="solution-title">
+            <strong>本地模型 + 网关</strong>
+            <span>隐私和成本优先</span>
+          </div>
+          <div>
+            <h3>适合什么</h3>
+            <p>数据链路敏感、成本敏感、需要私有部署模型兜底的场景。</p>
+          </div>
+          <div>
+            <h3>核心优势</h3>
+            <p>简单分类、摘要、格式化任务走本地小模型；复杂推理和高价值任务走商业强模型。</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="roadmap">
+        <div class="section-kicker">04 / 推荐路线</div>
+        <h2>先做控制面，不要先造模型市场</h2>
+        <p>
+          初版不需要把所有功能一次做完。更稳的方式是先把调用入口统一起来，再根据真实日志扩展路由策略。
+        </p>
+
+        <div class="roadmap">
+          <section class="step">
+            <h3>跑通统一入口</h3>
+            <p>用 LiteLLM Proxy 或 One API 接入 2 到 3 个 provider，先让业务只面对一个 endpoint。</p>
+          </section>
+          <section class="step">
+            <h3>补上治理能力</h3>
+            <p>加入虚拟 key、用户额度、用量统计、预算控制、基础 fallback 和错误告警。</p>
+          </section>
+          <section class="step">
+            <h3>优化路由策略</h3>
+            <p>根据真实请求日志，按任务类型、成本、延迟、失败率和数据等级动态选模型。</p>
+          </section>
+        </div>
+
+        <h2>一个够用的内部网关应该有什么</h2>
+        <ul class="check-list">
+          <li><strong>入口层：</strong>暴露 <code>/v1/chat/completions</code>、<code>/v1/embeddings</code> 等统一 endpoint。</li>
+          <li><strong>认证层：</strong>分配内部虚拟 key，不把上游 provider key 暴露给业务。</li>
+          <li><strong>路由层：</strong>按模型名、任务类型、成本、延迟、上下文长度选择 provider。</li>
+          <li><strong>fallback 层：</strong>对超时、限流、5xx、供应商不可用做备用路由。</li>
+          <li><strong>观测层：</strong>记录请求量、token、成本、延迟、错误率和命中 provider。</li>
+          <li><strong>治理层：</strong>按用户、项目、环境设置预算、限流、可用模型和审计策略。</li>
+        </ul>
+
+        <p>
+          OpenRouter 的强项是跨供应商聚合和商业化路由；自建方案的强项是内部治理、私有模型接入、成本控制和数据链路可控。两者不冲突：你的自建网关也可以把 OpenRouter 当作一个上游 provider，同时接入 LiteLLM 支持的 provider、本地模型和私有云模型。
+        </p>
+        <p>
+          换句话说，OpenRouter 的思路值得学，但完整 OpenRouter 不值得重造。真正值得落地的是一层属于你自己的模型调用控制面。
+        </p>
+      </section>
+
+      <footer>
+        <p>
+          参考资料：
+          <a href="https://openrouter.ai/docs/quickstart">OpenRouter Quickstart</a>、
+          <a href="https://openrouter.ai/docs/guides/routing/provider-selection">OpenRouter Provider Routing</a>、
+          <a href="https://openrouter.ai/docs/guides/overview/auth/byok">OpenRouter BYOK</a>、
+          <a href="https://docs.litellm.ai/docs/">LiteLLM Proxy Docs</a>、
+          <a href="https://github.com/songquanpeng/one-api">One API GitHub</a>
+        </p>
+      </footer>
+    </article>
+  </main>
+</body>
+</html>
