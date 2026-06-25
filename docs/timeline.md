@@ -4,6 +4,7 @@
 
 ## 2026-06
 
+- [LiteLLM 官方文档工程导览](litellm-docs-guide/) `HTML`{target="_self"}
 - [我们真的需要自己搭一个 OpenRouter 吗？](openrouter-local-build-blog/) `HTML`{target="_self"}
 - [Phaser、PixiJS 与 Cocos Creator：休闲小游戏技术选型指南](game-stack-blog/) `HTML`{target="_self"}
 - [ComfyUI 官方文档导读：从第一张图到自动化工作流](comfyui-docs-blog/) `HTML`{target="_self"}
