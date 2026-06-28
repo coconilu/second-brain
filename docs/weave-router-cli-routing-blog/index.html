@@ -785,7 +785,7 @@
     <main>
       <section class="hero" id="top">
         <h1>Weave Router、CC Switch、LiteLLM、OpenRouter：本地 AI 编程 CLI 路由怎么选</h1>
-        <p>如果你主要用 Claude Code、Codex、Cursor、Gemini CLI、opencode 这类本地 AI 编程工具，关键问题不是“谁支持更多模型”，而是谁站在本地工作流的哪一层：配置控制、请求路由、企业网关，还是模型市场。</p>
+        <p>面向 Claude Code、Codex、Cursor、Gemini CLI、opencode 这类本地 AI 编程工具时，关键问题不是“谁支持更多模型”，而是谁站在本地工作流的哪一层：配置控制、请求路由、企业网关，还是模型市场。</p>
         <div class="meta-row">
           <span>技术博客草稿</span>
           <span>约 12 分钟阅读</span>
@@ -903,7 +903,7 @@
           </article>
 
           <article class="role-card cc">
-            <h3>CC Switch：控制面，负责“我的工具连接谁”</h3>
+            <h3>CC Switch：控制面，负责“本机工具连接谁”</h3>
             <p>CC Switch 更关注本机配置管理：多个 CLI、多个 provider、多个 key、MCP、Skills、Prompts、Sessions、使用量统计和托盘切换。它适合长期作为桌面上的 AI 编程控制台。</p>
             <div class="tag-row">
               <span class="tag">GUI 管理</span>
@@ -985,7 +985,7 @@
 
       <section class="section" id="subscription">
         <h2>订阅账户边界：passthrough 不是“跨供应商额度池”</h2>
-        <p>你提到“大部分账户都是订阅方式”，这是最容易误解的地方。Weave 或 CC Switch 可以帮助本地 CLI 接入、切换或转发原有认证，但不能把 Claude 订阅额度变成 Gemini、DeepSeek、Qwen 的 API 额度，也不能把 Cursor 订阅自动变成 OpenRouter 余额。</p>
+        <p>很多个人开发者的模型使用方式并不是纯 API 计费，而是混合了 Claude Code、ChatGPT/Codex、Cursor、Gemini 等订阅计划。这是最容易误解的地方：Weave 或 CC Switch 可以帮助本地 CLI 接入、切换或转发原有认证，但不能把 Claude 订阅额度变成 Gemini、DeepSeek、Qwen 的 API 额度，也不能把 Cursor 订阅自动变成 OpenRouter 余额。</p>
         <div class="risk-grid">
           <article class="risk good">
             <h3>可以期待</h3>
@@ -1014,7 +1014,7 @@
           <div class="code-tabs">
             <div>
               <div class="cmd-title">路径 A：项目级 Codex 接入 <span>影响最小</span></div>
-              <pre><code>cd C:\Users\admin\Documents\study
+              <pre><code>cd path\to\your-project
 npx @workweave/router --codex --scope project
 
 $env:CODEX_HOME = Join-Path (Get-Location) ".codex"
@@ -1040,7 +1040,7 @@ make full-setup</code></pre>
             </div>
             <div>
               <div class="cmd-title">本地 router 接入 Codex <span>router + CLI</span></div>
-              <pre><code>cd C:\Users\admin\Documents\study
+              <pre><code>cd path\to\your-project
 npx @workweave/router --codex --local --scope project
 
 $env:CODEX_HOME = Join-Path (Get-Location) ".codex"
@@ -1051,45 +1051,45 @@ codex</code></pre>
       </section>
 
       <section class="section" id="decision">
-        <h2>选型矩阵：按你的真实目标选</h2>
+        <h2>选型矩阵：按真实目标选</h2>
         <div class="matrix">
           <article class="decision">
-            <header>我想体验“自动选模型”</header>
+            <header>目标：体验“自动选模型”</header>
             <div>
               <p><strong>优先试 Weave Router。</strong> 它的核心卖点就是本地 / 自托管路由层，而不是简单 provider 切换。</p>
               <p>建议：先接 Codex 项目级配置，再加 OpenRouter key 观察是否真的发生跨模型路由。</p>
             </div>
           </article>
           <article class="decision">
-            <header>我想管理很多本地 CLI</header>
+            <header>目标：管理很多本地 CLI</header>
             <div>
               <p><strong>优先试 CC Switch。</strong> 它更像桌面控制台，适合多工具、多 key、多配置、多 MCP 的日常管理。</p>
               <p>建议：把官方登录、第三方 API、Weave Router 都作为 provider 管起来，但避免多个工具同时改同一份配置。</p>
             </div>
           </article>
           <article class="decision">
-            <header>我想补齐开源模型池</header>
+            <header>目标：补齐开源模型池</header>
             <div>
               <p><strong>优先加 OpenRouter。</strong> 它最快解决“一个 key 访问很多模型”的问题。</p>
               <p>建议：让 Weave 或 LiteLLM 把 OpenRouter 当下游，而不是在本机重复维护每个模型供应商。</p>
             </div>
           </article>
           <article class="decision">
-            <header>我要团队统一治理</header>
+            <header>目标：团队统一治理</header>
             <div>
               <p><strong>优先看 LiteLLM。</strong> 它更适合作为团队级网关，处理虚拟 key、预算、限流、fallback、审计、guardrails。</p>
               <p>建议：先定义业务路由规则，再决定是否把 Weave 放在个人开发者侧。</p>
             </div>
           </article>
           <article class="decision">
-            <header>我主要用订阅账户</header>
+            <header>目标：以订阅账户为主</header>
             <div>
               <p><strong>把 passthrough 当基础，把 API key 当补充。</strong> 订阅账户保留官方路径，OpenRouter 或 provider key 用于扩展模型池。</p>
               <p>建议：不要期待订阅额度自动跨供应商流动。</p>
             </div>
           </article>
           <article class="decision">
-            <header>我只想先不破坏现状</header>
+            <header>目标：先不破坏现状</header>
             <div>
               <p><strong>用 project scope。</strong> 不改全局配置，只在一个工作区试验；验证通过再扩大范围。</p>
               <p>建议：记录原始配置、路由开关、卸载命令和一次真实任务日志。</p>
@@ -1171,8 +1171,8 @@ codex</code></pre>
       </section>
 
       <footer class="footer">
-        <p><strong>最终建议：</strong>如果你当前最想体验“本地 CLI 路由”，先用 Weave 的 Codex project scope 做最小试验；如果你想长期管理多个 CLI 和 provider，再把 CC Switch 放到桌面工作流里；OpenRouter 用来扩展模型池；LiteLLM 留给团队级网关和治理。</p>
-        <p class="print-note">本文是基于一次工具选型讨论整理的技术博客草稿，适合继续扩展为正式发布稿或内部技术备忘录。</p>
+        <p><strong>最终建议：</strong>体验“本地 CLI 路由”时，先用 Weave 的 Codex project scope 做最小试验；长期管理多个 CLI 和 provider 时，再把 CC Switch 放到桌面工作流里；OpenRouter 用来扩展模型池；LiteLLM 留给团队级网关和治理。</p>
+        <p class="print-note">本文面向希望理解本地 AI 编程 CLI 路由、模型网关和模型市场分工的普通技术读者，可作为正式发布稿或内部技术备忘录继续扩展。</p>
       </footer>
     </main>
   </div>
