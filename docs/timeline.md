@@ -4,6 +4,7 @@
 
 ## 2026-06
 
+- [验收驱动开发，在 Harness + Loop Engineering 时代为什么更重要](acceptance-harness-loop-blog/) `HTML`{target="_self"}
 - [LiteLLM 官方文档工程导览](litellm-docs-guide/) `HTML`{target="_self"}
 - [我们真的需要自己搭一个 OpenRouter 吗？](openrouter-local-build-blog/) `HTML`{target="_self"}
 - [Phaser、PixiJS 与 Cocos Creator：休闲小游戏技术选型指南](game-stack-blog/) `HTML`{target="_self"}

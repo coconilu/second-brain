@@ -1,0 +1,1401 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>验收驱动开发，在 Harness + Loop Engineering 时代为什么更重要</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f8;
+      --paper: #ffffff;
+      --ink: #16202c;
+      --muted: #5d6a78;
+      --line: #d8e0e8;
+      --line-strong: #bac7d3;
+      --teal: #0f766e;
+      --teal-deep: #0b4f4a;
+      --teal-soft: #e6f3f1;
+      --amber: #d08316;
+      --amber-soft: #fff4dc;
+      --blue: #2459c8;
+      --blue-soft: #eaf1ff;
+      --rose: #b4233a;
+      --rose-soft: #fff0f2;
+      --green: #1b7f45;
+      --green-soft: #e9f7ee;
+      --code-bg: #121821;
+      --code-ink: #e7edf5;
+      --shadow: 0 22px 60px rgba(22, 32, 44, 0.12);
+      --radius: 8px;
+      --content: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      line-height: 1.72;
+    }
+
+    a {
+      color: var(--teal);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    .hero {
+      min-height: 78vh;
+      display: grid;
+      align-items: end;
+      background:
+        linear-gradient(90deg, rgba(9, 16, 23, 0.88) 0%, rgba(9, 16, 23, 0.66) 42%, rgba(9, 16, 23, 0.18) 72%, rgba(9, 16, 23, 0.04) 100%),
+        linear-gradient(0deg, rgba(9, 16, 23, 0.78) 0%, rgba(9, 16, 23, 0.18) 42%, rgba(9, 16, 23, 0.0) 76%),
+        url("assets/acceptance-harness-loop-hero.png") center / cover no-repeat;
+      color: #fff;
+    }
+
+    .hero-inner {
+      width: min(var(--content), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 74px 0 64px;
+    }
+
+    .hero h1 {
+      max-width: 850px;
+      margin: 0;
+      font-size: clamp(42px, 6vw, 76px);
+      line-height: 1.05;
+      letter-spacing: 0;
+      font-weight: 850;
+    }
+
+    .hero .lead {
+      max-width: 740px;
+      margin: 24px 0 0;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: clamp(18px, 2vw, 22px);
+      line-height: 1.65;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 14px;
+    }
+
+    .hero-meta span {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.34);
+    }
+
+    .intro-band {
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .intro-grid {
+      width: min(var(--content), calc(100% - 40px));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+      gap: 34px;
+      padding: 34px 0;
+      align-items: start;
+    }
+
+    .thesis {
+      font-size: 20px;
+      line-height: 1.75;
+      margin: 0;
+      color: #293544;
+    }
+
+    .thesis strong {
+      color: var(--teal-deep);
+    }
+
+    .signal-panel {
+      border-left: 5px solid var(--teal);
+      background: var(--teal-soft);
+      padding: 20px 22px;
+      border-radius: var(--radius);
+    }
+
+    .signal-panel b {
+      display: block;
+      color: var(--teal-deep);
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .signal-panel p {
+      margin: 10px 0 0;
+      color: #35514e;
+      font-size: 15px;
+    }
+
+    .layout {
+      width: min(var(--content), calc(100% - 40px));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 42px;
+      padding: 38px 0 78px;
+    }
+
+    .toc {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      padding: 16px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+    }
+
+    .toc strong {
+      display: block;
+      margin-bottom: 10px;
+      color: #334155;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .toc a {
+      display: block;
+      padding: 8px 0;
+      color: #4b5867;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(216, 224, 232, 0.72);
+    }
+
+    .toc a:hover {
+      color: var(--teal);
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    section {
+      padding: 34px 0 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    section:first-child {
+      padding-top: 0;
+    }
+
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.28;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: clamp(28px, 3.2vw, 40px);
+      font-weight: 820;
+    }
+
+    h3 {
+      margin-top: 30px;
+      font-size: 22px;
+      font-weight: 760;
+    }
+
+    p {
+      margin: 16px 0 0;
+    }
+
+    .section-lead {
+      color: #344253;
+      font-size: 18px;
+      line-height: 1.78;
+    }
+
+    .figure {
+      margin: 28px 0 0;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: 0 10px 30px rgba(22, 32, 44, 0.06);
+    }
+
+    .figure-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+      color: #2a3746;
+      font-weight: 760;
+    }
+
+    .figure-title span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .flow-step {
+      min-height: 138px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      position: relative;
+    }
+
+    .flow-step::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -11px;
+      width: 18px;
+      height: 18px;
+      border-top: 2px solid var(--line-strong);
+      border-right: 2px solid var(--line-strong);
+      transform: translateY(-50%) rotate(45deg);
+      background: #fff;
+      z-index: 1;
+    }
+
+    .flow-step:last-child::after {
+      display: none;
+    }
+
+    .flow-step b {
+      display: block;
+      color: var(--teal-deep);
+      font-size: 16px;
+    }
+
+    .flow-step small {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .compare {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .compare-column {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .compare-column h3 {
+      margin: 0;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      font-size: 18px;
+    }
+
+    .compare-column.asis h3 {
+      background: var(--rose-soft);
+      color: var(--rose);
+    }
+
+    .compare-column.tobe h3 {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .compare-column ol {
+      margin: 0;
+      padding: 18px 22px 20px 38px;
+    }
+
+    .compare-column li {
+      margin: 8px 0;
+    }
+
+    .loop-map {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 20px;
+      align-items: stretch;
+      margin-top: 26px;
+    }
+
+    .cycle {
+      min-height: 430px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        radial-gradient(circle at 50% 50%, #fff 0 24%, rgba(230, 243, 241, 0.75) 25% 42%, transparent 43%),
+        linear-gradient(135deg, #ffffff, #f7fbfa);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cycle-center {
+      position: absolute;
+      inset: 38% 24%;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--teal-deep);
+      font-weight: 820;
+      font-size: 20px;
+      line-height: 1.3;
+    }
+
+    .cycle-step {
+      position: absolute;
+      width: 34%;
+      min-height: 74px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 10px 20px rgba(22, 32, 44, 0.07);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .cycle-step b {
+      display: block;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .cycle-step:nth-child(2) {
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-top: 4px solid var(--blue);
+    }
+
+    .cycle-step:nth-child(3) {
+      top: 34%;
+      right: 24px;
+      border-right: 4px solid var(--amber);
+    }
+
+    .cycle-step:nth-child(4) {
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-bottom: 4px solid var(--green);
+    }
+
+    .cycle-step:nth-child(5) {
+      top: 34%;
+      left: 24px;
+      border-left: 4px solid var(--teal);
+    }
+
+    .cycle-arrow {
+      position: absolute;
+      inset: 124px;
+      border: 18px solid transparent;
+      border-top-color: rgba(15, 118, 110, 0.8);
+      border-right-color: rgba(36, 89, 200, 0.72);
+      border-bottom-color: rgba(208, 131, 22, 0.75);
+      border-left-color: rgba(27, 127, 69, 0.72);
+      border-radius: 50%;
+      transform: rotate(24deg);
+      opacity: 0.9;
+    }
+
+    .loop-side {
+      display: grid;
+      gap: 12px;
+    }
+
+    .loop-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+      background: #fff;
+    }
+
+    .loop-card b {
+      display: block;
+      color: var(--teal-deep);
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .loop-card span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.62;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .card {
+      min-height: 176px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .card b {
+      display: block;
+      color: var(--teal-deep);
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .card p {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.68;
+    }
+
+    .matrix {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 24px;
+      overflow: hidden;
+      border-radius: var(--radius);
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .matrix th,
+    .matrix td {
+      padding: 14px 15px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .matrix th {
+      background: #eef4f8;
+      color: #2b3948;
+      font-size: 13px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .matrix tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .matrix td:first-child {
+      width: 150px;
+      color: var(--teal-deep);
+      font-weight: 760;
+    }
+
+    .matrix td:nth-child(2) {
+      width: 240px;
+      color: #243244;
+      font-weight: 650;
+    }
+
+    .callout {
+      margin-top: 24px;
+      padding: 20px 22px;
+      border-radius: var(--radius);
+      border: 1px solid #b9dcd6;
+      background: var(--teal-soft);
+      color: #264a46;
+    }
+
+    .callout strong {
+      color: var(--teal-deep);
+    }
+
+    .callout.warning {
+      border-color: #f1d49b;
+      background: var(--amber-soft);
+      color: #664310;
+    }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .check {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .check::before {
+      content: "✓";
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--teal);
+      color: #fff;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .check b {
+      display: block;
+      color: #203044;
+      line-height: 1.4;
+    }
+
+    .check span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    pre {
+      margin: 24px 0 0;
+      padding: 22px;
+      overflow: auto;
+      border-radius: var(--radius);
+      background: var(--code-bg);
+      color: var(--code-ink);
+      font-size: 14px;
+      line-height: 1.58;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+
+    code {
+      font-family: "Cascadia Code", Consolas, "SFMono-Regular", monospace;
+    }
+
+    :not(pre) > code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      background: #edf2f7;
+      color: #243244;
+      font-size: 0.92em;
+    }
+
+    blockquote {
+      margin: 28px 0 0;
+      padding: 22px 26px;
+      border-left: 5px solid var(--amber);
+      border-radius: var(--radius);
+      background: #fffaf0;
+      color: #5d4115;
+      font-size: 19px;
+      line-height: 1.75;
+    }
+
+    .refs {
+      margin: 22px 0 0;
+      padding-left: 22px;
+    }
+
+    .refs li {
+      margin: 10px 0;
+      color: #3b4654;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      margin-right: 8px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eef4f8;
+      color: #405266;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    footer {
+      width: min(var(--content), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 54px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 960px) {
+      .intro-grid,
+      .layout,
+      .loop-map {
+        grid-template-columns: 1fr;
+      }
+
+      .toc {
+        position: static;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 18px;
+      }
+
+      .toc strong {
+        grid-column: 1 / -1;
+      }
+
+      .flow-grid,
+      .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .flow-step::after {
+        display: none;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .hero {
+        min-height: 86vh;
+        background:
+          linear-gradient(90deg, rgba(9, 16, 23, 0.9), rgba(9, 16, 23, 0.58)),
+          linear-gradient(0deg, rgba(9, 16, 23, 0.82), rgba(9, 16, 23, 0.12)),
+          url("assets/acceptance-harness-loop-hero.png") center / cover no-repeat;
+      }
+
+      .hero h1 {
+        font-size: 40px;
+        line-height: 1.08;
+      }
+
+      .hero-inner {
+        width: min(100% - 28px, var(--content));
+        padding-bottom: 38px;
+      }
+
+      .layout,
+      .intro-grid,
+      footer {
+        width: min(100% - 28px, var(--content));
+      }
+
+      .toc,
+      .flow-grid,
+      .compare,
+      .cards,
+      .checklist {
+        grid-template-columns: 1fr;
+      }
+
+      .figure {
+        padding: 16px;
+      }
+
+      .cycle {
+        min-height: auto;
+        padding: 18px;
+        display: grid;
+        gap: 12px;
+        background: #fff;
+      }
+
+      .cycle-arrow,
+      .cycle-center {
+        display: none;
+      }
+
+      .cycle-step {
+        position: static;
+        width: auto;
+        min-height: 0;
+        transform: none !important;
+      }
+
+      .matrix,
+      .matrix thead,
+      .matrix tbody,
+      .matrix tr,
+      .matrix th,
+      .matrix td {
+        display: block;
+      }
+
+      .matrix {
+        border: 0;
+        background: transparent;
+        overflow: visible;
+        white-space: normal;
+      }
+
+      .matrix thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+      }
+
+      .matrix tr {
+        margin-bottom: 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #fff;
+        overflow: hidden;
+      }
+
+      .matrix td {
+        width: 100% !important;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        white-space: normal;
+      }
+
+      .matrix td:first-child {
+        background: #eef4f8;
+      }
+
+      .matrix td:last-child {
+        border-bottom: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <h1>验收驱动开发，在 Harness + Loop Engineering 时代为什么更重要</h1>
+      <p class="lead">
+        当 AI coding 从“一次性生成代码”进入“反复执行、验证、修正”的阶段，验收标准不再只是项目管理文档，而会变成 Agent Loop 的目标函数、停止条件和反馈信号。
+      </p>
+      <div class="hero-meta" aria-label="文章元信息">
+        <span>资料检索日期：2026-06-28</span>
+        <span>主题：ATDD / BDD / Spec-driven Development / Agent Harness / Loop Engineering</span>
+        <span>形式：可直接打开的独立 HTML 技术博客</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="intro-band">
+    <div class="intro-grid">
+      <p class="thesis">
+        我认为你说的这种模式非常有价值，而且在 AI coding 场景里会从“好习惯”升级为“必要工程基础设施”。原因很直接：<strong>模型输出天然不稳定，Harness 提供可运行的评判环境，Loop 提供持续修正机制，而验收标准正好把业务目标翻译成可被 Harness 和 Loop 消费的信号。</strong>
+      </p>
+      <aside class="signal-panel">
+        <b>一句话结论</b>
+        <p>业内最贴切的组合叫法是：As-Is / To-Be 分析 + Gap Analysis + Acceptance Criteria + ATDD / BDD + Spec-driven Development。放到 AI agent 工程里，可以称为“验收驱动的 Loop Engineering”。</p>
+      </aside>
+    </div>
+  </div>
+
+  <div class="layout">
+    <nav class="toc" aria-label="目录">
+      <strong>目录</strong>
+      <a href="#naming">1. 这套方式叫什么</a>
+      <a href="#why-now">2. 为什么现在更有价值</a>
+      <a href="#model">3. 核心流程模型</a>
+      <a href="#harness">4. Harness 怎样承接验收</a>
+      <a href="#loop">5. Loop 怎样持续收敛</a>
+      <a href="#platforms">6. 平台与 Skill 支持</a>
+      <a href="#template">7. 落地模板</a>
+      <a href="#risks">8. 风险与反模式</a>
+      <a href="#sources">9. 参考资料</a>
+    </nav>
+
+    <main>
+      <section id="naming">
+        <h2>1. 这套方式到底叫什么</h2>
+        <p class="section-lead">
+          你描述的不是一个孤立方法论，而是几套成熟实践在 AI coding 时代的重新组合。传统软件工程里，它靠需求分析、验收标准、ATDD 和 BDD 支撑；AI agent 工程里，它继续向 Harness、Eval、Trace、Human-in-the-loop 和自动修复循环延伸。
+        </p>
+
+        <div class="figure" aria-label="概念谱系图">
+          <div class="figure-title">
+            概念谱系
+            <span>从业务变化到可运行反馈</span>
+          </div>
+          <div class="flow-grid">
+            <div class="flow-step">
+              <b>As-Is</b>
+              <small>先理解当前业务流程、状态流、角色、异常路径和系统边界。</small>
+            </div>
+            <div class="flow-step">
+              <b>To-Be</b>
+              <small>描述改完后的目标流程，尤其是新状态、新规则和用户可观察变化。</small>
+            </div>
+            <div class="flow-step">
+              <b>Gap</b>
+              <small>对比改动前后，抽出必须变更的代码、数据、接口和权限点。</small>
+            </div>
+            <div class="flow-step">
+              <b>Acceptance</b>
+              <small>把“算完成”的条件写成验收清单、场景和可执行检查。</small>
+            </div>
+            <div class="flow-step">
+              <b>Harness + Loop</b>
+              <small>让 Agent 按验收信号反复实现、测试、修正、报告和沉淀。</small>
+            </div>
+          </div>
+        </div>
+
+        <table class="matrix" aria-label="业内术语对照表">
+          <thead>
+            <tr>
+              <th>术语</th>
+              <th>对应你描述的哪一段</th>
+              <th>工程含义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>As-Is / To-Be Analysis</td>
+              <td>梳理原逻辑流程和改完后流程</td>
+              <td>不是直接改代码，而是先建立当前态和目标态的业务地图。</td>
+            </tr>
+            <tr>
+              <td>Gap Analysis</td>
+              <td>对比改动前后，确定要改什么</td>
+              <td>把流程差异转成系统差异，包括领域规则、接口、数据迁移和 UI 行为。</td>
+            </tr>
+            <tr>
+              <td>Acceptance Criteria</td>
+              <td>罗列验收列表</td>
+              <td>Atlassian 将验收标准定义为工作完成前必须满足的条件，这正好是 Loop 的停止依据。</td>
+            </tr>
+            <tr>
+              <td>ATDD</td>
+              <td>先写验收再开发</td>
+              <td>Acceptance Test-Driven Development 强调团队先澄清验收测试，再实现代码。</td>
+            </tr>
+            <tr>
+              <td>BDD</td>
+              <td>用场景表达业务行为</td>
+              <td>Cucumber / Gherkin 常用 Given / When / Then 把需求转成可讨论、可自动化的行为规格。</td>
+            </tr>
+            <tr>
+              <td>Spec-driven Development</td>
+              <td>规格、计划、任务、实现、验证</td>
+              <td>GitHub Spec Kit 把规格先行变成 AI coding 的结构化流程。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <blockquote>
+          如果要给这套 AI 时代的组合方法取一个实用名字，我会叫它：验收驱动的 Loop Engineering。它的关键不是“文档更多”，而是让文档变成可执行、可验证、可反馈的工程信号。
+        </blockquote>
+      </section>
+
+      <section id="why-now">
+        <h2>2. 为什么现在更有价值</h2>
+        <p class="section-lead">
+          传统开发里，验收列表主要服务人类协作。到了 AI coding，它还承担另一个角色：约束一个会调用工具、会修改文件、会多轮尝试的系统。没有验收标准，Agent Loop 只能凭语言自信收敛；有了验收标准，Loop 才有明确的评分器和退出条件。
+        </p>
+
+        <div class="cards">
+          <div class="card">
+            <b>生成不等于完成</b>
+            <p>AI 很擅长生成 plausible code，但业务正确性常常藏在状态、边界条件和历史数据里。验收标准把“看起来合理”推进到“业务上成立”。</p>
+          </div>
+          <div class="card">
+            <b>Harness 需要信号</b>
+            <p>Anthropic 关于 long-running agents 的文章强调，长任务需要环境、工具、观察、日志和评估。验收清单就是 Harness 的输入之一。</p>
+          </div>
+          <div class="card">
+            <b>Loop 需要停止条件</b>
+            <p>Agent 能反复计划、执行和修正，但没有明确停止条件就会变成消耗 token 的循环。验收通过、风险升高、预算耗尽都应被明确定义。</p>
+          </div>
+        </div>
+
+        <div class="compare" aria-label="传统模式和验收驱动 Loop 模式对比">
+          <div class="compare-column asis">
+            <h3>弱验收模式</h3>
+            <ol>
+              <li>用户说一个模糊需求。</li>
+              <li>Agent 直接改代码。</li>
+              <li>测试能跑就报告完成。</li>
+              <li>业务方验收时发现流程不对。</li>
+              <li>重新解释需求，重新返工。</li>
+            </ol>
+          </div>
+          <div class="compare-column tobe">
+            <h3>验收驱动 Loop 模式</h3>
+            <ol>
+              <li>先写 As-Is 和 To-Be。</li>
+              <li>把差异拆成变更点。</li>
+              <li>将验收条件写成清单和测试。</li>
+              <li>Agent 只围绕验收目标改动。</li>
+              <li>Harness 验证失败就回到下一轮修正。</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>深度搜索后的判断：</strong>“loop engineering”还不是像 TDD、BDD 那样稳定的标准术语，但 Anthropic 的 evaluator-optimizer workflow、long-running agent harness、SWE-bench harness、LangGraph 的状态图和 human-in-the-loop、GitHub Spec Kit 的规格先行，都在指向同一个工程趋势：把 AI 产出放进可观察、可评估、可迭代的闭环。
+        </div>
+      </section>
+
+      <section id="model">
+        <h2>3. 一个可落地的核心流程模型</h2>
+        <p class="section-lead">
+          这套模式最重要的是把“理解业务”和“验证实现”放到同一条链路里。不要只写需求，也不要只跑测试，而是把业务流程、差异、任务、代码和验收反馈串起来。
+        </p>
+
+        <div class="figure" aria-label="验收驱动开发闭环图">
+          <div class="figure-title">
+            验收驱动开发闭环
+            <span>业务分析到回归沉淀</span>
+          </div>
+          <div class="loop-map">
+            <div class="cycle">
+              <div class="cycle-arrow" aria-hidden="true"></div>
+              <div class="cycle-center">Acceptance<br />Harness<br />Loop</div>
+              <div class="cycle-step">
+                <b>业务理解</b>
+                As-Is、角色、状态、异常、系统边界。
+              </div>
+              <div class="cycle-step">
+                <b>规格与任务</b>
+                To-Be、Gap、验收清单、任务拆解。
+              </div>
+              <div class="cycle-step">
+                <b>实现与观察</b>
+                修改代码、运行测试、记录 trace。
+              </div>
+              <div class="cycle-step">
+                <b>验收与沉淀</b>
+                通过则交付，失败则补样例并进入下一轮。
+              </div>
+            </div>
+            <div class="loop-side">
+              <div class="loop-card">
+                <b>输入工件</b>
+                <span>业务流程图、接口契约、数据库约束、用户故事、生产事故样例、历史 PR、埋点和日志。</span>
+              </div>
+              <div class="loop-card">
+                <b>输出工件</b>
+                <span>变更规格、验收列表、任务包、测试用例、实现 diff、验收报告、失败样例和回归集。</span>
+              </div>
+              <div class="loop-card">
+                <b>控制工件</b>
+                <span>权限边界、预算上限、停止条件、人工审批点、回滚策略、风险分级和发布门禁。</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="checklist" aria-label="验收清单样例">
+          <div class="check">
+            <div>
+              <b>流程前后对比清楚</b>
+              <span>可以回答“原来怎么走、改完怎么走、哪一步发生变化”。</span>
+            </div>
+          </div>
+          <div class="check">
+            <div>
+              <b>验收项可被验证</b>
+              <span>每条验收不是愿望句，而是能通过测试、截图、接口响应、日志或人工检查证明。</span>
+            </div>
+          </div>
+          <div class="check">
+            <div>
+              <b>任务拆分对应 Gap</b>
+              <span>每个开发任务都能追溯到某个流程差异或验收项。</span>
+            </div>
+          </div>
+          <div class="check">
+            <div>
+              <b>失败反馈能进入下一轮</b>
+              <span>验收失败不是一句“没通过”，而是带有失败证据、复现路径和下一步修正方向。</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="harness">
+        <h2>4. Harness 怎样承接验收</h2>
+        <p class="section-lead">
+          Harness 可以理解为“让 Agent 在受控环境里完成任务并接受验证的试验台”。它不只是跑单测，还包括环境准备、样例数据、工具权限、评估脚本、日志、trace、成本统计、回放和人工验收入口。
+        </p>
+
+        <table class="matrix" aria-label="Harness 分层结构">
+          <thead>
+            <tr>
+              <th>层次</th>
+              <th>内容</th>
+              <th>对应验收驱动开发</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Environment</td>
+              <td>依赖、数据库、fixture、mock 服务、浏览器环境、权限沙箱</td>
+              <td>让“原流程”和“新流程”能被稳定复现。</td>
+            </tr>
+            <tr>
+              <td>Task</td>
+              <td>任务说明、输入资料、约束、禁止事项、交付格式</td>
+              <td>把 Gap Analysis 变成 Agent 可执行的任务包。</td>
+            </tr>
+            <tr>
+              <td>Evaluator</td>
+              <td>单测、集成测试、BDD 场景、截图比对、静态检查、评分器</td>
+              <td>把验收清单变成机器可运行的判断。</td>
+            </tr>
+            <tr>
+              <td>Observer</td>
+              <td>工具调用记录、日志、trace、费用、耗时、失败分类</td>
+              <td>验收失败时能定位原因，而不是只说“模型没做好”。</td>
+            </tr>
+            <tr>
+              <td>Supervisor</td>
+              <td>人工审批、风险门禁、预算限制、回滚策略、停止条件</td>
+              <td>避免 Agent 为了通过局部测试而越权、破坏架构或扩大风险。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <pre><code>acceptance:
+  - id: AC-01
+    title: 未支付订单可以取消
+    given: 用户有一笔 pending 订单
+    when: 调用取消订单接口
+    then:
+      - 订单状态变为 cancelled
+      - 库存释放记录存在
+      - 支付系统没有退款请求
+    evidence:
+      - api_test: tests/orders/cancel_pending.spec.ts
+      - db_check: sql/assert_inventory_released.sql
+
+  - id: AC-02
+    title: 已发货订单不能取消
+    given: 用户有一笔 shipped 订单
+    when: 调用取消订单接口
+    then:
+      - 返回业务错误 ORDER_ALREADY_SHIPPED
+      - 订单状态保持 shipped
+      - 写入审计日志
+    evidence:
+      - api_test: tests/orders/cancel_shipped.spec.ts
+      - log_check: scripts/assert_audit_event.js</code></pre>
+
+        <div class="callout warning">
+          Harness 的关键不是一次性“跑绿”，而是让失败样例沉淀下来。每次验收失败都应该补充到回归集、文档、Skill 或任务模板里，否则 Loop 只是重复犯错。
+        </div>
+      </section>
+
+      <section id="loop">
+        <h2>5. Loop 怎样持续收敛</h2>
+        <p class="section-lead">
+          Anthropic 的 Building Effective Agents 把 evaluator-optimizer 描述为一种让模型生成、评估、再改进的工作流。把它放进软件开发，就是：Agent 改代码，Harness 评价，失败信号回到上下文，Agent 再改，直到通过验收或触发停止条件。
+        </p>
+
+        <div class="figure" aria-label="Agent Loop 运行机制">
+          <div class="figure-title">
+            Agent Loop 的四个关键控制点
+            <span>没有控制点就不是工程闭环</span>
+          </div>
+          <div class="cards">
+            <div class="card">
+              <b>目标函数</b>
+              <p>验收标准、测试、业务规则、截图要求、性能阈值和安全约束共同定义“什么叫更好”。</p>
+            </div>
+            <div class="card">
+              <b>观察信号</b>
+              <p>测试输出、trace、日志、用户反馈、diff review、截图和运行时指标让失败可被定位。</p>
+            </div>
+            <div class="card">
+              <b>修正策略</b>
+              <p>失败分类、最小改动、回滚点、补充上下文、调用专用 Skill 或切换人工接管。</p>
+            </div>
+            <div class="card">
+              <b>停止条件</b>
+              <p>验收通过、预算耗尽、风险升高、权限不足、需求不明确或连续失败达到上限。</p>
+            </div>
+            <div class="card">
+              <b>记忆沉淀</b>
+              <p>把失败原因、修复方式和新测试沉淀为回归集、知识库、runbook 或 Codex Skill。</p>
+            </div>
+            <div class="card">
+              <b>人类监督</b>
+              <p>涉及产品判断、安全边界、架构权衡和线上发布时，人类不应只在最后验收。</p>
+            </div>
+          </div>
+        </div>
+
+        <pre><code>while budget.available:
+    spec = load_change_spec()
+    context = collect_relevant_context(spec)
+    plan = agent.plan(context, acceptance_criteria=spec.acceptance)
+
+    diff = agent.implement(plan)
+    result = harness.run(diff, checks=spec.acceptance)
+
+    if result.passed:
+        return handoff(diff, result.evidence)
+
+    if result.risk_high or result.needs_human:
+        return request_review(diff, result.failure_report)
+
+    agent_memory.add(result.failure_report)
+    spec = refine_spec_with_evidence(spec, result)</code></pre>
+
+        <p>
+          这段伪代码背后的工程含义是：Agent 的下一轮输入不应该只是“继续修”，而应该包含上一轮失败证据、失败分类、受影响文件、未通过验收项和被禁止的错误方向。
+        </p>
+      </section>
+
+      <section id="platforms">
+        <h2>6. 目前有哪些平台或 Skill 支持</h2>
+        <p class="section-lead">
+          目前没有一个主流平台把你描述的完整链路作为单一标准产品完全包起来，但很多工具已经覆盖其中一段。真正可用的方案通常是“需求协作平台 + 规格工具 + 自动化验收 + Agent Harness + 人工审查”组合。
+        </p>
+
+        <table class="matrix" aria-label="平台与工具支持矩阵">
+          <thead>
+            <tr>
+              <th>类别</th>
+              <th>代表工具</th>
+              <th>支持方式</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>需求与任务</td>
+              <td>Jira / Confluence / Linear / GitHub Issues</td>
+              <td>承载用户故事、验收标准、任务拆解、状态流和 review 记录。</td>
+            </tr>
+            <tr>
+              <td>BDD / ATDD</td>
+              <td>Cucumber / Gherkin / Robot Framework / pytest-bdd</td>
+              <td>把 Given / When / Then 或关键字测试写成可执行业务验收。</td>
+            </tr>
+            <tr>
+              <td>前端验收</td>
+              <td>Playwright / Cypress / Storybook test runner</td>
+              <td>验证页面状态、交互路径、截图、可访问性和回归行为。</td>
+            </tr>
+            <tr>
+              <td>规格驱动</td>
+              <td>GitHub Spec Kit</td>
+              <td>用 spec、plan、tasks 把需求先结构化，再进入实现。</td>
+            </tr>
+            <tr>
+              <td>Agent 工作流</td>
+              <td>LangGraph / OpenAI Agents SDK / AutoGen</td>
+              <td>支持多步工具调用、状态流、trace、人工接管和可组合 agent。</td>
+            </tr>
+            <tr>
+              <td>Eval / Harness</td>
+              <td>SWE-bench / Inspect AI / LangSmith Evals / 自建 Harness</td>
+              <td>提供数据集、执行环境、评估器、失败分析和回放能力。</td>
+            </tr>
+            <tr>
+              <td>Codex Skills</td>
+              <td>skill-creator / github:* / build-web-apps:* / product-design:*</td>
+              <td>可以把“先梳理流程、列验收、再执行、再验证”的工作流封装成团队专用 Skill。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>在 Codex 里怎么组合</h3>
+        <p>
+          你当前环境里已经有一些可组合的 Skill：`skill-creator` 可以把这个流程封装成新 Skill；`product-design:get-context` 和 `product-design:audit` 适合梳理产品流程；`build-web-apps:frontend-testing-debugging` 适合前端验收；`github:gh-fix-ci` 和 `github:gh-address-comments` 适合把失败检查或 review feedback 纳入修复循环。
+        </p>
+
+        <div class="callout">
+          <strong>最值得做的下一步：</strong>把这套流程封装成一个 `acceptance-loop-development` Skill。它不需要绑定某个业务领域，只要强制每次变更都产出 As-Is、To-Be、Gap、Acceptance Checklist、Task Plan、Verification Report 和 Regression Notes。
+        </div>
+      </section>
+
+      <section id="template">
+        <h2>7. 一个团队可直接采用的落地模板</h2>
+        <p class="section-lead">
+          下面这个模板可以放进 issue、PRD、Codex Skill 或仓库里的 `.agent/change-spec.md`。它的目的不是增加仪式感，而是让 Agent 和人类在同一套验收语言里工作。
+        </p>
+
+        <pre><code># Change Spec: &lt;变更名称&gt;
+
+## 1. Business Context
+- 业务目标：
+- 相关角色：
+- 相关系统：
+- 非目标范围：
+
+## 2. As-Is Flow
+1. 当前步骤 A：
+2. 当前步骤 B：
+3. 当前异常路径：
+
+## 3. To-Be Flow
+1. 目标步骤 A：
+2. 目标步骤 B：
+3. 目标异常路径：
+
+## 4. Gap Analysis
+| Gap | 类型 | 影响文件/模块 | 风险 |
+| --- | --- | --- | --- |
+| G-01 | 领域规则 | order/domain | 高 |
+| G-02 | API 响应 | order/controller | 中 |
+
+## 5. Acceptance Criteria
+- AC-01: Given ..., When ..., Then ...
+- AC-02: Given ..., When ..., Then ...
+- AC-03: 性能、权限、审计、兼容性要求
+
+## 6. Task Dispatch
+- T-01: 修改领域模型，对应 G-01 / AC-01
+- T-02: 增加接口测试，对应 AC-02
+- T-03: 更新文档和回归样例
+
+## 7. Verification Report
+- 运行命令：
+- 通过证据：
+- 未覆盖风险：
+- 需要人工验收的项：
+
+## 8. Regression Notes
+- 新增测试：
+- 新增失败样例：
+- 可沉淀到 Skill / runbook 的经验：</code></pre>
+
+        <div class="checklist">
+          <div class="check">
+            <div>
+              <b>小变更也保留验收项</b>
+              <span>哪怕只有 3 条，也比“看起来没问题”可靠。</span>
+            </div>
+          </div>
+          <div class="check">
+            <div>
+              <b>复杂变更必须有前后流程图</b>
+              <span>尤其是订单、审批、计费、权限、库存、合约等状态密集领域。</span>
+            </div>
+          </div>
+          <div class="check">
+            <div>
+              <b>每条验收都绑定证据</b>
+              <span>证据可以是测试、截图、日志、SQL 检查、接口响应或人工确认。</span>
+            </div>
+          </div>
+          <div class="check">
+            <div>
+              <b>失败样例进入回归集</b>
+              <span>否则下一次 Loop 仍然可能在同一个地方犯错。</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="risks">
+        <h2>8. 风险与反模式</h2>
+        <p class="section-lead">
+          验收驱动不是把所有事情都流程化到迟缓。它真正要防的是另一种极端：Agent 很快、代码很多、反馈很自信，但业务目标没有被验证。
+        </p>
+
+        <table class="matrix" aria-label="风险与应对">
+          <thead>
+            <tr>
+              <th>反模式</th>
+              <th>表现</th>
+              <th>应对</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>验收项写成愿望</td>
+              <td>“体验更好”“逻辑正确”“性能正常”</td>
+              <td>改写成可观察结果、阈值和证据类型。</td>
+            </tr>
+            <tr>
+              <td>只验 happy path</td>
+              <td>主流程通过，但异常路径、权限、并发和历史数据遗漏</td>
+              <td>As-Is / To-Be 必须包含异常流和不可变约束。</td>
+            </tr>
+            <tr>
+              <td>Harness 过窄</td>
+              <td>只跑单测，却声明业务验收通过</td>
+              <td>根据需求范围加入集成、端到端、日志、截图或人工检查。</td>
+            </tr>
+            <tr>
+              <td>Loop 投机</td>
+              <td>为了过测试硬编码、删除断言、扩大 mock</td>
+              <td>增加 diff review、禁止项、架构约束和人工门禁。</td>
+            </tr>
+            <tr>
+              <td>反馈不沉淀</td>
+              <td>这次修好了，下次类似问题又发生</td>
+              <td>把失败样例写入回归集、Skill、runbook 或模板。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <blockquote>
+          最后的判断：在 harness + loop engineering 时代，验收驱动开发不是传统流程的复古，而是 AI coding 规模化的必要控制面。它把业务目标、工程执行和反馈学习连成一条闭环。
+        </blockquote>
+      </section>
+
+      <section id="sources">
+        <h2>9. 参考资料</h2>
+        <p class="section-lead">
+          以下资料用于交叉验证本文的术语、趋势和平台能力。检索重点覆盖 ATDD / BDD、验收标准、agent harness、eval、spec-driven development、agent loop 和 human-in-the-loop。
+        </p>
+        <ol class="refs">
+          <li><span class="tag">Harness</span>Anthropic, <a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents" target="_blank" rel="noopener">Effective harnesses for long-running agents</a>.</li>
+          <li><span class="tag">Evals</span>Anthropic, <a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank" rel="noopener">Demystifying evals for AI agents</a>.</li>
+          <li><span class="tag">Agents</span>Anthropic, <a href="https://www.anthropic.com/research/building-effective-agents" target="_blank" rel="noopener">Building Effective AI Agents</a>.</li>
+          <li><span class="tag">Harness</span>SWE-bench, <a href="https://www.swebench.com/SWE-bench/reference/harness/" target="_blank" rel="noopener">The Harness</a>.</li>
+          <li><span class="tag">Spec</span>GitHub, <a href="https://github.com/github/spec-kit" target="_blank" rel="noopener">Spec Kit</a>.</li>
+          <li><span class="tag">BDD</span>Cucumber, <a href="https://cucumber.io/docs/gherkin/reference/" target="_blank" rel="noopener">Gherkin Reference</a>.</li>
+          <li><span class="tag">ATDD</span>Agile Alliance, <a href="https://www.agilealliance.org/glossary/atdd/" target="_blank" rel="noopener">Acceptance Test-Driven Development</a>.</li>
+          <li><span class="tag">Acceptance</span>Atlassian, <a href="https://www.atlassian.com/work-management/project-management/acceptance-criteria" target="_blank" rel="noopener">Acceptance Criteria</a>.</li>
+          <li><span class="tag">Workflow</span>LangGraph, <a href="https://docs.langchain.com/oss/python/langgraph/overview" target="_blank" rel="noopener">Overview</a> and <a href="https://docs.langchain.com/oss/python/langchain/human-in-the-loop" target="_blank" rel="noopener">Human-in-the-loop</a>.</li>
+          <li><span class="tag">Eval</span>LangSmith, <a href="https://docs.smith.langchain.com/evaluation" target="_blank" rel="noopener">Evaluation</a>.</li>
+          <li><span class="tag">OpenAI</span>OpenAI, <a href="https://platform.openai.com/docs/guides/evals" target="_blank" rel="noopener">Evals guide</a> and <a href="https://openai.github.io/openai-agents-python/tracing/" target="_blank" rel="noopener">Agents SDK tracing</a>.</li>
+          <li><span class="tag">Codex</span>OpenAI Developers, <a href="https://developers.openai.com/codex/skills" target="_blank" rel="noopener">Codex Skills</a>.</li>
+          <li><span class="tag">Testing</span>Playwright, <a href="https://playwright.dev/docs/intro" target="_blank" rel="noopener">Playwright testing documentation</a>.</li>
+          <li><span class="tag">Testing</span>Robot Framework, <a href="https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html" target="_blank" rel="noopener">Robot Framework User Guide</a>.</li>
+        </ol>
+      </section>
+    </main>
+  </div>
+
+  <footer>
+    本文由本地 HTML 产出，主题图为生成式位图资产，正文图表为代码原生实现。核心观点：验收列表应从“项目管理附件”升级为“Agent Harness 与 Loop 的工程接口”。
+  </footer>
+</body>
+</html>
