@@ -4,6 +4,7 @@
 
 ## 2026-06
 
+- [Weave Router、CC Switch、LiteLLM、OpenRouter：本地 AI 编程 CLI 路由怎么选](weave-router-cli-routing-blog/) `HTML`{target="_self"}
 - [验收驱动开发，在 Harness + Loop Engineering 时代为什么更重要](acceptance-harness-loop-blog/) `HTML`{target="_self"}
 - [LiteLLM 官方文档工程导览](litellm-docs-guide/) `HTML`{target="_self"}
 - [我们真的需要自己搭一个 OpenRouter 吗？](openrouter-local-build-blog/) `HTML`{target="_self"}

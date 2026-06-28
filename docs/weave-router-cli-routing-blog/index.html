@@ -1,0 +1,1180 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Weave Router、CC Switch、LiteLLM、OpenRouter：本地 AI 编程 CLI 路由怎么选</title>
+  <meta name="description" content="从本地 AI 编程 CLI 的角度比较 Weave Router、CC Switch、LiteLLM 和 OpenRouter，解释订阅账户、API Key、智能路由、本地代理与自托管的边界。" />
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fa;
+      --paper: #ffffff;
+      --ink: #111827;
+      --muted: #667085;
+      --soft: #eef3f7;
+      --line: #d9e2ec;
+      --teal: #0f766e;
+      --teal-2: #14a098;
+      --teal-soft: #e3f5f2;
+      --blue: #1d4ed8;
+      --blue-2: #2563eb;
+      --blue-soft: #e9f1ff;
+      --amber: #b45309;
+      --amber-2: #f59e0b;
+      --amber-soft: #fff5df;
+      --rose: #be123c;
+      --rose-soft: #fff1f2;
+      --green: #15803d;
+      --green-soft: #e9f7ee;
+      --slate: #263445;
+      --code-bg: #101820;
+      --code-ink: #eaf2f7;
+      --shadow: 0 18px 52px rgba(17, 24, 39, 0.10);
+      --radius: 8px;
+      --content: 1160px;
+      --sidebar: 248px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, #eef8f6 0, #f5f7fa 420px),
+        var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      line-height: 1.72;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+
+    p {
+      margin: 0 0 16px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      letter-spacing: 0;
+      line-height: 1.22;
+    }
+
+    h1 {
+      font-size: clamp(36px, 5vw, 60px);
+      max-width: 940px;
+    }
+
+    h2 {
+      font-size: clamp(28px, 3vw, 42px);
+      margin-bottom: 18px;
+    }
+
+    h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    ul,
+    ol {
+      margin: 0 0 18px;
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 7px 0;
+    }
+
+    code,
+    pre {
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    }
+
+    :not(pre) > code {
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #0f3c48;
+      background: #edf4f7;
+      font-size: 0.93em;
+    }
+
+    pre {
+      overflow: auto;
+      margin: 0;
+      padding: 18px;
+      color: var(--code-ink);
+      background: var(--code-bg);
+      border-radius: var(--radius);
+      line-height: 1.56;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      color: #1f2937;
+      background: #f0f5f8;
+      font-weight: 800;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 12px clamp(18px, 4vw, 48px);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(217, 226, 236, 0.85);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 850;
+      color: #162031;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 32px;
+      height: 32px;
+      place-items: center;
+      border-radius: 8px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--teal), var(--blue));
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .nav a {
+      padding: 6px 10px;
+      border-radius: 7px;
+      color: #344054;
+      font-size: 13px;
+      text-decoration: none;
+      border: 1px solid transparent;
+    }
+
+    .nav a:hover {
+      border-color: var(--line);
+      background: #fff;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: var(--sidebar) minmax(0, 1fr);
+      max-width: 1520px;
+      margin: 0 auto;
+    }
+
+    .toc {
+      position: sticky;
+      top: 57px;
+      align-self: start;
+      height: calc(100vh - 57px);
+      padding: 32px 24px;
+      border-right: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .toc-title {
+      margin-bottom: 14px;
+      color: #111827;
+      font-weight: 850;
+    }
+
+    .toc a {
+      display: block;
+      padding: 8px 0;
+      color: #415064;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      color: var(--teal);
+    }
+
+    .toc-note {
+      margin-top: 28px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.58;
+    }
+
+    main {
+      min-width: 0;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: clamp(44px, 7vw, 82px) clamp(24px, 6vw, 72px) 30px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero p {
+      max-width: 940px;
+      color: #344054;
+      font-size: clamp(17px, 2vw, 21px);
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 24px 0 0;
+      color: #475467;
+      font-size: 13px;
+    }
+
+    .meta-row span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 7px;
+      background: var(--soft);
+      border: 1px solid #e2e8f0;
+    }
+
+    .section {
+      padding: 40px clamp(24px, 6vw, 72px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section > p,
+    .section > ul,
+    .section > ol {
+      max-width: 920px;
+    }
+
+    .lead-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .summary-tile {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .summary-tile strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 17px;
+    }
+
+    .summary-tile p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .callout {
+      display: grid;
+      grid-template-columns: 6px minmax(0, 1fr);
+      gap: 16px;
+      max-width: 980px;
+      margin: 24px 0;
+      padding: 18px 20px 18px 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfdff;
+      overflow: hidden;
+    }
+
+    .callout::before {
+      content: "";
+      background: var(--teal);
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .callout p {
+      margin: 0;
+      color: #344054;
+    }
+
+    .layer-map {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(190px, 1fr));
+      gap: 18px;
+      margin-top: 24px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .layer {
+      min-width: 190px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .layer h3 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0;
+      padding: 12px 14px;
+      color: #fff;
+      font-size: 15px;
+    }
+
+    .layer h3 span {
+      opacity: 0.88;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .layer.clients h3 {
+      background: var(--teal);
+    }
+
+    .layer.control h3 {
+      background: var(--blue);
+    }
+
+    .layer.router h3 {
+      background: #1659c7;
+    }
+
+    .layer.market h3 {
+      background: var(--amber);
+    }
+
+    .layer ul {
+      margin: 0;
+      padding: 14px;
+      list-style: none;
+    }
+
+    .layer li {
+      margin: 0 0 10px;
+      padding: 10px 11px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fbfdff;
+      color: #263445;
+      font-size: 14px;
+    }
+
+    .flow-caption {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .flow-caption span {
+      padding: 8px 10px;
+      border: 1px dashed #b9c7d6;
+      border-radius: 7px;
+      background: #fbfdff;
+      text-align: center;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1.02fr) minmax(340px, 0.98fr);
+      gap: 26px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .panel h3 {
+      margin-bottom: 12px;
+    }
+
+    .mini-kicker {
+      margin-bottom: 10px;
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .role-card {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .role-card.weave {
+      border-top: 5px solid var(--teal);
+    }
+
+    .role-card.cc {
+      border-top: 5px solid var(--blue);
+    }
+
+    .role-card.gateway {
+      border-top: 5px solid var(--slate);
+    }
+
+    .role-card.marketplace {
+      border-top: 5px solid var(--amber);
+    }
+
+    .role-card p {
+      color: #344054;
+      font-size: 15px;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .tag {
+      padding: 5px 9px;
+      border-radius: 7px;
+      color: #344054;
+      background: #eef3f7;
+      border: 1px solid #e2e8f0;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .decision {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .decision header {
+      padding: 14px 16px;
+      background: #f0f5f8;
+      border-bottom: 1px solid var(--line);
+      font-weight: 850;
+    }
+
+    .decision div {
+      padding: 16px;
+    }
+
+    .decision p {
+      margin: 0 0 12px;
+      color: #344054;
+      font-size: 14px;
+    }
+
+    .decision strong {
+      color: var(--teal);
+    }
+
+    .bar-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bar-item {
+      display: grid;
+      grid-template-columns: 145px minmax(0, 1fr) 68px;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .bar {
+      height: 12px;
+      border-radius: 999px;
+      background: #e8eef4;
+      overflow: hidden;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--teal), var(--blue));
+    }
+
+    .code-tabs {
+      display: grid;
+      gap: 14px;
+    }
+
+    .cmd-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .cmd-title span {
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: #eef3f7;
+      color: #475467;
+    }
+
+    .risk-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .risk {
+      padding: 18px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .risk.good {
+      background: var(--green-soft);
+      border-color: #b7e3c3;
+    }
+
+    .risk.warn {
+      background: var(--amber-soft);
+      border-color: #f2d190;
+    }
+
+    .risk.bad {
+      background: var(--rose-soft);
+      border-color: #f4b8c7;
+    }
+
+    .source-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .source-list li {
+      margin: 0;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .source-list strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .footer {
+      padding: 32px clamp(24px, 6vw, 72px) 50px;
+      color: var(--muted);
+      background: #f8fafc;
+    }
+
+    .print-note {
+      font-size: 13px;
+    }
+
+    @media (max-width: 1120px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .toc {
+        position: static;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .toc a {
+        display: inline-block;
+        margin-right: 14px;
+      }
+
+      main {
+        box-shadow: none;
+      }
+
+      .lead-grid,
+      .matrix {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 820px) {
+      .topbar {
+        position: static;
+        align-items: flex-start;
+      }
+
+      .nav {
+        display: none;
+      }
+
+      .hero,
+      .section,
+      .footer {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .toc {
+        display: none;
+      }
+
+      h1 {
+        font-size: 34px;
+        line-height: 1.16;
+      }
+
+      .lead-grid,
+      .split,
+      .two-col,
+      .matrix,
+      .risk-grid,
+      .source-list {
+        grid-template-columns: 1fr;
+      }
+
+      .layer-map {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-caption {
+        grid-template-columns: 1fr;
+      }
+
+      .bar-item {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      table {
+        min-width: 760px;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+    }
+
+    @media print {
+      .topbar,
+      .toc {
+        display: none;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .layout {
+        display: block;
+      }
+
+      main {
+        box-shadow: none;
+      }
+
+      a {
+        color: #111827;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">R</span><span>本地 AI 编程 CLI 路由笔记</span></div>
+    <nav class="nav" aria-label="页面导航">
+      <a href="#thesis">结论</a>
+      <a href="#map">架构图</a>
+      <a href="#compare">对比</a>
+      <a href="#subscription">订阅账户</a>
+      <a href="#try">体验路径</a>
+      <a href="#sources">来源</a>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="本文目录">
+      <div class="toc-title">本文目录</div>
+      <a href="#thesis">1. 一句话判断</a>
+      <a href="#map">2. 四层架构图</a>
+      <a href="#weave">3. Weave 的位置</a>
+      <a href="#ccswitch">4. 和 CC Switch 的关系</a>
+      <a href="#compare">5. 四者能力对比</a>
+      <a href="#subscription">6. 订阅账户边界</a>
+      <a href="#try">7. 本地 CLI 体验路径</a>
+      <a href="#decision">8. 选型矩阵</a>
+      <a href="#risks">9. 风险清单</a>
+      <a href="#sources">10. 资料来源</a>
+      <div class="toc-note">最后核对：2026-06-28。工具能力、命令参数和商业条款可能变化，实际接入前应再看官方文档。</div>
+    </aside>
+
+    <main>
+      <section class="hero" id="top">
+        <h1>Weave Router、CC Switch、LiteLLM、OpenRouter：本地 AI 编程 CLI 路由怎么选</h1>
+        <p>如果你主要用 Claude Code、Codex、Cursor、Gemini CLI、opencode 这类本地 AI 编程工具，关键问题不是“谁支持更多模型”，而是谁站在本地工作流的哪一层：配置控制、请求路由、企业网关，还是模型市场。</p>
+        <div class="meta-row">
+          <span>技术博客草稿</span>
+          <span>约 12 分钟阅读</span>
+          <span>面向本地 CLI 与订阅账户用户</span>
+          <span>HTML 单文件</span>
+        </div>
+
+        <div class="lead-grid" id="thesis">
+          <article class="summary-tile">
+            <strong>Weave Router</strong>
+            <p>更像本地智能路由数据面：请求进来后自动判断该走哪个模型，尤其贴近 Claude Code / Codex 这类 agent CLI。</p>
+          </article>
+          <article class="summary-tile">
+            <strong>CC Switch</strong>
+            <p>更像本地控制台：管理多个 CLI、多个 provider、MCP、Skills、Prompts，并提供 GUI 和托盘切换。</p>
+          </article>
+          <article class="summary-tile">
+            <strong>LiteLLM</strong>
+            <p>更像通用 LLM Gateway：适合团队统一 key、预算、限流、fallback、审计与生产网关。</p>
+          </article>
+          <article class="summary-tile">
+            <strong>OpenRouter</strong>
+            <p>更像模型市场和统一购买入口：一个 API 访问大量模型，适合快速补齐 DeepSeek、Kimi、Qwen 等模型池。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="map">
+        <h2>四层架构图：先别把它们放在同一格里比较</h2>
+        <p>把本地 AI 编程环境拆成四层后，差异会清楚很多。Claude Code、Codex、Cursor 等是请求发起方；CC Switch 管配置和切换；Weave 负责请求级智能路由；OpenRouter 是大量模型的托管市场；LiteLLM 则可以横跨控制、网关和治理，但它的默认语境更偏团队基础设施。</p>
+
+        <div class="layer-map" role="img" aria-label="本地 AI 编程 CLI 路由四层架构图">
+          <article class="layer clients">
+            <h3>1 本地 CLI 客户端 <span>Client</span></h3>
+            <ul>
+              <li>Claude Code</li>
+              <li>Codex CLI</li>
+              <li>Cursor / opencode</li>
+              <li>Gemini CLI / 自定义脚本</li>
+            </ul>
+          </article>
+          <article class="layer control">
+            <h3>2 控制平面 <span>Control</span></h3>
+            <ul>
+              <li>provider 配置切换</li>
+              <li>API key / base URL 管理</li>
+              <li>MCP、Prompts、Skills 同步</li>
+              <li>本地代理与 failover 策略</li>
+            </ul>
+          </article>
+          <article class="layer router">
+            <h3>3 智能路由层 <span>Router</span></h3>
+            <ul>
+              <li>按请求内容选择模型</li>
+              <li>兼容 Anthropic / OpenAI / Gemini API</li>
+              <li>长会话 pinning 与缓存意识</li>
+              <li>OTLP trace 与路由审计</li>
+            </ul>
+          </article>
+          <article class="layer market">
+            <h3>4 模型市场层 <span>Market</span></h3>
+            <ul>
+              <li>OpenAI / Anthropic / Gemini</li>
+              <li>OpenRouter 模型目录</li>
+              <li>DeepSeek / Kimi / GLM / Qwen</li>
+              <li>Llama / Mistral / 兼容端点</li>
+            </ul>
+          </article>
+        </div>
+        <div class="flow-caption">
+          <span>CLI 发起请求：保留本地工具体验</span>
+          <span>中间层决定：切换配置或自动路由</span>
+          <span>下游执行：官方 API、订阅 passthrough 或模型市场</span>
+        </div>
+      </section>
+
+      <section class="section" id="weave">
+        <div class="split">
+          <div>
+            <h2>Weave 的优势：不是“又一个 OpenRouter”，而是本地 agent CLI 的自动路由层</h2>
+            <p>Weave Router 的官方定位是一个 drop-in proxy。它能接 Anthropic Messages、OpenAI Chat Completions、Gemini 原生接口，也能通过 OpenRouter 或 OpenAI-compatible endpoint 接入开源和国产模型。它的特别之处是路由决策：用本地轻量 embedder 与 cluster scorer 判断请求适合哪类模型，而不是只按固定模型名转发。</p>
+            <div class="callout">
+              <div>
+                <strong>核心判断</strong>
+                <p>如果目标是“让 Claude Code 或 Codex 的每一轮请求自动选模型”，Weave 比 LiteLLM 和 OpenRouter 更贴近问题本身；如果目标是“统一管理很多 CLI 配置”，CC Switch 反而更像日常桌面入口。</p>
+              </div>
+            </div>
+          </div>
+
+          <aside class="panel">
+            <div class="mini-kicker">Weave Router 的典型路径</div>
+            <div class="bar-list">
+              <div class="bar-item"><span>CLI 适配</span><div class="bar"><i style="width: 88%"></i></div><strong>高</strong></div>
+              <div class="bar-item"><span>自动路由</span><div class="bar"><i style="width: 94%"></i></div><strong>高</strong></div>
+              <div class="bar-item"><span>企业治理</span><div class="bar"><i style="width: 58%"></i></div><strong>中</strong></div>
+              <div class="bar-item"><span>模型广度</span><div class="bar"><i style="width: 76%"></i></div><strong>中高</strong></div>
+              <div class="bar-item"><span>低门槛体验</span><div class="bar"><i style="width: 82%"></i></div><strong>高</strong></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section" id="ccswitch">
+        <h2>Weave 和 CC Switch：确实更像竞品，但竞争点不同</h2>
+        <div class="two-col">
+          <article class="role-card weave">
+            <h3>Weave：数据面，负责“这一轮请求走哪儿”</h3>
+            <p>Weave 更关注请求本身：内容是什么、复杂度如何、是否需要强模型、是否可以交给更便宜的模型、是否要保持长会话一致性。它适合拿来验证“自动模型路由”是否真的能改善成本与稳定性。</p>
+            <div class="tag-row">
+              <span class="tag">自动路由</span>
+              <span class="tag">localhost:8080</span>
+              <span class="tag">OTLP</span>
+              <span class="tag">Codex / Claude Code</span>
+            </div>
+          </article>
+
+          <article class="role-card cc">
+            <h3>CC Switch：控制面，负责“我的工具连接谁”</h3>
+            <p>CC Switch 更关注本机配置管理：多个 CLI、多个 provider、多个 key、MCP、Skills、Prompts、Sessions、使用量统计和托盘切换。它适合长期作为桌面上的 AI 编程控制台。</p>
+            <div class="tag-row">
+              <span class="tag">GUI 管理</span>
+              <span class="tag">provider presets</span>
+              <span class="tag">MCP / Skills</span>
+              <span class="tag">Usage dashboard</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="compare">
+        <h2>四者能力对比：定位比功能列表更重要</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>维度</th>
+                <th>Weave Router</th>
+                <th>CC Switch</th>
+                <th>LiteLLM</th>
+                <th>OpenRouter</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>核心定位</td>
+                <td>本地 / 自托管智能模型路由器</td>
+                <td>AI 编程 CLI 桌面管理器</td>
+                <td>通用 LLM Gateway / Proxy</td>
+                <td>托管模型市场与统一 API</td>
+              </tr>
+              <tr>
+                <td>最佳用户</td>
+                <td>想体验请求级自动路由的 coding agent 用户</td>
+                <td>同时管理 Claude Code、Codex、Gemini CLI 等多工具用户</td>
+                <td>团队、企业、平台工程和后端服务</td>
+                <td>需要一个 key 调用大量模型的开发者</td>
+              </tr>
+              <tr>
+                <td>路由方式</td>
+                <td>本地 embedder + cluster scorer，按请求自动选模型</td>
+                <td>手动/热切换 provider，配合本地 proxy 和 failover</td>
+                <td>规则、负载均衡、fallback、预算、限流、自定义策略</td>
+                <td>provider routing、价格/延迟/吞吐排序、Auto/Pareto 类路由</td>
+              </tr>
+              <tr>
+                <td>本地 CLI 适配</td>
+                <td>明确支持 Claude Code、Codex、opencode，Cursor 手动配置</td>
+                <td>覆盖 Claude Code、Claude Desktop、Codex、Gemini CLI、OpenCode 等</td>
+                <td>可接，但通常需要自己管理配置</td>
+                <td>可作为 base URL，但不是本地配置管理器</td>
+              </tr>
+              <tr>
+                <td>订阅账户体验</td>
+                <td>官方文档提到 Claude/Codex plan credentials passthrough</td>
+                <td>支持官方登录 preset 和多 provider 切换</td>
+                <td>主要围绕 API key、虚拟 key、团队密钥治理</td>
+                <td>主要使用 OpenRouter key 和余额</td>
+              </tr>
+              <tr>
+                <td>自托管能力</td>
+                <td>可以本地 / 自托管，默认端口常见为 8080</td>
+                <td>本地桌面应用 + SQLite + 本地 proxy</td>
+                <td>成熟，适合服务端生产部署</td>
+                <td>SaaS 为主，不是自托管项目</td>
+              </tr>
+              <tr>
+                <td>观测与治理</td>
+                <td>OTLP trace、dashboard、路由决策审计</td>
+                <td>用量面板、请求日志、配置备份</td>
+                <td>日志、预算、限流、guardrails、团队管理</td>
+                <td>用量、模型排行、provider 状态与计费</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="subscription">
+        <h2>订阅账户边界：passthrough 不是“跨供应商额度池”</h2>
+        <p>你提到“大部分账户都是订阅方式”，这是最容易误解的地方。Weave 或 CC Switch 可以帮助本地 CLI 接入、切换或转发原有认证，但不能把 Claude 订阅额度变成 Gemini、DeepSeek、Qwen 的 API 额度，也不能把 Cursor 订阅自动变成 OpenRouter 余额。</p>
+        <div class="risk-grid">
+          <article class="risk good">
+            <h3>可以期待</h3>
+            <p>Claude Code 继续使用 Anthropic plan credentials；Codex 继续使用 OpenAI plan credentials；本地工具请求经过路由器或配置管理器。</p>
+          </article>
+          <article class="risk warn">
+            <h3>需要额外 key</h3>
+            <p>如果要路由到 OpenRouter、Gemini、DeepSeek、Kimi、Qwen、GLM 等模型池，通常仍需配置对应 provider key 或 OpenRouter key。</p>
+          </article>
+          <article class="risk bad">
+            <h3>不要误判</h3>
+            <p>订阅账户不是通用 API 钱包。路由器能改变请求路径，但不能绕过供应商的计费、授权和服务条款。</p>
+          </article>
+          <article class="risk">
+            <h3>实践建议</h3>
+            <p>把官方订阅当主力，把 OpenRouter key 当补充模型池；先 shadow test 或小范围项目级接入，再决定是否长期放进日常工作流。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="try">
+        <h2>如何体验 Weave 路由本地 CLI：先走最小可逆路径</h2>
+        <p>如果目标是体验本地 CLI 路由，不建议一上来就自托管全套 Postgres + dashboard。先用项目级 Codex 配置接入 hosted router，确认本地 CLI 能走通，再考虑 `--local`。</p>
+
+        <div class="split">
+          <div class="code-tabs">
+            <div>
+              <div class="cmd-title">路径 A：项目级 Codex 接入 <span>影响最小</span></div>
+              <pre><code>cd C:\Users\admin\Documents\study
+npx @workweave/router --codex --scope project
+
+$env:CODEX_HOME = Join-Path (Get-Location) ".codex"
+codex</code></pre>
+            </div>
+            <div>
+              <div class="cmd-title">验证与回滚 <span>可逆</span></div>
+              <pre><code>npx @workweave/router status --codex --scope project
+Get-Content .\.codex\config.toml
+
+npx @workweave/router off --codex --scope project
+npx @workweave/router --uninstall --codex --scope project</code></pre>
+            </div>
+          </div>
+
+          <div class="code-tabs">
+            <div>
+              <div class="cmd-title">路径 B：自托管 localhost:8080 <span>完整体验</span></div>
+              <pre><code>git clone https://github.com/workweave/router
+cd router
+echo "OPENROUTER_API_KEY=sk-or-v1-..." >> .env.local
+make full-setup</code></pre>
+            </div>
+            <div>
+              <div class="cmd-title">本地 router 接入 Codex <span>router + CLI</span></div>
+              <pre><code>cd C:\Users\admin\Documents\study
+npx @workweave/router --codex --local --scope project
+
+$env:CODEX_HOME = Join-Path (Get-Location) ".codex"
+codex</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="decision">
+        <h2>选型矩阵：按你的真实目标选</h2>
+        <div class="matrix">
+          <article class="decision">
+            <header>我想体验“自动选模型”</header>
+            <div>
+              <p><strong>优先试 Weave Router。</strong> 它的核心卖点就是本地 / 自托管路由层，而不是简单 provider 切换。</p>
+              <p>建议：先接 Codex 项目级配置，再加 OpenRouter key 观察是否真的发生跨模型路由。</p>
+            </div>
+          </article>
+          <article class="decision">
+            <header>我想管理很多本地 CLI</header>
+            <div>
+              <p><strong>优先试 CC Switch。</strong> 它更像桌面控制台，适合多工具、多 key、多配置、多 MCP 的日常管理。</p>
+              <p>建议：把官方登录、第三方 API、Weave Router 都作为 provider 管起来，但避免多个工具同时改同一份配置。</p>
+            </div>
+          </article>
+          <article class="decision">
+            <header>我想补齐开源模型池</header>
+            <div>
+              <p><strong>优先加 OpenRouter。</strong> 它最快解决“一个 key 访问很多模型”的问题。</p>
+              <p>建议：让 Weave 或 LiteLLM 把 OpenRouter 当下游，而不是在本机重复维护每个模型供应商。</p>
+            </div>
+          </article>
+          <article class="decision">
+            <header>我要团队统一治理</header>
+            <div>
+              <p><strong>优先看 LiteLLM。</strong> 它更适合作为团队级网关，处理虚拟 key、预算、限流、fallback、审计、guardrails。</p>
+              <p>建议：先定义业务路由规则，再决定是否把 Weave 放在个人开发者侧。</p>
+            </div>
+          </article>
+          <article class="decision">
+            <header>我主要用订阅账户</header>
+            <div>
+              <p><strong>把 passthrough 当基础，把 API key 当补充。</strong> 订阅账户保留官方路径，OpenRouter 或 provider key 用于扩展模型池。</p>
+              <p>建议：不要期待订阅额度自动跨供应商流动。</p>
+            </div>
+          </article>
+          <article class="decision">
+            <header>我只想先不破坏现状</header>
+            <div>
+              <p><strong>用 project scope。</strong> 不改全局配置，只在一个工作区试验；验证通过再扩大范围。</p>
+              <p>建议：记录原始配置、路由开关、卸载命令和一次真实任务日志。</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="risks">
+        <h2>落地风险清单：别只看“支持”两个字</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>风险</th>
+                <th>为什么重要</th>
+                <th>建议动作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>路由错误</td>
+                <td>简单请求可以省钱，复杂代码修改被路由到弱模型可能造成返工。</td>
+                <td>先用真实任务做小样本比较，保留手动指定强模型的逃生路径。</td>
+              </tr>
+              <tr>
+                <td>prompt cache 失效</td>
+                <td>长会话 agent 随意跨模型可能损失缓存命中和上下文一致性。</td>
+                <td>关注 session pinning、长会话策略和 provider cache 行为。</td>
+              </tr>
+              <tr>
+                <td>密钥存储</td>
+                <td>BYOK 不等于无需配置。自托管时要确认 key 是否加密落库。</td>
+                <td>设置外部加密 key，修改默认 dashboard 密码，限制内网访问。</td>
+              </tr>
+              <tr>
+                <td>配置接管冲突</td>
+                <td>Weave 和 CC Switch 都可能修改 Claude/Codex 配置。</td>
+                <td>同一个 CLI 同一份配置先只让一个工具接管；另一个作为 provider 或手动路径。</td>
+              </tr>
+              <tr>
+                <td>成本错觉</td>
+                <td>省钱比例依赖请求分布、模型池、缓存、重试和失败率。</td>
+                <td>用 trace、请求日志和账单对齐，不只看单次 token 单价。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="sources">
+        <h2>资料来源与后续阅读</h2>
+        <ul class="source-list">
+          <li>
+            <strong>Weave Router GitHub</strong>
+            <a href="https://github.com/workweave/router">github.com/workweave/router</a>
+          </li>
+          <li>
+            <strong>Weave npm installer</strong>
+            <a href="https://github.com/workweave/router/blob/main/install/npm/README.md">install/npm/README.md</a>
+          </li>
+          <li>
+            <strong>CC Switch GitHub</strong>
+            <a href="https://github.com/farion1231/cc-switch">github.com/farion1231/cc-switch</a>
+          </li>
+          <li>
+            <strong>LiteLLM Proxy 文档</strong>
+            <a href="https://docs.litellm.ai/docs/proxy/quick_start">docs.litellm.ai/docs/proxy/quick_start</a>
+          </li>
+          <li>
+            <strong>OpenRouter Quickstart</strong>
+            <a href="https://openrouter.ai/docs/quickstart">openrouter.ai/docs/quickstart</a>
+          </li>
+          <li>
+            <strong>OpenRouter Provider Routing</strong>
+            <a href="https://openrouter.ai/docs/guides/routing/provider-selection">provider-selection</a>
+          </li>
+        </ul>
+      </section>
+
+      <footer class="footer">
+        <p><strong>最终建议：</strong>如果你当前最想体验“本地 CLI 路由”，先用 Weave 的 Codex project scope 做最小试验；如果你想长期管理多个 CLI 和 provider，再把 CC Switch 放到桌面工作流里；OpenRouter 用来扩展模型池；LiteLLM 留给团队级网关和治理。</p>
+        <p class="print-note">本文是基于一次工具选型讨论整理的技术博客草稿，适合继续扩展为正式发布稿或内部技术备忘录。</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
