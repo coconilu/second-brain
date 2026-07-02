@@ -1,0 +1,1394 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Claude Code Agent Loops 与 SKILL.md 自检工程指南</title>
+  <meta
+    name="description"
+    content="一份图文并茂的中文 HTML 技术文档，解释 turn-based、goal-based、time-based、proactive 四种智能体循环，以及如何用 SKILL.md 固化端到端自检。"
+  />
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f8;
+      --paper: #ffffff;
+      --ink: #16202c;
+      --muted: #5d6978;
+      --line: #d7e0e8;
+      --line-strong: #b8c6d3;
+      --teal: #0f766e;
+      --teal-deep: #0b504b;
+      --teal-soft: #e6f4f2;
+      --blue: #2459c8;
+      --blue-soft: #eaf1ff;
+      --amber: #c46b12;
+      --amber-soft: #fff3dc;
+      --rose: #b4233a;
+      --rose-soft: #fff0f2;
+      --green: #1b7f45;
+      --green-soft: #e9f7ee;
+      --code-bg: #111827;
+      --code-ink: #e8eef7;
+      --shadow: 0 22px 60px rgba(22, 32, 44, 0.12);
+      --radius: 8px;
+      --content: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      line-height: 1.72;
+    }
+
+    img,
+    svg {
+      display: block;
+      max-width: 100%;
+    }
+
+    a {
+      color: var(--teal);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    .hero {
+      min-height: 82vh;
+      display: grid;
+      align-items: end;
+      color: #fff;
+      background:
+        linear-gradient(90deg, rgba(7, 13, 19, 0.9) 0%, rgba(7, 13, 19, 0.74) 42%, rgba(7, 13, 19, 0.18) 78%),
+        linear-gradient(0deg, rgba(7, 13, 19, 0.78) 0%, rgba(7, 13, 19, 0.12) 58%, rgba(7, 13, 19, 0) 100%),
+        url("assets/claude-code-agent-loops-hero.png") center / cover no-repeat;
+    }
+
+    .hero-inner {
+      width: min(var(--content), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 78px 0 66px;
+    }
+
+    .hero h1 {
+      max-width: 850px;
+      margin: 0;
+      font-size: clamp(40px, 6vw, 76px);
+      line-height: 1.06;
+      letter-spacing: 0;
+      font-weight: 850;
+    }
+
+    .hero .lead {
+      max-width: 780px;
+      margin: 24px 0 0;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: clamp(18px, 2vw, 22px);
+      line-height: 1.66;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 14px;
+    }
+
+    .hero-meta span {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.34);
+    }
+
+    .intro-band {
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .intro-grid {
+      width: min(var(--content), calc(100% - 40px));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(300px, 0.82fr);
+      gap: 34px;
+      padding: 34px 0;
+      align-items: start;
+    }
+
+    .thesis {
+      margin: 0;
+      color: #293544;
+      font-size: 20px;
+      line-height: 1.75;
+    }
+
+    .thesis strong {
+      color: var(--teal-deep);
+    }
+
+    .signal-panel {
+      padding: 20px 22px;
+      border-left: 5px solid var(--teal);
+      border-radius: var(--radius);
+      background: var(--teal-soft);
+    }
+
+    .signal-panel b {
+      display: block;
+      color: var(--teal-deep);
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .signal-panel p {
+      margin: 10px 0 0;
+      color: #35514e;
+      font-size: 15px;
+    }
+
+    .layout {
+      width: min(var(--content), calc(100% - 40px));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 42px;
+      padding: 38px 0 78px;
+    }
+
+    .toc {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      padding: 16px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+    }
+
+    .toc strong {
+      display: block;
+      margin-bottom: 10px;
+      color: #334155;
+      font-size: 13px;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .toc a {
+      display: block;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(216, 224, 232, 0.72);
+      color: #4b5867;
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      color: var(--teal);
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    section {
+      padding: 34px 0 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    section:first-child {
+      padding-top: 0;
+    }
+
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.28;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: clamp(28px, 3.2vw, 40px);
+      font-weight: 820;
+    }
+
+    h3 {
+      margin-top: 30px;
+      font-size: 22px;
+      font-weight: 760;
+    }
+
+    p {
+      margin: 16px 0 0;
+    }
+
+    .section-lead {
+      color: #344253;
+      font-size: 18px;
+      line-height: 1.78;
+    }
+
+    .figure {
+      margin: 28px 0 0;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: 0 10px 30px rgba(22, 32, 44, 0.06);
+    }
+
+    .figure-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+      color: #2a3746;
+      font-weight: 760;
+    }
+
+    .figure-title span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .loop-cycle {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .cycle-step {
+      position: relative;
+      min-height: 142px;
+      padding: 18px 16px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .cycle-step::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -15px;
+      width: 16px;
+      height: 2px;
+      background: var(--line-strong);
+    }
+
+    .cycle-step:last-child::after {
+      display: none;
+    }
+
+    .cycle-step .num {
+      display: inline-grid;
+      width: 32px;
+      height: 32px;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--teal);
+      color: #fff;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .cycle-step b {
+      display: block;
+      margin-top: 14px;
+      font-size: 17px;
+    }
+
+    .cycle-step span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .loop-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .loop-card {
+      min-height: 100%;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: 0 12px 34px rgba(22, 32, 44, 0.06);
+    }
+
+    .loop-card.turn {
+      border-top: 5px solid var(--teal);
+    }
+
+    .loop-card.goal {
+      border-top: 5px solid var(--blue);
+    }
+
+    .loop-card.time {
+      border-top: 5px solid var(--amber);
+    }
+
+    .loop-card.proactive {
+      border-top: 5px solid var(--rose);
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .icon {
+      display: grid;
+      flex: 0 0 auto;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--teal-soft);
+      color: var(--teal-deep);
+    }
+
+    .goal .icon {
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .time .icon {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .proactive .icon {
+      background: var(--rose-soft);
+      color: var(--rose);
+    }
+
+    .icon svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .loop-card h3 {
+      margin: 0;
+      font-size: 21px;
+    }
+
+    .loop-card p {
+      color: #3b4655;
+      font-size: 15px;
+    }
+
+    .meta-list {
+      display: grid;
+      gap: 9px;
+      margin-top: 18px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .meta-list li {
+      display: grid;
+      grid-template-columns: 84px minmax(0, 1fr);
+      gap: 10px;
+      padding-top: 9px;
+      border-top: 1px solid #edf1f5;
+      color: #384555;
+      font-size: 14px;
+    }
+
+    .meta-list b {
+      color: #1e2a38;
+    }
+
+    .ladder {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 26px;
+      align-items: end;
+    }
+
+    .ladder-step {
+      position: relative;
+      display: grid;
+      align-content: end;
+      min-height: var(--h);
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .ladder-step:nth-child(1) {
+      --h: 138px;
+    }
+
+    .ladder-step:nth-child(2) {
+      --h: 174px;
+    }
+
+    .ladder-step:nth-child(3) {
+      --h: 210px;
+    }
+
+    .ladder-step:nth-child(4) {
+      --h: 246px;
+    }
+
+    .ladder-step b {
+      color: #1e2a38;
+    }
+
+    .ladder-step span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .matrix {
+      width: 100%;
+      margin-top: 26px;
+      border-collapse: collapse;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      font-size: 15px;
+    }
+
+    .matrix th,
+    .matrix td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .matrix th {
+      background: #eef3f8;
+      color: #2d3b4b;
+      font-weight: 760;
+    }
+
+    .matrix tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .matrix td:first-child {
+      font-weight: 760;
+      color: #1c2a38;
+      white-space: nowrap;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 2px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #465569;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .skill-map {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .skill-file {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .file-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      background: #eef3f8;
+      color: #2f3b4a;
+      font-size: 14px;
+      font-weight: 760;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--teal);
+    }
+
+    .dot.blue {
+      background: var(--blue);
+    }
+
+    .dot.amber {
+      background: var(--amber);
+    }
+
+    .skill-lines {
+      display: grid;
+      gap: 10px;
+      padding: 18px;
+    }
+
+    .skill-line {
+      padding: 12px 14px;
+      border-left: 4px solid var(--line-strong);
+      background: #f8fafc;
+      color: #334155;
+      font-size: 14px;
+    }
+
+    .skill-line strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #172033;
+      font-size: 15px;
+    }
+
+    .validator-flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .flow-node {
+      min-height: 132px;
+      padding: 16px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      text-align: center;
+    }
+
+    .flow-node b {
+      display: block;
+      font-size: 16px;
+    }
+
+    .flow-node span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .flow-node .mini-icon {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      margin: 0 auto 12px;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-weight: 850;
+    }
+
+    .flow-note {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-left: 5px solid var(--amber);
+      border-radius: var(--radius);
+      background: var(--amber-soft);
+      color: #55390f;
+      font-size: 15px;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .panel {
+      min-height: 100%;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .panel h3 {
+      margin-top: 0;
+    }
+
+    .panel ul {
+      margin: 16px 0 0;
+      padding-left: 20px;
+    }
+
+    .panel li {
+      margin-top: 8px;
+      color: #3b4655;
+    }
+
+    pre {
+      margin: 28px 0 0;
+      overflow-x: auto;
+      border-radius: var(--radius);
+      background: var(--code-bg);
+      box-shadow: 0 18px 40px rgba(17, 24, 39, 0.16);
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+    }
+
+    pre code {
+      display: block;
+      min-width: 760px;
+      padding: 22px 24px;
+      color: var(--code-ink);
+      line-height: 1.62;
+      white-space: pre;
+    }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .check {
+      position: relative;
+      padding: 18px 18px 18px 54px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .check::before {
+      content: "";
+      position: absolute;
+      top: 19px;
+      left: 18px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: inset 0 0 0 6px #fff;
+    }
+
+    .check b {
+      display: block;
+      color: #1d2a38;
+    }
+
+    .check span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    blockquote {
+      margin: 28px 0 0;
+      padding: 24px 26px;
+      border-left: 6px solid var(--teal);
+      border-radius: var(--radius);
+      background: var(--teal-soft);
+      color: #244340;
+      font-size: 18px;
+      line-height: 1.78;
+    }
+
+    .refs {
+      margin: 22px 0 0;
+      padding-left: 22px;
+    }
+
+    .refs li {
+      margin-top: 10px;
+      padding-left: 4px;
+      color: #3d4856;
+    }
+
+    footer {
+      padding: 34px 20px 44px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    @media (max-width: 980px) {
+      .intro-grid,
+      .layout,
+      .skill-map,
+      .split {
+        grid-template-columns: 1fr;
+      }
+
+      .toc {
+        position: static;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 18px;
+      }
+
+      .toc strong {
+        grid-column: 1 / -1;
+      }
+
+      .loop-cycle,
+      .ladder,
+      .validator-flow {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .cycle-step::after {
+        display: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .hero {
+        min-height: 72vh;
+        background-position: center;
+      }
+
+      .hero-inner {
+        width: min(100% - 28px, var(--content));
+        padding: 58px 0 46px;
+      }
+
+      .hero h1 {
+        font-size: 38px;
+      }
+
+      .intro-grid,
+      .layout {
+        width: min(100% - 28px, var(--content));
+      }
+
+      .layout {
+        gap: 22px;
+        padding-top: 28px;
+      }
+
+      .toc,
+      .loop-grid,
+      .loop-cycle,
+      .ladder,
+      .validator-flow,
+      .checklist {
+        grid-template-columns: 1fr;
+      }
+
+      .figure {
+        padding: 18px;
+      }
+
+      .matrix {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .meta-list li {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <h1>Claude Code Agent Loops 与 SKILL.md 自检工程指南</h1>
+      <p class="lead">
+        turn-based、goal-based、time-based、proactive 四种循环不是四个口号，而是四种不同的控制权分配方式。真正能落地的关键，是把“怎么验收、失败后怎么重试、证据如何汇报”写进技能文件。
+      </p>
+      <div class="hero-meta" aria-label="文档元信息">
+        <span>面向 AI coding、工具链和工程平台团队</span>
+        <span>覆盖 loop 类型、适用场景、验收标准和模板</span>
+        <span>独立 HTML，可直接本地打开</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="intro-band">
+    <div class="intro-grid">
+      <p class="thesis">
+        <strong>智能体循环的本质是反馈控制。</strong> 模型每次不是“写完就结束”，而是在上下文、行动、校验和修复之间往返。循环类型决定触发方式和停止条件，`SKILL.md` 决定每轮行动是否有可靠的自检边界。
+      </p>
+      <div class="signal-panel">
+        <b>一句话判断</b>
+        <p>如果任务需要你反复说“再跑一下测试、再看一下页面、再修一下评论”，那它就应该被写成 loop 或 skill，而不是留在人工提示里。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <nav class="toc" aria-label="目录">
+      <strong>目录</strong>
+      <a href="#mental-model">1. 基本心智模型</a>
+      <a href="#four-loops">2. 四种 loop</a>
+      <a href="#control-ladder">3. 控制权阶梯</a>
+      <a href="#selection">4. 选择矩阵</a>
+      <a href="#skill-md">5. SKILL.md 的作用</a>
+      <a href="#self-check">6. 端到端自检</a>
+      <a href="#template">7. 可复制模板</a>
+      <a href="#anti-patterns">8. 反模式</a>
+      <a href="#sources">9. 参考资料</a>
+    </nav>
+
+    <main>
+      <section id="mental-model">
+        <h2>1. 基本心智模型：Loop 是“行动之后还有校验”</h2>
+        <p class="section-lead">
+          普通聊天像一次函数调用：输入 prompt，得到输出。Agent loop 更像一个控制系统：每轮都要读取状态、采取行动、观察反馈，并决定是否继续。
+        </p>
+
+        <div class="figure">
+          <div class="figure-title">
+            <strong>Agent loop 的最小闭环</strong>
+            <span>上下文不是静态文本，而是每轮行动后的新状态</span>
+          </div>
+          <div class="loop-cycle" aria-label="Agent loop 的四个阶段">
+            <div class="cycle-step">
+              <span class="num">1</span>
+              <b>理解上下文</b>
+              <span>读取需求、代码、日志、评论、测试结果和外部事件。</span>
+            </div>
+            <div class="cycle-step">
+              <span class="num">2</span>
+              <b>执行行动</b>
+              <span>编辑文件、调用工具、运行命令、回复评论或创建任务。</span>
+            </div>
+            <div class="cycle-step">
+              <span class="num">3</span>
+              <b>检查证据</b>
+              <span>用测试、截图、CI、日志、指标或人工门禁判断结果。</span>
+            </div>
+            <div class="cycle-step">
+              <span class="num">4</span>
+              <b>修正或停止</b>
+              <span>未达标就进入下一轮；达标才汇报完成。</span>
+            </div>
+          </div>
+        </div>
+
+        <blockquote>
+          关键区别不在“模型有多聪明”，而在“谁触发下一轮、谁定义完成、失败证据能否自动把系统推回修复状态”。
+        </blockquote>
+      </section>
+
+      <section id="four-loops">
+        <h2>2. 四种 loop：触发方式和停止条件不同</h2>
+        <p class="section-lead">
+          Anthropic 的官方文章把 Claude Code 的循环实践分成四类：turn-based、goal-based、time-based 和 proactive。它们适合的任务、自动化程度和风险边界都不同。
+        </p>
+
+        <div class="loop-grid">
+          <article class="loop-card turn">
+            <div class="card-head">
+              <div class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M5 8h10a4 4 0 0 1 0 8H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M9 12 5 16l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h3>Turn-based</h3>
+            </div>
+            <p>你每轮发起下一步。Claude Code 完成一次行动后停下来汇报，是否继续由你判断。</p>
+            <ul class="meta-list">
+              <li><b>触发</b><span>用户输入下一条消息</span></li>
+              <li><b>停止</b><span>模型认为本轮完成，或需要你补充信息</span></li>
+              <li><b>适合</b><span>短任务、探索、一次性修改、需要频繁人工判断的工作</span></li>
+            </ul>
+          </article>
+
+          <article class="loop-card goal">
+            <div class="card-head">
+              <div class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 2v4m0 12v4M2 12h4m12 0h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h3>Goal-based</h3>
+            </div>
+            <p>你给出明确目标，系统反复尝试，直到 evaluator 判断成功，或达到轮次上限。</p>
+            <ul class="meta-list">
+              <li><b>触发</b><span>一个可验证目标，例如分数、测试、CI、错误消失</span></li>
+              <li><b>停止</b><span>目标达成、轮次耗尽，或遇到不可恢复阻塞</span></li>
+              <li><b>适合</b><span>测试修复、性能阈值、迁移检查、质量门禁</span></li>
+            </ul>
+          </article>
+
+          <article class="loop-card time">
+            <div class="card-head">
+              <div class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 8v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M5 3 3 5m16-2 2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h3>Time-based</h3>
+            </div>
+            <p>按时间间隔重复执行同一类任务。它关注“外部状态可能已经变化”，例如 CI、评论、队列或日报。</p>
+            <ul class="meta-list">
+              <li><b>触发</b><span>每隔 N 分钟、每天、每周，或指定 schedule</span></li>
+              <li><b>停止</b><span>本轮检查结束，或时间窗口结束</span></li>
+              <li><b>适合</b><span>轮询 PR、跟进 CI、汇总信息、定期审计</span></li>
+            </ul>
+          </article>
+
+          <article class="loop-card proactive">
+            <div class="card-head">
+              <div class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3 4 7v6c0 4.4 3.2 7.3 8 8 4.8-.7 8-3.6 8-8V7l-8-4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="m9 12 2 2 4-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h3>Proactive</h3>
+            </div>
+            <p>事件或计划触发完整工作流，智能体自行发现任务、执行、验证、升级和汇报。</p>
+            <ul class="meta-list">
+              <li><b>触发</b><span>事件、定时器、外部系统状态或业务规则</span></li>
+              <li><b>停止</b><span>流程完成、门禁失败、风险升级或人工接管</span></li>
+              <li><b>适合</b><span>反馈初筛、依赖升级、告警处理、自动 triage</span></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="control-ladder">
+        <h2>3. 控制权阶梯：从“你开车”到“系统值班”</h2>
+        <p class="section-lead">
+          四类 loop 不是互斥选项，而是自动化程度逐步上升的阶梯。越往右，越需要明确的权限、预算、停止条件和验收证据。
+        </p>
+
+        <div class="ladder" aria-label="控制权阶梯">
+          <div class="ladder-step">
+            <b>Turn-based</b>
+            <span>人类决定下一轮。最灵活，最依赖人工。</span>
+          </div>
+          <div class="ladder-step">
+            <b>Goal-based</b>
+            <span>人类定义完成标准，系统尝试达成。</span>
+          </div>
+          <div class="ladder-step">
+            <b>Time-based</b>
+            <span>系统按时间检查变化，适合等待外部反馈。</span>
+          </div>
+          <div class="ladder-step">
+            <b>Proactive</b>
+            <span>系统主动发现和处理任务，但必须有升级边界。</span>
+          </div>
+        </div>
+
+        <table class="matrix" aria-label="四种 loop 的控制权对比">
+          <thead>
+            <tr>
+              <th>维度</th>
+              <th>低自动化</th>
+              <th>高自动化</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>触发权</td>
+              <td>人类逐轮触发</td>
+              <td>目标、时间或事件自动触发</td>
+            </tr>
+            <tr>
+              <td>判断权</td>
+              <td>人类看结果再决定</td>
+              <td>evaluator、脚本、CI、指标和门禁判断</td>
+            </tr>
+            <tr>
+              <td>风险</td>
+              <td>速度慢，但误操作范围小</td>
+              <td>速度快，但需要更硬的权限和回滚策略</td>
+            </tr>
+            <tr>
+              <td>沉淀方式</td>
+              <td>提示词和聊天记录</td>
+              <td>`SKILL.md`、validator、runbook 和自动化例程</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="selection">
+        <h2>4. 选择矩阵：先看任务能不能被验证</h2>
+        <p class="section-lead">
+          不要先问“用哪种 loop 更高级”，而要先问“完成标准能否机器判断、外部状态是否会变化、失败后能否自动修复”。
+        </p>
+
+        <table class="matrix" aria-label="loop 选择矩阵">
+          <thead>
+            <tr>
+              <th>任务形态</th>
+              <th>推荐 loop</th>
+              <th>验收证据</th>
+              <th>注意事项</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>解释代码、梳理方案</td>
+              <td><span class="tag">Turn-based</span></td>
+              <td>引用文件、结论、风险清单</td>
+              <td>不要伪装成自动完成，保留人工判断空间。</td>
+            </tr>
+            <tr>
+              <td>修复测试失败</td>
+              <td><span class="tag">Goal-based</span></td>
+              <td>失败测试变绿、相关回归通过</td>
+              <td>设置轮次上限，防止为了过测试破坏真实逻辑。</td>
+            </tr>
+            <tr>
+              <td>等待 CI 或 PR 评论</td>
+              <td><span class="tag">Time-based</span></td>
+              <td>CI 状态、评论线程、commit 结果</td>
+              <td>每轮都要避免重复提交和重复回复。</td>
+            </tr>
+            <tr>
+              <td>反馈初筛和自动派单</td>
+              <td><span class="tag">Proactive</span></td>
+              <td>分类结果、关联上下文、升级记录</td>
+              <td>必须定义权限、静默失败处理和人工升级条件。</td>
+            </tr>
+            <tr>
+              <td>UI 变更自测</td>
+              <td><span class="tag">Goal-based + Skill</span></td>
+              <td>浏览器截图、console、交互路径、响应式检查</td>
+              <td>不要只用构建成功代替可见页面验收。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="skill-md">
+        <h2>5. SKILL.md 的作用：把人工提醒变成默认流程</h2>
+        <p class="section-lead">
+          Skill 不是“更长的 prompt”。它更像团队 runbook：告诉智能体什么时候使用、必须读取什么上下文、怎么执行、怎么验证、失败后怎么修复，以及最终必须交付哪些证据。
+        </p>
+
+        <div class="skill-map">
+          <div class="skill-file">
+            <div class="file-bar">
+              <span class="dot"></span>
+              <span>SKILL.md 文件结构</span>
+            </div>
+            <div class="skill-lines">
+              <div class="skill-line">
+                <strong>YAML frontmatter</strong>
+                name 和 description 决定技能何时被自动发现或手动调用。
+              </div>
+              <div class="skill-line">
+                <strong>Trigger rules</strong>
+                明确任务边界，避免每个请求都误触发。
+              </div>
+              <div class="skill-line">
+                <strong>Workflow</strong>
+                写清读取、修改、验证、回滚、汇报的顺序。
+              </div>
+              <div class="skill-line">
+                <strong>Validators</strong>
+                把测试命令、脚本、截图、日志检查写成硬步骤。
+              </div>
+              <div class="skill-line">
+                <strong>Evidence report</strong>
+                最终回复必须说明跑了什么、通过什么、还剩什么风险。
+              </div>
+            </div>
+          </div>
+
+          <div class="figure" style="margin: 0;">
+            <div class="figure-title">
+              <strong>Skill 把“提醒”变成“门禁”</strong>
+              <span>从手工检查迁移到可重复自检</span>
+            </div>
+            <svg viewBox="0 0 760 420" role="img" aria-label="SKILL.md 将人工提醒转换为自动门禁的示意图">
+              <rect x="20" y="30" width="270" height="360" rx="8" fill="#fff" stroke="#d7e0e8"/>
+              <rect x="470" y="30" width="270" height="360" rx="8" fill="#fff" stroke="#d7e0e8"/>
+              <text x="155" y="72" text-anchor="middle" font-size="22" font-weight="800" fill="#16202c">手工提醒</text>
+              <text x="605" y="72" text-anchor="middle" font-size="22" font-weight="800" fill="#16202c">Skill 门禁</text>
+              <g fill="#5d6978" font-size="17">
+                <text x="58" y="128">再跑一次测试</text>
+                <text x="58" y="178">再打开页面看看</text>
+                <text x="58" y="228">别忘了查日志</text>
+                <text x="58" y="278">失败了继续修</text>
+                <text x="58" y="328">最后说明证据</text>
+              </g>
+              <g fill="#274158" font-size="17">
+                <text x="505" y="128">npm test</text>
+                <text x="505" y="178">Playwright 截图</text>
+                <text x="505" y="228">console / log grep</text>
+                <text x="505" y="278">validator 失败即重试</text>
+                <text x="505" y="328">Verification Report</text>
+              </g>
+              <path d="M318 210h112" stroke="#0f766e" stroke-width="6" stroke-linecap="round"/>
+              <path d="m414 188 28 22-28 22" fill="none" stroke="#0f766e" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="155" cy="346" r="10" fill="#b4233a"/>
+              <circle cx="605" cy="346" r="10" fill="#1b7f45"/>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <section id="self-check">
+        <h2>6. 端到端自检：不要把“完成”定义成“我改了文件”</h2>
+        <p class="section-lead">
+          端到端自检的目标不是让 agent 多跑命令，而是把“真实用户会不会成功”变成可观察证据。对前端、后端、数据任务、文档任务，证据形态不同，但结构相同。
+        </p>
+
+        <div class="figure">
+          <div class="figure-title">
+            <strong>自检闭环</strong>
+            <span>validator 失败时，自动回到修复阶段</span>
+          </div>
+          <div class="validator-flow" aria-label="端到端自检流程">
+            <div class="flow-node">
+              <span class="mini-icon">1</span>
+              <b>准备环境</b>
+              <span>安装依赖、启动服务、加载种子数据。</span>
+            </div>
+            <div class="flow-node">
+              <span class="mini-icon">2</span>
+              <b>执行路径</b>
+              <span>模拟真实入口，而不是只调用内部函数。</span>
+            </div>
+            <div class="flow-node">
+              <span class="mini-icon">3</span>
+              <b>采集证据</b>
+              <span>测试、截图、日志、指标、SQL 或 API 响应。</span>
+            </div>
+            <div class="flow-node">
+              <span class="mini-icon">4</span>
+              <b>判断结果</b>
+              <span>通过阈值、断言、schema、视觉检查或人工门禁。</span>
+            </div>
+            <div class="flow-node">
+              <span class="mini-icon">5</span>
+              <b>修复重跑</b>
+              <span>失败不得直接汇报完成，必须回到行动。</span>
+            </div>
+          </div>
+          <div class="flow-note">
+            对 UI 任务，最低自检通常包括：启动页面、实际点击、检查状态变化、看 console、做桌面和移动端截图。对 API 任务，最低自检通常包括：接口请求、响应 schema、错误路径和日志。
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="panel">
+            <h3>好的停止条件</h3>
+            <ul>
+              <li>指定测试命令全部通过。</li>
+              <li>目标页面在浏览器中可见，核心交互成功。</li>
+              <li>CI 状态为 green，且没有新增失败评论。</li>
+              <li>性能、覆盖率或错误率达到明确阈值。</li>
+              <li>失败原因被记录，并有下一步升级路径。</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>危险停止条件</h3>
+            <ul>
+              <li>“代码看起来没问题”。</li>
+              <li>“我已经修改完成”。</li>
+              <li>“构建过了，所以用户路径也应该没问题”。</li>
+              <li>“因为没有更多错误输出，所以可以结束”。</li>
+              <li>“测试太慢，这次先不跑”。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="template">
+        <h2>7. 一个可复制的 SKILL.md 自检模板</h2>
+        <p class="section-lead">
+          下面的模板可以作为团队技能的起点。实际使用时，最重要的是把 validator 从自然语言变成具体命令、脚本、截图步骤或可判定阈值。
+        </p>
+
+        <pre><code>---
+name: verify-change-end-to-end
+description: Use when a code or documentation change must be verified through the real user-facing path before reporting completion.
+---
+
+# End-to-End Verification Skill
+
+## When to use
+
+Use this skill when the task changes behavior, UI, API contracts, data shape,
+automation, deployment configuration, or user-facing documentation.
+
+Do not report completion based only on file edits.
+
+## Workflow
+
+1. Read the user's request and identify the changed surface:
+   - UI page or workflow
+   - API endpoint or background job
+   - database migration or data import
+   - CLI command or automation
+   - documentation page or generated artifact
+
+2. Define the acceptance evidence before editing:
+   - test command
+   - browser path and interaction
+   - API request and expected response
+   - database query
+   - log or metric check
+   - screenshot or rendered artifact
+
+3. Make the smallest scoped change that can satisfy the acceptance evidence.
+
+4. Run validators in this order:
+   - static checks, lint, typecheck, or schema validation
+   - unit or focused regression tests
+   - integration or browser checks for the changed path
+   - artifact inspection for screenshots, PDFs, docs, or generated output
+
+5. If any validator fails:
+   - read the failure literally
+   - fix the root cause
+   - rerun the failed validator
+   - rerun any earlier validator that could be invalidated by the fix
+
+6. Stop only when the acceptance evidence is satisfied, or when a true blocker
+   prevents further progress.
+
+## Reporting
+
+Final response must include:
+
+- files changed
+- validators run
+- evidence observed
+- known gaps or tests not run
+- exact blocker, if blocked
+
+Never say "done" without evidence.</code></pre>
+
+        <div class="checklist">
+          <div class="check">
+            <b>把动词写具体</b>
+            <span>不要写“检查页面”，写“打开 /settings，切换 Billing tab，保存表单，检查 toast 和网络响应”。</span>
+          </div>
+          <div class="check">
+            <b>把阈值写清楚</b>
+            <span>不要写“性能不错”，写“Lighthouse performance >= 90，最多尝试 5 轮”。</span>
+          </div>
+          <div class="check">
+            <b>把失败路径写进去</b>
+            <span>validator 失败时必须修复并重跑，不能直接把失败结果包装成完成说明。</span>
+          </div>
+          <div class="check">
+            <b>把证据留在回复里</b>
+            <span>最终报告要能让人知道：到底跑了什么、看到什么、哪些风险没覆盖。</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="anti-patterns">
+        <h2>8. 反模式：自动化越强，越不能靠感觉</h2>
+        <p class="section-lead">
+          loop 和 skill 的风险不是“模型不会做事”，而是“模型很会做事，但没有清晰边界”。下面这些反模式会让 agent 看起来高效，实际却不可靠。
+        </p>
+
+        <table class="matrix" aria-label="loop 和 skill 的反模式">
+          <thead>
+            <tr>
+              <th>反模式</th>
+              <th>表现</th>
+              <th>修正方式</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>目标不可判定</td>
+              <td>“优化一下”“修到没问题”“体验更自然”</td>
+              <td>改成明确阈值、断言、截图、错误消失或人工验收项。</td>
+            </tr>
+            <tr>
+              <td>只验最短路径</td>
+              <td>主流程过了，但权限、空状态、失败状态和历史数据没测</td>
+              <td>把异常路径写成 validator 或风险残留。</td>
+            </tr>
+            <tr>
+              <td>轮询无幂等</td>
+              <td>time-based loop 重复发评论、重复提交、重复创建任务</td>
+              <td>记录已处理状态，检查现有结果后再行动。</td>
+            </tr>
+            <tr>
+              <td>权限过宽</td>
+              <td>proactive loop 能直接改生产配置或大范围删除数据</td>
+              <td>限制工具、目录、分支、预算和人工审批点。</td>
+            </tr>
+            <tr>
+              <td>汇报无证据</td>
+              <td>最终回复只说“已完成”，没有命令、截图、日志或结果</td>
+              <td>把 Verification Report 写成 skill 的强制输出格式。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <blockquote>
+          实战判断：能不能用 proactive loop，不取决于模型能力，而取决于你的门禁、权限、回滚、审计和升级路径是否已经写清楚。
+        </blockquote>
+      </section>
+
+      <section id="sources">
+        <h2>9. 参考资料</h2>
+        <p class="section-lead">
+          本文基于 Claude Code 官方 loop 文章和 Skills 相关文档整理，并加入面向工程团队的落地模板。
+        </p>
+        <ol class="refs">
+          <li><span class="tag">Loops</span>Anthropic, <a href="https://claude.com/blog/getting-started-with-loops" target="_blank" rel="noopener">Getting started with loops</a>.</li>
+          <li><span class="tag">Skills</span>Anthropic, <a href="https://code.claude.com/docs/en/skills" target="_blank" rel="noopener">Claude Code Skills</a>.</li>
+          <li><span class="tag">Best practices</span>Anthropic, <a href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices" target="_blank" rel="noopener">Skill authoring best practices</a>.</li>
+          <li><span class="tag">Routines</span>Anthropic, <a href="https://code.claude.com/docs/en/routines" target="_blank" rel="noopener">Claude Code Routines</a>.</li>
+          <li><span class="tag">Agent design</span>Anthropic, <a href="https://www.anthropic.com/research/building-effective-agents" target="_blank" rel="noopener">Building effective agents</a>.</li>
+        </ol>
+      </section>
+    </main>
+  </div>
+
+  <footer>
+    本页为本地独立 HTML 技术文档。封面图使用生成式位图资产，正文图表、矩阵和模板为 HTML/CSS/SVG 原生实现。
+  </footer>
+</body>
+</html>

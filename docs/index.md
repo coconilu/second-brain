@@ -28,6 +28,7 @@
 - [动态工作流：当一个 Agent 学会指挥一支舰队](dynamic-workflows/) `HTML`{target="_self"} — 讨论单 Agent 如何动态规划、委派、回收上下文，并协同一组专门化子 Agent 完成复杂任务。
 - [从 Prompt 工程到 Agent Loop：Agent 工程范式的六层演进](agent-loop-engineering/) `HTML`{target="_self"} — 梳理 Prompt、上下文、MCP、Skills、Harness 与 Agent Loop 的递进关系。
 - [验收驱动开发，在 Harness + Loop Engineering 时代为什么更重要](acceptance-harness-loop-blog/) `HTML`{target="_self"} — 解释如何用验收标准、Harness 和 Loop 把 Agent 交付从生成结果收敛为可验证流程。
+- [Claude Code Agent Loops 与 SKILL.md 自检工程指南](claude-code-agent-loops-skill-doc/) `HTML`{target="_self"} — 图解四种智能体循环，并给出可复制的 SKILL.md 端到端自检模板。
 - [Flue 技术解读：把大模型装进 Agent Harness](flue-agent-harness/) `HTML`{target="_self"} — 从使用方式、工具、沙箱和持久化执行角度解读 Flue 的 Agent Harness 架构。
 - [Deep Agents 实战 — 从零构建生产级 AI Agent 的完整指南](https://datawhalechina.github.io/deepagents-in-action/) `外链` — Datawhale 的 Deep Agents 实战教程，讲解生产级 AI Agent 的构建方法。
 - [Claude Code 的 `.claude/workflows`：把复杂 AI 任务写成可复用流程](claude-code-workflows/index.md) — 从 Claude Code 项目目录视角理解 workflow 如何编排多个 agent。
@@ -102,6 +103,7 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
+- [Claude Code Agent Loops 与 SKILL.md 自检工程指南](claude-code-agent-loops-skill-doc/) `HTML`{target="_self"}
 - [Weave Router、CC Switch、LiteLLM、OpenRouter：本地 AI 编程 CLI 路由怎么选](weave-router-cli-routing-blog/) `HTML`{target="_self"}
 - [验收驱动开发，在 Harness + Loop Engineering 时代为什么更重要](acceptance-harness-loop-blog/) `HTML`{target="_self"}
 - [LiteLLM 官方文档工程导览](litellm-docs-guide/) `HTML`{target="_self"}

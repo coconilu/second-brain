@@ -2,6 +2,10 @@
 
 > 按 Git 首次加入时间排序，最近创建的文档在前。
 
+## 2026-07
+
+- [Claude Code Agent Loops 与 SKILL.md 自检工程指南](claude-code-agent-loops-skill-doc/) `HTML`{target="_self"}
+
 ## 2026-06
 
 - [Weave Router、CC Switch、LiteLLM、OpenRouter：本地 AI 编程 CLI 路由怎么选](weave-router-cli-routing-blog/) `HTML`{target="_self"}
