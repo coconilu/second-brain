@@ -4,6 +4,7 @@
 
 ## 2026-07
 
+- [Page Agent 技术解读：把浏览器自动化放进页面内部](page-agent-technical-blog/) `HTML`{target="_self"}
 - [Claude Code Agent Loops 与 SKILL.md 自检工程指南](claude-code-agent-loops-skill-doc/) `HTML`{target="_self"}
 
 ## 2026-06

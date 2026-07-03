@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page Agent 技术解读：把浏览器自动化放进页面内部</title>
+  <meta name="description" content="从 AI HOT / MarkTechPost 文章和 alibaba/page-agent 仓库源码出发，解析 Page Agent 的页面内 GUI Agent 架构、差异化价值、适用场景和使用方式。">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172026;
+      --muted: #61707a;
+      --line: #d7e1e7;
+      --soft: #f5f8fa;
+      --soft-2: #eef6f3;
+      --panel: #ffffff;
+      --blue: #1769aa;
+      --green: #0f7b5c;
+      --orange: #a95711;
+      --red: #a83932;
+      --violet: #6741a8;
+      --code: #101820;
+      --code-text: #eaf2f6;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family:
+        Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Microsoft YaHei", "PingFang SC", sans-serif;
+      color: var(--ink);
+      background: #fbfcfd;
+      line-height: 1.68;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .hero {
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(120deg, rgba(23, 105, 170, 0.08), rgba(15, 123, 92, 0.08)),
+        #ffffff;
+    }
+
+    .hero-inner {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 48px 0 36px;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 36px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px;
+      color: var(--green);
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 900px;
+      font-size: clamp(34px, 5.6vw, 62px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin: 22px 0 0;
+      color: #384852;
+      font-size: 19px;
+      max-width: 760px;
+    }
+
+    .meta {
+      margin-top: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 4px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.74);
+      color: #42525b;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .hero-visual {
+      border: 1px solid var(--line);
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 18px 48px rgba(18, 35, 45, 0.10);
+    }
+
+    .hero-visual img {
+      width: 100%;
+      display: block;
+      background: #f1f5f8;
+    }
+
+    .hero-visual figcaption {
+      padding: 12px 14px;
+      color: var(--muted);
+      font-size: 13px;
+      border-top: 1px solid var(--line);
+    }
+
+    main {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 34px 0 68px;
+    }
+
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0 0 34px;
+    }
+
+    .toc a {
+      display: block;
+      padding: 14px;
+      min-height: 74px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font-weight: 750;
+      line-height: 1.35;
+    }
+
+    section {
+      margin: 42px 0;
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      font-size: 30px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 28px 0 10px;
+      font-size: 20px;
+      line-height: 1.32;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    .summary-grid,
+    .scenario-grid,
+    .usage-grid,
+    .risk-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .scenario-grid,
+    .usage-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 18px;
+    }
+
+    .card h3,
+    .card h4 {
+      margin-top: 0;
+    }
+
+    .card h4 {
+      margin-bottom: 8px;
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .card p:last-child,
+    .card ul:last-child {
+      margin-bottom: 0;
+    }
+
+    .callout {
+      border-left: 4px solid var(--green);
+      background: var(--soft-2);
+      padding: 16px 18px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+    }
+
+    .callout.warning {
+      border-left-color: var(--orange);
+      background: #fff7ea;
+    }
+
+    .callout.danger {
+      border-left-color: var(--red);
+      background: #fff2f1;
+    }
+
+    .diagram {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 20px;
+      margin: 22px 0;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 132px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+    }
+
+    .flow-step::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -10px;
+      width: 10px;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .flow-step:last-child::after {
+      display: none;
+    }
+
+    .flow-step strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--blue);
+      line-height: 1.35;
+    }
+
+    .flow-step span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #eef4f8;
+      font-size: 14px;
+      color: #263743;
+    }
+
+    td {
+      font-size: 14px;
+    }
+
+    .fit {
+      color: var(--green);
+      font-weight: 750;
+    }
+
+    .avoid {
+      color: var(--red);
+      font-weight: 750;
+    }
+
+    pre {
+      margin: 14px 0 20px;
+      padding: 16px;
+      overflow-x: auto;
+      background: var(--code);
+      color: var(--code-text);
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.56;
+    }
+
+    code {
+      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.93em;
+    }
+
+    :not(pre) > code {
+      color: #133e5c;
+      background: #eaf2f7;
+      padding: 2px 5px;
+      border-radius: 5px;
+    }
+
+    ul,
+    ol {
+      padding-left: 22px;
+      margin: 0 0 16px;
+    }
+
+    li + li {
+      margin-top: 7px;
+    }
+
+    .source-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .source-list li {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px 14px;
+      list-style: none;
+      margin: 0;
+    }
+
+    .source-list ul {
+      padding: 0;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 980px) {
+      .hero-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .toc,
+      .summary-grid,
+      .scenario-grid,
+      .usage-grid,
+      .risk-grid,
+      .source-list {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .flow {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-step::after {
+        display: none;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .hero-inner,
+      main {
+        width: min(100% - 28px, var(--max));
+      }
+
+      .hero-inner {
+        padding-top: 34px;
+      }
+
+      .toc,
+      .summary-grid,
+      .scenario-grid,
+      .usage-grid,
+      .risk-grid,
+      .source-list {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 38px;
+      }
+
+      h2 {
+        font-size: 26px;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <p class="eyebrow">Alibaba Page Agent · 技术博客</p>
+        <h1>把 GUI Agent 放进网页里：Page Agent 为什么不是另一个 Playwright</h1>
+        <p class="lead">
+          AI HOT / MarkTechPost 把 Page Agent 的亮点概括为“页面内 JavaScript + 文本 DOM 操作”。我进一步深挖了
+          <a href="https://github.com/alibaba/page-agent">alibaba/page-agent</a> 仓库源码、文档、发布记录和 npm 包信息：它的核心差异不是更快的浏览器自动化，而是把“用户正在使用的产品界面”变成一个可被自然语言驱动的客户端能力层。
+        </p>
+        <div class="meta" aria-label="文章元数据">
+          <span class="tag">仓库：alibaba/page-agent</span>
+          <span class="tag">当前包版本：1.10.0</span>
+          <span class="tag">源码快照：83fee37</span>
+          <span class="tag">MIT License</span>
+          <span class="tag">整理日期：2026-07-03</span>
+        </div>
+      </div>
+      <figure class="hero-visual">
+        <img src="https://page-agent.github.io/assets/readme/banner-light.png" alt="Page Agent 项目横幅">
+        <figcaption>Page Agent 官方 README 横幅。它的定位是 “The GUI Agent Living in Your Webpage”。</figcaption>
+      </figure>
+    </div>
+  </header>
+
+  <main>
+    <nav class="toc" aria-label="文章目录">
+      <a href="#article">1. 文章要点整理</a>
+      <a href="#architecture">2. 源码级架构拆解</a>
+      <a href="#difference">3. 与其他方案的不同</a>
+      <a href="#usage">4. 使用方式与落地建议</a>
+    </nav>
+
+    <section id="article">
+      <h2>1. 文章要点整理：它解决的不是“无人浏览器”，而是“产品内副驾驶”</h2>
+      <div class="summary-grid">
+        <article class="card">
+          <h3>页面内运行</h3>
+          <p>Page Agent 不是从外部进程启动浏览器，而是作为 JavaScript 库嵌入网页。它天然继承用户当前页面、Cookie、登录状态和前端校验链路。</p>
+        </article>
+        <article class="card">
+          <h3>读 DOM，不读截图</h3>
+          <p>它把实时 DOM 抽取成带索引的简化文本表示，让文本模型选择“点击第 3 个按钮”或“向第 5 个输入框输入内容”，避免用视觉模型猜坐标。</p>
+        </article>
+        <article class="card">
+          <h3>BYO LLM</h3>
+          <p>模型层是 OpenAI-compatible Chat Completions + tool call。可以接 Qwen、OpenAI、Claude 代理、DeepSeek 或本地 Ollama / LM Studio。</p>
+        </article>
+      </div>
+
+      <p>
+        原文的判断基本准确：Page Agent 最适合你能控制代码的应用，例如 SaaS、ERP、CRM、管理后台、客服后台、内部工具。它不适合当作跨站爬虫或外部 RPA 平台的直接替代品，因为核心库的能力边界是当前页面，跨页能力需要额外的 Chrome 扩展或 MCP 服务器配合。
+      </p>
+
+      <div class="callout">
+        <strong>一句话总结：</strong>Playwright、Selenium、Puppeteer 主要是“外部程序控制浏览器”；browser-use 是“外部 agent 使用浏览器”；WebMCP 是“网站显式暴露工具”；Page Agent 的独特点是“网页自己内置一个懂 DOM 的自然语言操作员”。
+      </div>
+    </section>
+
+    <section id="architecture">
+      <h2>2. 源码级架构拆解：一个 ReAct 循环，加一个 DOM 控制器</h2>
+      <p>
+        仓库是 TypeScript monorepo，根版本为 <code>1.10.0</code>，主要 workspace 包包括 <code>page-agent</code>、<code>@page-agent/core</code>、<code>@page-agent/llms</code>、<code>@page-agent/page-controller</code>、<code>@page-agent/ui</code>、<code>@page-agent/mcp</code>、<code>@page-agent/ext</code> 和文档站。核心链路可以按下面理解：
+      </p>
+
+      <div class="diagram" role="img" aria-label="Page Agent 执行链路图">
+        <div class="flow">
+          <div class="flow-step">
+            <strong>用户输入自然语言</strong>
+            <span>例如“帮我创建一张 Acme 的发票并填好联系人”。入口可以是 UI Panel，也可以是代码里的 <code>agent.execute()</code>。</span>
+          </div>
+          <div class="flow-step">
+            <strong>PageController 观察页面</strong>
+            <span>调用 <code>getBrowserState()</code>，刷新 DOM 树、页面标题、URL、滚动信息和可交互元素列表。</span>
+          </div>
+          <div class="flow-step">
+            <strong>DOM 脱水为文本</strong>
+            <span><code>getFlatTree()</code> 和 <code>flatTreeToString()</code> 产出带编号的简化 HTML / FlatDomTree。</span>
+          </div>
+          <div class="flow-step">
+            <strong>LLM 选择工具</strong>
+            <span><code>PageAgentCore</code> 拼装 system prompt、history、browser_state，并强制模型输出宏工具调用。</span>
+          </div>
+          <div class="flow-step">
+            <strong>按索引操作 DOM</strong>
+            <span>工具层执行 <code>clickElement</code>、<code>inputText</code>、<code>selectOption</code>、<code>scroll</code> 等动作。</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>2.1 包边界</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>包 / 模块</th>
+            <th>职责</th>
+            <th>对业务开发者的意义</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>page-agent</code></td>
+            <td>主入口，组合 <code>PageAgentCore</code>、<code>PageController</code> 和 UI Panel。</td>
+            <td>最常用的 npm 包。几行代码即可把自然语言面板放进应用。</td>
+          </tr>
+          <tr>
+            <td><code>@page-agent/core</code></td>
+            <td>无 UI 的 agent 循环：状态、历史、工具、hooks、停止/取消、最大步数。</td>
+            <td>适合接入自己的客服机器人、产品助手或自定义 UI。</td>
+          </tr>
+          <tr>
+            <td><code>@page-agent/page-controller</code></td>
+            <td>DOM 抽取、元素索引、点击、输入、选择、滚动、遮罩反馈。</td>
+            <td>这是“读页面和动页面”的实际执行层，和 LLM 解耦。</td>
+          </tr>
+          <tr>
+            <td><code>@page-agent/llms</code></td>
+            <td>OpenAI-compatible 客户端、tool schema 转换、重试、响应校验。</td>
+            <td>可以替换模型供应商，但模型必须能稳定 tool call。</td>
+          </tr>
+          <tr>
+            <td><code>@page-agent/mcp</code></td>
+            <td>让 Claude Desktop、Copilot 等 MCP 客户端通过扩展控制浏览器。</td>
+            <td>适合把 Page Agent 扩成外部 agent 可调用的浏览器能力。</td>
+          </tr>
+          <tr>
+            <td><code>packages/extension</code></td>
+            <td>Chrome 扩展、MultiPageAgent、tab 控制、外部授权 token、Hub 通信。</td>
+            <td>补齐核心库单页限制，支持多标签页和浏览器级任务。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>2.2 关键实现细节</h3>
+      <ul>
+        <li><strong>DOM 表示：</strong><code>FlatDomTree</code> 是一个 <code>rootId + map</code> 的扁平节点结构。交互节点带 <code>highlightIndex</code> 和真实 <code>HTMLElement ref</code>，模型只看索引文本，执行时再回到真实 DOM 引用。</li>
+        <li><strong>文本压缩：</strong><code>flatTreeToString()</code> 默认保留 <code>title</code>、<code>type</code>、<code>role</code>、<code>placeholder</code>、<code>aria-label</code>、<code>id</code>、<code>for</code>、<code>contenteditable</code> 等属性，剔除冗余标记。</li>
+        <li><strong>动作工具：</strong>内置工具包括 <code>done</code>、<code>wait</code>、<code>ask_user</code>、<code>click_element_by_index</code>、<code>input_text</code>、<code>select_dropdown_option</code>、<code>scroll</code>、<code>scroll_horizontally</code>，以及可选的 <code>execute_javascript</code>。</li>
+        <li><strong>宏工具模型：</strong>每一步都要求模型先输出 <code>evaluation_previous_goal</code>、<code>memory</code>、<code>next_goal</code>，再选择一个 action。这降低了“连续乱点”的概率，也方便 UI 展示和调试。</li>
+        <li><strong>可控扩展：</strong><code>customTools</code> 可以新增、覆盖或删除工具；<code>instructions</code> 可以注入系统级和页面级知识；<code>transformPageContent</code> 可以在发给模型前做脱敏。</li>
+        <li><strong>安全默认值：</strong>核心库默认不开启任意 JS 执行；扩展版 <code>MultiPageAgent</code> 明确禁用 <code>ScriptExecutionTool</code>，因为 AbortSignal 和安全边界跨上下文更复杂。</li>
+      </ul>
+    </section>
+
+    <section id="difference">
+      <h2>3. 与其他方案不一样的地方</h2>
+      <p>
+        Page Agent 的差异不应该只写成“无头浏览器 vs 无需无头浏览器”。更准确的比较维度是：谁拥有页面、在哪里执行、读取什么表示、谁承担安全边界。
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>方案</th>
+            <th>执行位置</th>
+            <th>页面理解方式</th>
+            <th>强项</th>
+            <th>不适合</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Page Agent</strong></td>
+            <td>网页内部的客户端 JS</td>
+            <td>实时 DOM → FlatDomTree → 索引化文本</td>
+            <td class="fit">产品内 Copilot、表单自动填充、客服代操作、可访问性增强</td>
+            <td class="avoid">不可改代码的第三方网站、纯视觉页面、复杂跨站 RPA</td>
+          </tr>
+          <tr>
+            <td>Playwright</td>
+            <td>外部测试/脚本进程</td>
+            <td>Locator、DOM、浏览器协议、断言</td>
+            <td class="fit">E2E 测试、CI、跨浏览器自动化、确定性脚本</td>
+            <td class="avoid">直接给终端用户做产品内自然语言助手</td>
+          </tr>
+          <tr>
+            <td>Selenium / WebDriver</td>
+            <td>外部进程，可本地或远程驱动浏览器</td>
+            <td>W3C WebDriver 协议和语言绑定</td>
+            <td class="fit">成熟测试体系、跨语言、远程浏览器基础设施</td>
+            <td class="avoid">低集成成本的前端内嵌 AI 操作层</td>
+          </tr>
+          <tr>
+            <td>Puppeteer</td>
+            <td>Node.js 外部进程</td>
+            <td>CDP / WebDriver BiDi，高级浏览器 API</td>
+            <td class="fit">Chrome/Firefox 自动化、截图、PDF、性能分析、爬取</td>
+            <td class="avoid">让普通用户在你的网站里用自然语言操作</td>
+          </tr>
+          <tr>
+            <td>browser-use</td>
+            <td>外部 agent + 浏览器 harness</td>
+            <td>浏览器状态、DOM/可选视觉、agent loop</td>
+            <td class="fit">自主跨站任务、研究、在线操作、RPA 原型</td>
+            <td class="avoid">只想在自家产品内加一个轻量用户助手</td>
+          </tr>
+          <tr>
+            <td>WebMCP</td>
+            <td>浏览器/页面暴露结构化工具</td>
+            <td>开发者声明的 JS 函数或表单工具 schema</td>
+            <td class="fit">标准化、强语义、工具级可靠调用</td>
+            <td class="avoid">不愿逐项设计工具、等待标准生态成熟前的快速落地</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warning">
+        <strong>核心判断：</strong>Page Agent 是“渐进式产品增强”路线。它不要求你把所有业务能力重新封装成 API 或 MCP 工具，也不要求用户把任务交给外部浏览器机器人。你先让现有 UI 被 agent 读懂，再逐步把关键业务操作上升为自定义工具。
+      </div>
+
+      <h3>3.1 为什么文本 DOM 有价值</h3>
+      <p>
+        视觉 agent 的优势是“什么页面都能看”，代价是成本、延迟和坐标歧义。Page Agent 反过来选择“只在 DOM 语义足够的页面里做得更便宜、更可解释”。这对 B 端系统特别重要：管理后台通常有按钮、表单、表格、菜单、aria-label、placeholder、id、name，这些本来就是 UI 的语义骨架。
+      </p>
+
+      <h3>3.2 为什么页面内执行有价值</h3>
+      <p>
+        页面内执行意味着它直接处在用户会话里：前端权限、表单校验、路由状态、当前筛选条件、已登录身份都自然存在。对于“帮用户在当前产品里完成任务”的场景，这比外部 agent 新开一个浏览器上下文更贴近用户体验。
+      </p>
+
+      <h3>3.3 为什么它不能替代测试框架</h3>
+      <p>
+        测试框架追求确定性、断言、可复现、CI 规模化。Page Agent 引入 LLM 决策，本质上是面向用户体验的概率式操作员。你可以用它探索流程、做客服代操作、做辅助填表，但不要把它当作 Playwright test suite 的替代品。
+      </p>
+    </section>
+
+    <section id="scenarios">
+      <h2>4. 它在哪些场景能发挥特长</h2>
+      <div class="scenario-grid">
+        <article class="card">
+          <h3>SaaS / B 端产品 Copilot</h3>
+          <p>适合复杂菜单、多步骤表单、用户经常问“这个功能在哪”的产品。客服机器人不只是回答“请点击左侧菜单”，而是可以直接在页面里完成第一步。</p>
+          <p><strong>典型指令：</strong>“帮我创建一个下周三的客户回访任务，负责人设为 Lily。”</p>
+        </article>
+        <article class="card">
+          <h3>智能表单填写</h3>
+          <p>ERP、CRM、报销、审批、工单系统里，用户输入自然语言后由 agent 找字段、填值、选择下拉项、滚动到后续区域。</p>
+          <p><strong>注意：</strong>最终提交、付款、删除等动作仍建议二次确认或服务端校验。</p>
+        </article>
+        <article class="card">
+          <h3>遗留系统现代化</h3>
+          <p>老系统没有 API，重构成本高，但 DOM 仍有可访问的按钮和输入框。Page Agent 可以作为“命令栏 + AI 操作层”叠加进去。</p>
+          <p><strong>前提：</strong>能插入脚本，且页面不是高度 Canvas / 图像化。</p>
+        </article>
+        <article class="card">
+          <h3>无障碍与语音控制</h3>
+          <p>结合语音识别、屏幕阅读器和页面语义，用户可以说出目标，由 agent 操作当前页面。这对视障用户、低数字熟练度用户和移动办公用户有价值。</p>
+          <p><strong>关键：</strong>语义化 HTML 和可访问性标签越好，效果越稳定。</p>
+        </article>
+        <article class="card">
+          <h3>产品教学与演示</h3>
+          <p>让 agent 在真实 UI 上边操作边展示流程，比录屏教程更贴近当前版本。用户也可以打断、追问或换目标。</p>
+          <p><strong>典型指令：</strong>“演示一下如何导出本月销售报表。”</p>
+        </article>
+        <article class="card">
+          <h3>第三方 Agent 的“手”</h3>
+          <p>把 <code>pageAgent.execute()</code> 封装成客服机器人、帮助中心机器人或内部 agent 的工具，让上层 agent 决定何时调用页面操作。</p>
+          <p><strong>适合：</strong>已有问答机器人，但缺少对当前页面执行动作的能力。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="usage">
+      <h2>5. 使用方式：从 30 秒评估到生产集成</h2>
+
+      <div class="usage-grid">
+        <article class="card">
+          <h3>方式 A：CDN 快速评估</h3>
+          <p>适合本地 demo 或技术验证。官方 demo CDN 会使用免费测试 LLM，只能用于评估，不能承载真实用户和敏感数据。</p>
+          <pre><code>&lt;script
+  src="https://cdn.jsdelivr.net/npm/page-agent@1.10.0/dist/iife/page-agent.demo.js"
+  crossorigin="true"&gt;&lt;/script&gt;</code></pre>
+          <p class="note">如果要加载脚本但不自动初始化，可追加 <code>?autoInit=false</code>，再手动 <code>new window.PageAgent(...)</code>。</p>
+        </article>
+
+        <article class="card">
+          <h3>方式 B：npm 集成到前端项目</h3>
+          <p>适合正式产品。不要把真实 LLM API Key 直接放进前端包，生产环境建议使用后端代理。</p>
+          <pre><code>npm install page-agent</code></pre>
+          <pre><code>import { PageAgent } from 'page-agent'
+
+const agent = new PageAgent({
+  model: 'qwen3.5-plus',
+  baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+  apiKey: 'YOUR_API_KEY',
+  language: 'zh-CN',
+})
+
+await agent.execute('点击登录按钮')</code></pre>
+        </article>
+
+        <article class="card">
+          <h3>方式 C：生产 LLM 代理</h3>
+          <p>让前端请求自己的 <code>/api/llm-proxy</code>，后端再转发给模型供应商。这样可以统一鉴权、限流、审计和脱敏。</p>
+          <pre><code>const agent = new PageAgent({
+  baseURL: '/api/llm-proxy',
+  model: 'gpt-5.1',
+  customFetch: (url, init) =>
+    fetch(url, { ...init, credentials: 'include' }),
+})</code></pre>
+        </article>
+
+        <article class="card">
+          <h3>方式 D：本地模型</h3>
+          <p>适合内网、离线或敏感业务验证。要求模型支持 tool call，并给足上下文窗口；官方文档建议普通页面可能需要 15k token 左右。</p>
+          <pre><code>const agent = new PageAgent({
+  baseURL: 'http://localhost:11434/v1',
+  model: 'qwen3:14b'
+})</code></pre>
+          <p class="note">浏览器直连本地服务时要开启 CORS。</p>
+        </article>
+
+        <article class="card">
+          <h3>方式 E：自定义工具</h3>
+          <p>把高价值动作做成 typed tool，比让 agent 一路点击更可靠。比如添加购物车、查询知识库、创建工单。</p>
+          <pre><code>import { z } from 'zod/v4'
+import { PageAgent, tool } from 'page-agent'
+
+const agent = new PageAgent({
+  customTools: {
+    create_ticket: tool({
+      description: 'Create a support ticket.',
+      inputSchema: z.object({
+        title: z.string(),
+        priority: z.enum(['low', 'medium', 'high']),
+      }),
+      execute: async (input, { signal }) => {
+        const res = await fetch('/api/tickets', {
+          method: 'POST',
+          body: JSON.stringify(input),
+          signal,
+        })
+        return JSON.stringify(await res.json())
+      },
+    }),
+  },
+})</code></pre>
+        </article>
+
+        <article class="card">
+          <h3>方式 F：扩展 / MCP 跨页能力</h3>
+          <p>如果需要跨标签页、从 Claude Desktop / Copilot 调浏览器，可安装 Page Agent Chrome 扩展并配置 <code>@page-agent/mcp</code>。</p>
+          <pre><code>{
+  "mcpServers": {
+    "page-agent": {
+      "command": "npx",
+      "args": ["-y", "@page-agent/mcp"],
+      "env": {
+        "LLM_BASE_URL": "https://api.openai.com/v1",
+        "LLM_API_KEY": "sk-xxx",
+        "LLM_MODEL_NAME": "gpt-5.2"
+      }
+    }
+  }
+}</code></pre>
+        </article>
+      </div>
+    </section>
+
+    <section id="safety">
+      <h2>6. 生产落地的安全边界</h2>
+      <div class="risk-grid">
+        <article class="card">
+          <h3>不要泄露 Key</h3>
+          <p>真实 API Key 不应进入前端 bundle。用后端代理，并在代理侧做用户鉴权、额度控制、日志审计和供应商切换。</p>
+        </article>
+        <article class="card">
+          <h3>先脱敏再发模型</h3>
+          <p>用 <code>transformPageContent</code> 在 DOM 文本发给 LLM 前遮盖手机号、邮箱、身份证号、银行卡号、内部备注等敏感信息。</p>
+        </article>
+        <article class="card">
+          <h3>高危操作服务端兜底</h3>
+          <p>提示词约束不是强安全边界。支付、删除、提交合同、发送邮件、修改权限等动作应有服务端二次验证或用户确认。</p>
+        </article>
+        <article class="card">
+          <h3>用黑白名单控制元素</h3>
+          <p>通过交互黑名单、白名单、<code>data-page-agent-not-interactive</code> 等方式减少 agent 可触达范围。</p>
+        </article>
+        <article class="card">
+          <h3>把可视化页面补上语义</h3>
+          <p>它不识别图片、Canvas、WebGL、纯 SVG 图形。复杂图表和画布类应用需要补充真实 DOM 标签、说明或自定义工具。</p>
+        </article>
+        <article class="card">
+          <h3>承认单页边界</h3>
+          <p>核心 PageAgent.js 面向当前页面 / SPA。多页面任务要用扩展，跨站任务要重新评估是否该用 browser-use、Playwright MCP 或其他外部 harness。</p>
+        </article>
+      </div>
+
+      <div class="callout danger">
+        <strong>我的落地建议：</strong>先把 Page Agent 用在低风险“辅助操作”和“流程教学”上；等你观察到高频成功路径，再把这些路径沉淀成自定义工具或后端 API。不要一开始就让它自由执行所有按钮。
+      </div>
+    </section>
+
+    <section id="decision">
+      <h2>7. 选型结论</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>你的目标</th>
+            <th>优先选择</th>
+            <th>原因</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>给自家 SaaS 加一个能代用户操作的助手</td>
+            <td><strong>Page Agent</strong></td>
+            <td>嵌入成本低，能利用现有 DOM、登录态和 UI 校验。</td>
+          </tr>
+          <tr>
+            <td>做稳定 CI E2E 测试</td>
+            <td><strong>Playwright</strong></td>
+            <td>断言、隔离上下文、跨浏览器、可复现更重要。</td>
+          </tr>
+          <tr>
+            <td>做跨站自主浏览 / 在线研究 / RPA</td>
+            <td><strong>browser-use 或浏览器 MCP</strong></td>
+            <td>外部 agent harness 更擅长多站点、会话管理和浏览器级控制。</td>
+          </tr>
+          <tr>
+            <td>让网站显式暴露标准化 agent 工具</td>
+            <td><strong>WebMCP / 自定义 tools</strong></td>
+            <td>结构化工具比 DOM 点击更可控，但需要开发者定义动作 schema。</td>
+          </tr>
+          <tr>
+            <td>老后台快速加自然语言入口</td>
+            <td><strong>Page Agent + 脱敏 + 黑白名单</strong></td>
+            <td>不用大改前后端，先做可控增强，再逐步沉淀业务工具。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="sources">
+      <h2>资料来源与核验记录</h2>
+      <ul class="source-list">
+        <li>
+          <strong>新闻来源</strong><br>
+          <a href="https://aihot.virxact.com/items/cmr3zye9z00qfslw2sg1izmks">AI HOT：阿里巴巴发布 Page Agent</a><br>
+          <span class="note">用于整理原文观点、适用场景和对比框架。</span>
+        </li>
+        <li>
+          <strong>原文来源</strong><br>
+          <a href="https://www.marktechpost.com/2026/07/02/meet-alibabas-page-agent-a-javascript-in-page-gui-agent-that-controls-web-interfaces-with-natural-language-through-the-dom/">MarkTechPost：Meet Alibaba’s Page Agent</a><br>
+          <span class="note">用于确认发布时间、文章主张和 TL;DR。</span>
+        </li>
+        <li>
+          <strong>官方仓库</strong><br>
+          <a href="https://github.com/alibaba/page-agent">GitHub：alibaba/page-agent</a><br>
+          <span class="note">本地浅克隆核验：HEAD <code>83fee37</code>，最后提交信息 <code>fix: ci</code>。</span>
+        </li>
+        <li>
+          <strong>官方文档站</strong><br>
+          <a href="https://alibaba.github.io/page-agent/">Alibaba Open Source：Page Agent Docs</a><br>
+          <span class="note">用于核对快速开始、模型、扩展、MCP、安全和限制。</span>
+        </li>
+        <li>
+          <strong>npm 包</strong><br>
+          <a href="https://www.npmjs.com/package/page-agent">npm：page-agent</a> · <a href="https://www.npmjs.com/package/@page-agent/mcp">@page-agent/mcp</a><br>
+          <span class="note">核验当前发布版本均为 <code>1.10.0</code>，修改时间为 2026-06-15。</span>
+        </li>
+        <li>
+          <strong>对比资料</strong><br>
+          <a href="https://playwright.dev/">Playwright</a> · <a href="https://www.selenium.dev/documentation/webdriver/">Selenium WebDriver</a> · <a href="https://pptr.dev/">Puppeteer</a> · <a href="https://github.com/browser-use/browser-use">browser-use</a> · <a href="https://github.com/webmachinelearning/webmcp">WebMCP</a><br>
+          <span class="note">用于区分外部浏览器自动化、agent harness 和页面内工具暴露路线。</span>
+        </li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

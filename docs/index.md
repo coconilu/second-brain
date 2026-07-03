@@ -50,6 +50,7 @@
 
 ## AI 工具生态
 
+- [Page Agent 技术解读：把浏览器自动化放进页面内部](page-agent-technical-blog/) `HTML`{target="_self"} — 拆解 Alibaba Page Agent 的页面内 DOM Agent 架构、差异化价值和产品落地方式。
 - [Weave Router、CC Switch、LiteLLM、OpenRouter：本地 AI 编程 CLI 路由怎么选](weave-router-cli-routing-blog/) `HTML`{target="_self"} — 比较本地 AI 编程 CLI 路由、控制平面、通用网关和模型市场的定位与选型路径。
 - [LiteLLM 官方文档工程导览](litellm-docs-guide/) `HTML`{target="_self"} — 梳理 LiteLLM SDK、AI Gateway、Providers、治理能力、Agents/MCP 与运维路径。
 - [我们真的需要自己搭一个 OpenRouter 吗？](openrouter-local-build-blog/) `HTML`{target="_self"} — 讨论自建 LLM 网关与复刻 OpenRouter 的取舍、替代方案和渐进落地路线。
@@ -103,6 +104,7 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
+- [Page Agent 技术解读：把浏览器自动化放进页面内部](page-agent-technical-blog/) `HTML`{target="_self"}
 - [Claude Code Agent Loops 与 SKILL.md 自检工程指南](claude-code-agent-loops-skill-doc/) `HTML`{target="_self"}
 - [Weave Router、CC Switch、LiteLLM、OpenRouter：本地 AI 编程 CLI 路由怎么选](weave-router-cli-routing-blog/) `HTML`{target="_self"}
 - [验收驱动开发，在 Harness + Loop Engineering 时代为什么更重要](acceptance-harness-loop-blog/) `HTML`{target="_self"}
