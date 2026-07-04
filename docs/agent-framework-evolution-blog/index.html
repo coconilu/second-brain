@@ -1,0 +1,1336 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Agent 框架如何演进：从工具调用到应用运行时</title>
+  <meta name="description" content="一份面向普通技术读者的图文技术博客，从工具调用、RAG、多智能体、状态图、持久运行时、记忆和协议化几个阶段，梳理 AI Agent 框架的演进主线与代表项目。">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fa;
+      --paper: #ffffff;
+      --ink: #17212b;
+      --muted: #617080;
+      --subtle: #edf3f6;
+      --line: #d7e1e8;
+      --line-strong: #b8c7d1;
+      --teal: #0f8a83;
+      --teal-soft: #e2f6f3;
+      --blue: #225fb2;
+      --blue-soft: #e8f1ff;
+      --amber: #b46b12;
+      --amber-soft: #fff5df;
+      --coral: #c5533d;
+      --coral-soft: #fff0eb;
+      --green: #24784f;
+      --green-soft: #e8f5ed;
+      --violet: #6b5bb7;
+      --violet-soft: #f0edff;
+      --code-bg: #101820;
+      --code-ink: #e9f1f5;
+      --shadow: 0 22px 55px rgba(23, 33, 43, 0.09);
+      --max: 1180px;
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(15, 138, 131, 0.11), rgba(245, 247, 250, 0) 420px),
+        linear-gradient(100deg, rgba(34, 95, 178, 0.06), rgba(197, 83, 61, 0.05)),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+      line-height: 1.72;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+      overflow-wrap: anywhere;
+    }
+
+    img,
+    svg {
+      display: block;
+      max-width: 100%;
+    }
+
+    p {
+      margin: 0 0 16px;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      margin: 0;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: clamp(36px, 5.3vw, 68px);
+      font-weight: 850;
+    }
+
+    h2 {
+      font-size: clamp(28px, 3.1vw, 42px);
+      font-weight: 820;
+      margin-bottom: 18px;
+    }
+
+    h3 {
+      font-size: 22px;
+      font-weight: 780;
+      margin-bottom: 10px;
+    }
+
+    .page {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 34px 0 72px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+      color: #3e4b57;
+      font-size: 14px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 760;
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background:
+        linear-gradient(135deg, var(--teal), #62b6b0 48%, var(--amber));
+      box-shadow: 0 8px 18px rgba(15, 138, 131, 0.22);
+    }
+
+    .toplinks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: flex-end;
+    }
+
+    .toplinks a {
+      color: #455462;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+    }
+
+    .toplinks a:hover {
+      color: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .hero {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-media {
+      position: relative;
+      min-height: 520px;
+      background: #f3f8fb;
+    }
+
+    .hero-media img {
+      width: 100%;
+      height: 100%;
+      min-height: 520px;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .hero-copy {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      padding: clamp(28px, 6vw, 70px);
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.96) 0, rgba(255, 255, 255, 0.85) 34%, rgba(255, 255, 255, 0.18) 70%, rgba(255, 255, 255, 0) 100%);
+    }
+
+    .hero-text {
+      max-width: 720px;
+    }
+
+    .hero-text p {
+      max-width: 640px;
+      color: #3c4b58;
+      font-size: 19px;
+      margin-top: 20px;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 28px;
+      color: #3d4c58;
+      font-size: 14px;
+      font-weight: 680;
+    }
+
+    .meta-row span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 6px 11px;
+      border: 1px solid rgba(34, 95, 178, 0.18);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(6px);
+    }
+
+    .intro-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+      gap: 22px;
+      margin: 26px 0;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: 0 14px 34px rgba(23, 33, 43, 0.06);
+    }
+
+    .panel.pad {
+      padding: 26px;
+    }
+
+    .lead {
+      font-size: 19px;
+      color: #344451;
+    }
+
+    .pull-quote {
+      border-left: 4px solid var(--teal);
+      padding: 8px 0 8px 18px;
+      color: #22313d;
+      font-size: 21px;
+      font-weight: 750;
+      line-height: 1.48;
+      background: linear-gradient(90deg, var(--teal-soft), rgba(226, 246, 243, 0));
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      min-height: 112px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #ffffff, #f8fbfc);
+    }
+
+    .metric strong {
+      display: block;
+      color: var(--blue);
+      font-size: 34px;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 34px;
+      padding: 32px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 14px 34px rgba(23, 33, 43, 0.055);
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(260px, 0.55fr);
+      gap: 22px;
+      align-items: end;
+      margin-bottom: 22px;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .rail {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(150px, 1fr));
+      gap: 12px;
+      overflow-x: auto;
+      padding: 4px 2px 14px;
+    }
+
+    .era {
+      position: relative;
+      min-height: 250px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #ffffff, #f8fbfd);
+    }
+
+    .era::before {
+      content: "";
+      position: absolute;
+      top: 34px;
+      left: 18px;
+      right: -12px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--teal), var(--blue));
+      opacity: 0.36;
+    }
+
+    .era:last-child::before {
+      right: 18px;
+      background: linear-gradient(90deg, var(--teal), var(--coral));
+    }
+
+    .dot {
+      position: relative;
+      z-index: 1;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--paper);
+      border: 5px solid var(--teal);
+      margin-bottom: 24px;
+    }
+
+    .era:nth-child(2) .dot,
+    .era:nth-child(5) .dot {
+      border-color: var(--blue);
+    }
+
+    .era:nth-child(3) .dot,
+    .era:nth-child(6) .dot {
+      border-color: var(--amber);
+    }
+
+    .era:nth-child(4) .dot,
+    .era:nth-child(7) .dot {
+      border-color: var(--coral);
+    }
+
+    .era time {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 720;
+      margin-bottom: 8px;
+    }
+
+    .era h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .era p {
+      color: #4d5c69;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: #445260;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 680;
+      white-space: nowrap;
+    }
+
+    .stack-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(340px, 1.1fr);
+      gap: 26px;
+      align-items: center;
+    }
+
+    .layer-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .layer {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .layer b {
+      color: var(--blue);
+      font-size: 14px;
+    }
+
+    .layer span {
+      color: #485866;
+      font-size: 14px;
+    }
+
+    .map {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(34, 95, 178, 0.06), rgba(255, 255, 255, 0)),
+        #ffffff;
+    }
+
+    .map svg text {
+      font-family: Inter, "Microsoft YaHei", sans-serif;
+      fill: #1d2b36;
+      letter-spacing: 0;
+    }
+
+    .framework-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .framework {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 238px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #ffffff, #f9fbfd);
+    }
+
+    .framework h3 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 20px;
+    }
+
+    .framework h3 small {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 720;
+    }
+
+    .framework p {
+      color: #4d5d6b;
+      font-size: 14px;
+      margin-bottom: 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-self: flex-start;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 760;
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .tag.teal {
+      background: var(--teal-soft);
+      color: var(--teal);
+    }
+
+    .tag.amber {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .tag.coral {
+      background: var(--coral-soft);
+      color: var(--coral);
+    }
+
+    .tag.green {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .tag.violet {
+      background: var(--violet-soft);
+      color: var(--violet);
+    }
+
+    .matrix {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 920px;
+    }
+
+    th,
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #f2f6f9;
+      color: #30404d;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    td {
+      color: #435361;
+      font-size: 14px;
+    }
+
+    td:first-child {
+      color: var(--ink);
+      font-weight: 770;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .callout {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .callout h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon {
+      flex: 0 0 auto;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: inline-grid;
+      place-items: center;
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .callout p,
+    .callout li {
+      color: #4d5d69;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .check {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .check b {
+      color: var(--ink);
+    }
+
+    .check span {
+      color: #4d5d69;
+      font-size: 14px;
+    }
+
+    .num {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: inline-grid;
+      place-items: center;
+      background: var(--teal-soft);
+      color: var(--teal);
+      font-weight: 830;
+      font-size: 13px;
+    }
+
+    .source-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .source {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .source b {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .source p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 0;
+    }
+
+    .note {
+      margin-top: 18px;
+      padding: 16px 18px;
+      border: 1px solid #f0d5a8;
+      border-radius: var(--radius);
+      background: var(--amber-soft);
+      color: #68420c;
+      font-size: 14px;
+    }
+
+    .footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    ul {
+      margin: 8px 0 0 20px;
+      padding: 0;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    code {
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: #edf2f5;
+      color: #1f3342;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    .code-panel {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: var(--radius);
+      background: var(--code-bg);
+      color: var(--code-ink);
+      overflow-x: auto;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      line-height: 1.62;
+    }
+
+    .code-panel code {
+      padding: 0;
+      background: transparent;
+      color: inherit;
+    }
+
+    @media (max-width: 980px) {
+      .intro-grid,
+      .section-head,
+      .stack-wrap,
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      .framework-grid,
+      .source-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .hero-media,
+      .hero-media img {
+        min-height: 560px;
+      }
+
+      .hero-copy {
+        align-items: flex-start;
+        padding-top: 46px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(255, 255, 255, 0.78) 58%, rgba(255, 255, 255, 0.06));
+      }
+    }
+
+    @media (max-width: 680px) {
+      .page {
+        width: min(100% - 24px, var(--max));
+        padding-top: 18px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .toplinks {
+        justify-content: flex-start;
+      }
+
+      .hero-media,
+      .hero-media img {
+        min-height: 640px;
+      }
+
+      .hero-copy {
+        padding: 24px;
+      }
+
+      .hero-text p {
+        font-size: 17px;
+      }
+
+      section {
+        padding: 22px;
+      }
+
+      .framework-grid,
+      .source-grid,
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .layer {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .topbar {
+        display: none;
+      }
+
+      .page {
+        width: 100%;
+        padding: 0;
+      }
+
+      .hero,
+      section,
+      .panel {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+
+      a {
+        color: #000;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="topbar" aria-label="页面导航">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>Agent Framework Evolution</span></div>
+      <div class="toplinks">
+        <a href="#timeline">演进主线</a>
+        <a href="#landscape">代表框架</a>
+        <a href="#decision">选型建议</a>
+        <a href="#sources">资料来源</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <div class="hero-media">
+        <img src="assets/agent-framework-evolution-cover.png" alt="AI agent 框架演进的抽象技术封面图">
+        <div class="hero-copy">
+          <div class="hero-text">
+            <h1>AI Agent 框架如何演进：从工具调用到应用运行时</h1>
+            <p>过去几年，开发者对 AI Agent 的理解经历了几次变化：先让模型能调用工具和查询数据，再让多个 Agent 分工协作，最后把 Agent 当成需要状态、权限、恢复和部署的软件系统。</p>
+            <div class="meta-row" aria-label="文章元信息">
+              <span>更新日期：2026-07-04</span>
+              <span>面向读者：技术产品与开发者</span>
+              <span>阅读方式：先理解问题，再看框架</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="intro-grid">
+      <article class="panel pad">
+        <p class="lead">第一次接触 Agent 框架时，最容易困惑的是名字太多：LangChain、LlamaIndex、AutoGen、CrewAI、LangGraph、OpenAI Agents SDK、Google ADK、eve、MCP。更好的读法不是背名单，而是问一个朴素问题：这些框架分别在帮开发者解决什么麻烦？</p>
+        <div class="pull-quote">Agent 框架的本质，是把“让模型做事”这件事，从一次性的 prompt，变成可维护、可调试、可上线的软件工程。</div>
+      </article>
+      <aside class="panel pad">
+        <div class="metric-grid">
+          <div class="metric"><strong>3</strong><span>个朴素问题：能做什么、怎么协作、如何上线</span></div>
+          <div class="metric"><strong>7</strong><span>个主要演进阶段</span></div>
+          <div class="metric"><strong>30+</strong><span>个代表项目与平台</span></div>
+          <div class="metric"><strong>1</strong><span>张从需求出发的选型地图</span></div>
+        </div>
+      </aside>
+    </div>
+
+    <section id="timeline">
+      <div class="section-head">
+        <div>
+          <h2>一、演进主线：每一代框架都在补一个现实缺口</h2>
+          <p>普通用户看到的是“AI 变聪明了”，开发者面对的却是另一组问题：怎么接数据库，怎么调用 API，怎么让任务不中断，怎么审计模型做过什么，怎么把它安全地接入真实业务系统。</p>
+        </div>
+        <p>下面的时间线不是严格年份排序，而是从简单到复杂的能力递进。重点不是谁更流行，而是谁回答了哪个工程问题。</p>
+      </div>
+
+      <div class="rail" role="list" aria-label="Agent 框架演进阶段">
+        <article class="era" role="listitem">
+          <div class="dot"></div>
+          <time>阶段 1</time>
+          <h3>推理 + 行动</h3>
+          <p>模型只会聊天还不够。MRKL、ReAct 这类思想让模型学会选择工具、观察结果，再继续推理。</p>
+          <div class="chips"><span class="chip">MRKL</span><span class="chip">ReAct</span><span class="chip">Tool use</span></div>
+        </article>
+        <article class="era" role="listitem">
+          <div class="dot"></div>
+          <time>阶段 2</time>
+          <h3>连接器与链式编排</h3>
+          <p>当应用需要查文档、连数据库、调 API 时，LangChain、LlamaIndex、Haystack 解决的是“把模型接到外部世界”的问题。</p>
+          <div class="chips"><span class="chip">LangChain</span><span class="chip">RAG</span><span class="chip">Pipeline</span></div>
+        </article>
+        <article class="era" role="listitem">
+          <div class="dot"></div>
+          <time>阶段 3</time>
+          <h3>自主任务循环</h3>
+          <p>开发者开始尝试给模型一个目标，让它自己拆任务、执行、再生成下一步。AutoGPT、BabyAGI 代表了这波自治想象力。</p>
+          <div class="chips"><span class="chip">AutoGPT</span><span class="chip">BabyAGI</span><span class="chip">Task loop</span></div>
+        </article>
+        <article class="era" role="listitem">
+          <div class="dot"></div>
+          <time>阶段 4</time>
+          <h3>多智能体协作</h3>
+          <p>一个 Agent 包办所有事情很难控制，于是 AutoGen、CrewAI、CAMEL、MetaGPT 把任务拆成角色、团队、会话和流程。</p>
+          <div class="chips"><span class="chip">AutoGen</span><span class="chip">CrewAI</span><span class="chip">MetaGPT</span></div>
+        </article>
+        <article class="era" role="listitem">
+          <div class="dot"></div>
+          <time>阶段 5</time>
+          <h3>状态图与持久执行</h3>
+          <p>任务一旦变长，就要处理失败恢复、人工审批、状态保存。LangGraph、Microsoft Agent Framework 把 Agent 放进状态图和可恢复流程。</p>
+          <div class="chips"><span class="chip">LangGraph</span><span class="chip">MAF</span><span class="chip">Checkpoint</span></div>
+        </article>
+        <article class="era" role="listitem">
+          <div class="dot"></div>
+          <time>阶段 6</time>
+          <h3>应用框架化</h3>
+          <p>真正上线后，Agent 需要部署、权限、日志、沙箱、调度和观测。eve、Cloudflare Agents、Mastra、Pydantic AI、OpenAI Agents SDK、Google ADK 都在靠近应用运行时。</p>
+          <div class="chips"><span class="chip">eve</span><span class="chip">ADK</span><span class="chip">Cloud runtime</span></div>
+        </article>
+        <article class="era" role="listitem">
+          <div class="dot"></div>
+          <time>阶段 7</time>
+          <h3>协议与生态接口</h3>
+          <p>工具和 Agent 越来越多后，生态需要统一接口。MCP、A2A、AG-UI 等协议把工具、上下文、跨 Agent 通信和 UI 事件流从框架内部抽出来。</p>
+          <div class="chips"><span class="chip">MCP</span><span class="chip">A2A</span><span class="chip">AG-UI</span></div>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>二、把 Agent 看成一套软件系统，而不是一段 prompt</h2>
+          <p>早期 demo 往往像一段 prompt 加几次工具调用；生产系统则完全不同。它通常同时包含模型接口、工具协议、上下文、状态、运行时、部署、观测和安全治理。</p>
+        </div>
+        <p>因此，很多框架并不是简单替代关系。LangChain、CrewAI、LangGraph、eve、Cloudflare Agents 可能处在同一个系统的不同层。</p>
+      </div>
+
+      <div class="stack-wrap">
+        <div class="layer-stack">
+          <div class="layer"><b>接口层</b><span>模型调用、消息、结构化输出、工具 schema、provider 路由。</span></div>
+          <div class="layer"><b>能力层</b><span>RAG、工具、浏览器、沙箱、代码执行、API、数据库、文件系统。</span></div>
+          <div class="layer"><b>循环层</b><span>agent loop、tool loop、handoff、反思、审批、停止条件。</span></div>
+          <div class="layer"><b>编排层</b><span>多 agent、角色、任务、流程、图、条件分支、并行与重试。</span></div>
+          <div class="layer"><b>状态层</b><span>短期上下文、长期记忆、checkpoint、session、run、trace。</span></div>
+          <div class="layer"><b>运行时层</b><span>durable execution、调度、恢复、隔离、部署、观测、权限。</span></div>
+          <div class="layer"><b>协议层</b><span>MCP、A2A、AG-UI、OpenAPI，把能力从单一框架中解耦出来。</span></div>
+        </div>
+
+        <figure class="map" aria-label="Agent 框架能力分层图">
+          <svg viewBox="0 0 760 500" role="img" aria-labelledby="map-title map-desc">
+            <title id="map-title">Agent 应用运行时分层图</title>
+            <desc id="map-desc">从模型、工具、循环、编排、记忆、运行时到协议的能力分层。</desc>
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1" y1="0" y2="0">
+                <stop stop-color="#0f8a83"></stop>
+                <stop offset="1" stop-color="#225fb2"></stop>
+              </linearGradient>
+              <linearGradient id="g2" x1="0" x2="1" y1="0" y2="1">
+                <stop stop-color="#fff5df"></stop>
+                <stop offset="1" stop-color="#e8f1ff"></stop>
+              </linearGradient>
+            </defs>
+            <rect x="20" y="28" width="720" height="430" rx="8" fill="#ffffff" stroke="#d7e1e8"></rect>
+            <rect x="70" y="70" width="620" height="58" rx="8" fill="#e8f1ff" stroke="#c8daf4"></rect>
+            <text x="380" y="105" font-size="20" font-weight="800" text-anchor="middle">Agent Application</text>
+            <rect x="80" y="170" width="160" height="72" rx="8" fill="#e2f6f3" stroke="#bfe4df"></rect>
+            <text x="160" y="199" font-size="15" font-weight="800" text-anchor="middle">Agent Loop</text>
+            <text x="160" y="222" font-size="12" text-anchor="middle">tools / handoffs</text>
+            <rect x="300" y="170" width="160" height="72" rx="8" fill="#fff5df" stroke="#efd29a"></rect>
+            <text x="380" y="199" font-size="15" font-weight="800" text-anchor="middle">State Graph</text>
+            <text x="380" y="222" font-size="12" text-anchor="middle">checkpoint / HITL</text>
+            <rect x="520" y="170" width="160" height="72" rx="8" fill="#fff0eb" stroke="#f0c7bd"></rect>
+            <text x="600" y="199" font-size="15" font-weight="800" text-anchor="middle">Runtime</text>
+            <text x="600" y="222" font-size="12" text-anchor="middle">deploy / recovery</text>
+            <path d="M240 206 H300" stroke="url(#g1)" stroke-width="4" fill="none"></path>
+            <path d="M460 206 H520" stroke="url(#g1)" stroke-width="4" fill="none"></path>
+            <rect x="115" y="296" width="140" height="54" rx="8" fill="#f7fbfc" stroke="#d7e1e8"></rect>
+            <text x="185" y="329" font-size="14" font-weight="800" text-anchor="middle">Tools</text>
+            <rect x="310" y="296" width="140" height="54" rx="8" fill="#f7fbfc" stroke="#d7e1e8"></rect>
+            <text x="380" y="329" font-size="14" font-weight="800" text-anchor="middle">Memory</text>
+            <rect x="505" y="296" width="140" height="54" rx="8" fill="#f7fbfc" stroke="#d7e1e8"></rect>
+            <text x="575" y="329" font-size="14" font-weight="800" text-anchor="middle">Channels</text>
+            <path d="M160 242 C160 270 185 270 185 296" stroke="#96a8b5" stroke-width="2" fill="none"></path>
+            <path d="M380 242 V296" stroke="#96a8b5" stroke-width="2" fill="none"></path>
+            <path d="M600 242 C600 270 575 270 575 296" stroke="#96a8b5" stroke-width="2" fill="none"></path>
+            <rect x="180" y="390" width="400" height="44" rx="8" fill="url(#g2)" stroke="#d7e1e8"></rect>
+            <text x="380" y="418" font-size="14" font-weight="800" text-anchor="middle">MCP / A2A / AG-UI / OpenAPI</text>
+            <path d="M185 350 C185 378 300 378 300 390" stroke="#96a8b5" stroke-width="2" fill="none"></path>
+            <path d="M380 350 V390" stroke="#96a8b5" stroke-width="2" fill="none"></path>
+            <path d="M575 350 C575 378 460 378 460 390" stroke="#96a8b5" stroke-width="2" fill="none"></path>
+          </svg>
+        </figure>
+      </div>
+    </section>
+
+    <section id="landscape">
+      <div class="section-head">
+        <div>
+          <h2>三、主要代表：按问题分组，而不是按热度排名</h2>
+          <p>Agent 生态里的项目很多。下面按“主要解决什么问题”分组：上下文、协作、状态、部署、记忆、协议或平台化。</p>
+        </div>
+        <p>阅读这一节时，可以把每个框架当成一种答案：它试图把哪一类重复工程问题标准化？</p>
+      </div>
+
+      <div class="framework-grid">
+        <article class="framework">
+          <h3>LangGraph <small>状态图运行时</small></h3>
+          <span class="tag teal">Graph + Durable</span>
+          <p>LangChain 生态中的低层编排框架，重点是 long-running、stateful agents、checkpoint、streaming、human-in-the-loop。</p>
+          <p>它回答的是：当 agent 不再是一次请求，而是长任务时，状态如何保存、恢复和调试。</p>
+        </article>
+        <article class="framework">
+          <h3>LlamaIndex <small>数据与上下文</small></h3>
+          <span class="tag blue">RAG + Agent</span>
+          <p>从数据连接、索引、检索和 RAG 起家，逐步扩展到 agents、tools、memory、multi-agent patterns。</p>
+          <p>它适合以企业知识、文档、结构化数据为核心的 agent 应用。</p>
+        </article>
+        <article class="framework">
+          <h3>Haystack <small>Pipeline 工程</small></h3>
+          <span class="tag blue">Pipeline + RAG</span>
+          <p>强调组件化 pipeline、Document Store、搜索、RAG、agent 与生产化部署。</p>
+          <p>它代表了“先有可靠检索与 pipeline，再把 agent 放进去”的稳健路线。</p>
+        </article>
+        <article class="framework">
+          <h3>Microsoft Agent Framework <small>AutoGen 后继</small></h3>
+          <span class="tag violet">Enterprise + Workflow</span>
+          <p>官方定位为结合 AutoGen 和 Semantic Kernel 的下一代框架，包含 agents、graph workflows、session state、middleware、telemetry、MCP。</p>
+          <p>它说明多 agent 正在从实验会话走向企业级可控编排。</p>
+        </article>
+        <article class="framework">
+          <h3>OpenAI Agents SDK <small>轻量运行时</small></h3>
+          <span class="tag green">Agent loop + Handoff</span>
+          <p>用少量原语表达 agents、tools、handoffs、guardrails、sessions、tracing、MCP 和 sandbox agents。</p>
+          <p>它代表“模型厂商把常见 agent loop 标准化”的方向。</p>
+        </article>
+        <article class="framework">
+          <h3>Google ADK <small>企业级开发套件</small></h3>
+          <span class="tag green">Build / Debug / Deploy</span>
+          <p>覆盖 Python、TypeScript、Go、Java、Kotlin，强调生产 agents、图工作流、多 agent、运行时、部署、观测、安全。</p>
+          <p>它体现了云厂商把 agent 开发纳入平台工程的趋势。</p>
+        </article>
+        <article class="framework">
+          <h3>Pydantic AI <small>类型安全</small></h3>
+          <span class="tag amber">Typed Agents</span>
+          <p>把 Pydantic 的类型、验证、依赖注入、结构化输出、Logfire observability、MCP 和 durable execution 集成带进 agent 开发。</p>
+          <p>它适合 Python 后端团队追求可测试、可验证、类型明确的 agent 代码。</p>
+        </article>
+        <article class="framework">
+          <h3>Mastra <small>TypeScript 应用框架</small></h3>
+          <span class="tag amber">TS + Workflows</span>
+          <p>把 agents、tools、workflows、memory、observability、evals、deployment、channels 集成到一个 TypeScript 开发体验中。</p>
+          <p>它和 eve 一样，都在向“agent 应用框架”靠拢。</p>
+        </article>
+        <article class="framework">
+          <h3>Cloudflare Agents <small>边缘持久运行时</small></h3>
+          <span class="tag coral">Durable Runtime</span>
+          <p>基于 Cloudflare 的 durable identity、local SQL storage、real-time connections、scheduled work、recoverable execution。</p>
+          <p>它说明 agent 框架正在直接绑定云原生运行时能力。</p>
+        </article>
+        <article class="framework">
+          <h3>Letta / MemGPT <small>记忆优先</small></h3>
+          <span class="tag teal">Memory-first</span>
+          <p>把 agent 的长期记忆、memory blocks、archival memory、stateful conversations 放在中心。</p>
+          <p>这类框架强调：Agent 的核心不只是会行动，还要跨会话保留、检索和更新自我上下文。</p>
+        </article>
+        <article class="framework">
+          <h3>MetaGPT / CAMEL <small>组织范式</small></h3>
+          <span class="tag coral">Multi-agent Society</span>
+          <p>MetaGPT 用软件公司 SOP 和角色协作组织任务；CAMEL 强调多 agent 社会、workforce、仿真和研究范式。</p>
+          <p>它们的价值在于探索“任务如何被组织成群体智能”。</p>
+        </article>
+        <article class="framework">
+          <h3>MCP / A2A <small>协议化</small></h3>
+          <span class="tag violet">Protocol Layer</span>
+          <p>MCP 把工具、数据源和工作流以标准接口暴露给 AI 应用；A2A 尝试解决 agent 之间跨系统通信。</p>
+          <p>协议化意味着未来的 agent 能力不再被单一框架锁死。</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>四、框架矩阵：不同工具适合解决不同难题</h2>
+          <p>同样叫 Agent framework，真实定位差别很大。下面这张表按“主要切入点”整理，方便快速判断每类框架适合什么场景。</p>
+        </div>
+      </div>
+
+      <div class="matrix">
+        <table>
+          <thead>
+            <tr>
+              <th>代表</th>
+              <th>核心定位</th>
+              <th>引入的新抽象</th>
+              <th>适合场景</th>
+              <th>注意点</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>LangChain</td>
+              <td>模型、工具、middleware、agent harness 的组合层。</td>
+              <td><code>create_agent</code>、tools、messages、model interface、middleware。</td>
+              <td>需要快速连接模型、工具、RAG 和业务代码。</td>
+              <td>复杂长任务通常要引入 LangGraph 或自建状态管理。</td>
+            </tr>
+            <tr>
+              <td>LlamaIndex</td>
+              <td>数据、索引、检索和上下文工程。</td>
+              <td>Index、Retriever、Query Engine、Agent、Workflow、Tool。</td>
+              <td>知识库问答、文档分析、企业数据 agent。</td>
+              <td>重点不是多 agent 角色扮演，而是高质量上下文供给。</td>
+            </tr>
+            <tr>
+              <td>AutoGen</td>
+              <td>多 agent 会话和实验性协作模式。</td>
+              <td>AssistantAgent、GroupChat、AgentTool、Studio。</td>
+              <td>探索 planner / coder / critic / executor 等协作原型。</td>
+              <td>官方仓库已标注 maintenance mode，新项目应关注 Microsoft Agent Framework。</td>
+            </tr>
+            <tr>
+              <td>CrewAI</td>
+              <td>业务可读的角色、任务、crew、flow。</td>
+              <td>Agent、Task、Crew、Process、Flow、guardrails、memory。</td>
+              <td>市场研究、运营自动化、报告生成、企业 workflow。</td>
+              <td>适合明确角色与任务，不适合把所有逻辑都交给自由聊天。</td>
+            </tr>
+            <tr>
+              <td>LangGraph</td>
+              <td>长运行、有状态、可恢复的 agent orchestration。</td>
+              <td>StateGraph、nodes、edges、checkpoint、interrupt、persistence。</td>
+              <td>复杂流程、人工介入、长任务、故障恢复、可视化调试。</td>
+              <td>抽象更低层，需要开发者清楚设计状态机。</td>
+            </tr>
+            <tr>
+              <td>OpenAI Agents SDK</td>
+              <td>轻量生产 agent SDK。</td>
+              <td>Agents、tools、handoffs、guardrails、sessions、tracing、MCP。</td>
+              <td>需要与 OpenAI Responses API、工具调用、追踪、handoff 结合。</td>
+              <td>适合少量清晰原语；复杂企业流程仍需外部工作流或平台。</td>
+            </tr>
+            <tr>
+              <td>Google ADK</td>
+              <td>多语言企业 agent 开发、调试、部署框架。</td>
+              <td>Agent Runtime、graph workflows、multi-agent workflows、sessions、observability、A2A。</td>
+              <td>Google Cloud / Gemini 生态中的企业级 agent 工程。</td>
+              <td>平台能力强，选型时要评估云生态绑定。</td>
+            </tr>
+            <tr>
+              <td>Pydantic AI</td>
+              <td>类型安全、结构化输出和可测试 agent。</td>
+              <td>Agent 泛型、deps、output type、tool decorators、Logfire、durable integrations。</td>
+              <td>Python 后端、金融/数据/客服等要求输出验证的场景。</td>
+              <td>它不是低代码平台，更像严肃后端工程师的 agent 框架。</td>
+            </tr>
+            <tr>
+              <td>Mastra</td>
+              <td>TypeScript agent 应用框架。</td>
+              <td>Agent、Tool、Workflow、Memory、Studio、Evals、Durable Agents。</td>
+              <td>Node/TS 团队构建产品内 agent、workflow、channels。</td>
+              <td>生态迭代快，生产采用要锁版本和验证运行时边界。</td>
+            </tr>
+            <tr>
+              <td>eve</td>
+              <td>文件系统优先的 durable agent framework。</td>
+              <td><code>agent/</code> 目录、tools、skills、subagents、channels、schedules、durable execution。</td>
+              <td>希望像 Next.js 项目一样组织、运行、部署 agent。</td>
+              <td>强框架约定带来效率，也意味着要接受它的项目结构和运行时模型。</td>
+            </tr>
+            <tr>
+              <td>Cloudflare Agents</td>
+              <td>云原生 durable agent runtime。</td>
+              <td>durable identity、local SQL、WebSocket、scheduling、recoverable execution。</td>
+              <td>需要全局部署、实时连接、状态本地化、边缘运行。</td>
+              <td>不是纯库选型，而是连同 Cloudflare runtime 一起选。</td>
+            </tr>
+            <tr>
+              <td>MCP</td>
+              <td>AI 应用连接外部系统的开放协议。</td>
+              <td>Client、Server、Tools、Resources、Prompts、Transports。</td>
+              <td>把工具和数据源一次接入，多客户端复用。</td>
+              <td>MCP 不是 agent 框架，它是框架和应用可以共同使用的接口层。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>五、eve 的位置：为什么有人把它类比为 “Agent 时代的 Next.js”？</h2>
+          <p>理解完前面的演进，再看 eve 会更清楚。这个类比不是因为它用了文件夹，而是因为它试图把“约定、运行时、部署和生产能力”一起封装。</p>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <article class="callout">
+          <h3><span class="icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 5h16M4 12h16M4 19h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+          </span>Next.js 给 Web 的东西</h3>
+          <ul>
+            <li>文件系统路由和项目约定。</li>
+            <li>本地开发、构建、部署一体化。</li>
+            <li>服务端渲染、API routes、middleware 等运行时能力。</li>
+            <li>把 Web 应用的重复工程问题标准化。</li>
+          </ul>
+        </article>
+        <article class="callout">
+          <h3><span class="icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 8h14M7 16h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+          </span>eve 想给 Agent 的东西</h3>
+          <ul>
+            <li><code>agent/</code> 目录即 agent 身份与能力清单。</li>
+            <li><code>tools/</code>、<code>skills/</code>、<code>subagents/</code>、<code>channels/</code>、<code>schedules/</code> 形成约定。</li>
+            <li>durable execution、sandbox、人类审批、evals 成为内置生产能力。</li>
+            <li>把 agent 应用的重复 plumbing 交给框架。</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="code-panel" aria-label="eve agent 目录示意">
+<code>agent/
+  agent.ts                 # 模型、运行选项和 agent 定义
+  instructions.md          # 系统提示词和行为边界
+  tools/
+    run_sql.ts             # 能力：调用数据库
+    post_chart.ts          # 能力：生成或发送图表
+  skills/
+    revenue-definitions.md # 知识：指标定义与业务规则
+  subagents/
+    investigator/          # 委托：专门调查子任务
+  channels/
+    slack.ts               # 入口：Slack、GitHub、Discord 等
+  schedules/
+    monday-summary.ts      # 自主触发：定时任务</code>
+      </div>
+    </section>
+
+    <section id="decision">
+      <div class="section-head">
+        <div>
+          <h2>六、选型建议：从真实需求出发</h2>
+          <p>Agent 框架不是越“自治”越好。Anthropic 的工程文章也强调，很多成功实现来自简单、可组合、可观察的模式。复杂框架应该在复杂性真的带来收益时再引入。</p>
+        </div>
+      </div>
+
+      <div class="checklist">
+        <div class="check">
+          <span class="num">1</span>
+          <div><b>只是要接模型、工具、RAG？</b><br><span>先看 LangChain、LlamaIndex、Haystack、Pydantic AI。重点是工具 schema、检索质量、结构化输出和可测试性。</span></div>
+        </div>
+        <div class="check">
+          <span class="num">2</span>
+          <div><b>需要多角色分工和业务流程？</b><br><span>看 CrewAI、AutoGen、MetaGPT、CAMEL、AgentScope。重点是任务边界、角色职责、停止条件和可观测日志。</span></div>
+        </div>
+        <div class="check">
+          <span class="num">3</span>
+          <div><b>需要长任务、恢复、人类审批？</b><br><span>看 LangGraph、Microsoft Agent Framework、Pydantic AI durable integrations、Temporal/DBOS/Restate 组合。重点是状态模型和失败恢复。</span></div>
+        </div>
+        <div class="check">
+          <span class="num">4</span>
+          <div><b>需要像应用一样部署和运维？</b><br><span>看 eve、Mastra、Cloudflare Agents、Google ADK、OpenAI Agents SDK。重点是 runtime、sessions、observability、deployment 和权限。</span></div>
+        </div>
+        <div class="check">
+          <span class="num">5</span>
+          <div><b>需要让工具生态可复用？</b><br><span>优先设计 MCP / OpenAPI / A2A 边界。不要把所有工具硬塞进某个框架私有接口。</span></div>
+        </div>
+      </div>
+
+      <div class="note">一个实用判断：如果固定流程能解决，不要急着上自治 agent；如果固定流程挡不住输入变化，再引入 agent loop；如果 agent loop 会跨分钟、小时、天运行，再考虑 durable runtime。</div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>七、未来趋势：框架会分层，而不是统一</h2>
+          <p>未来最可能出现的不是“唯一的 Agent 框架”，而是类似 Web 生态的分层：底层协议、模型 SDK、状态运行时、应用框架、云平台、观测与评测工具共同组成生产栈。</p>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <article class="callout">
+          <h3><span class="icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </span>技术方向</h3>
+          <ul>
+            <li>Tool use 会协议化，MCP 这类标准会成为基础设施。</li>
+            <li>Agent loop 会从 demo 代码进入 runtime，支持 tracing、checkpoint、approval。</li>
+            <li>Memory 会成为独立能力层，而不是 prompt 里的临时拼接。</li>
+            <li>Deploy/runtime 会和云平台更紧密结合。</li>
+          </ul>
+        </article>
+        <article class="callout">
+          <h3><span class="icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 4l8 4v5c0 4.4-3.1 7.2-8 8-4.9-.8-8-3.6-8-8V8l8-4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path><path d="M9 12l2 2 4-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </span>工程方向</h3>
+          <ul>
+            <li>从“能跑”转向“可回放、可审计、可灰度”。</li>
+            <li>从“一个大 agent”转向“多个小 agent + 明确接口”。</li>
+            <li>从“prompt 经验”转向“evals + traces + regression tests”。</li>
+            <li>从“单供应商 SDK”转向“协议边界 + provider 可替换”。</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="sources">
+      <div class="section-head">
+        <div>
+          <h2>资料来源与延伸阅读</h2>
+          <p>以下以官方文档、官方 GitHub、官方博客和基础论文为主。正文中的判断是对这些资料的工程化归纳，不等同于任何单个项目的官方路线图。</p>
+        </div>
+      </div>
+
+      <div class="source-grid">
+        <article class="source">
+          <b><a href="https://docs.langchain.com/oss/python/langchain/overview">LangChain Overview</a> / <a href="https://docs.langchain.com/oss/python/langgraph/overview">LangGraph Overview</a></b>
+          <p>了解 LangChain agent harness，以及 LangGraph 的 durable execution、stateful agents、human-in-the-loop、observability 等定位。</p>
+        </article>
+        <article class="source">
+          <b><a href="https://developers.llamaindex.ai/python/framework/use_cases/agents/">LlamaIndex Agents</a> / <a href="https://docs.haystack.deepset.ai/docs/intro">Haystack Docs</a></b>
+          <p>了解 RAG、数据连接、pipeline、agent、tools、production-ready applications 等上下文工程路线。</p>
+        </article>
+        <article class="source">
+          <b><a href="https://github.com/microsoft/autogen">AutoGen GitHub</a> / <a href="https://learn.microsoft.com/en-us/agent-framework/overview/">Microsoft Agent Framework</a></b>
+          <p>了解 AutoGen 的维护状态，以及 Microsoft Agent Framework 在 agents、workflows、state、telemetry 方面的企业化方向。</p>
+        </article>
+        <article class="source">
+          <b><a href="https://docs.crewai.com/">CrewAI Docs</a> / <a href="https://github.com/FoundationAgents/MetaGPT">MetaGPT GitHub</a> / <a href="https://docs.camel-ai.org/">CAMEL Docs</a></b>
+          <p>了解角色、任务、crew、flow、软件公司 SOP、多 agent society 等组织范式。</p>
+        </article>
+        <article class="source">
+          <b><a href="https://openai.github.io/openai-agents-python/">OpenAI Agents SDK</a> / <a href="https://adk.dev/">Google ADK</a></b>
+          <p>了解 agents、tools、handoffs、guardrails、sessions、tracing、multi-agent workflows、runtime、deployment 等厂商 SDK 方向。</p>
+        </article>
+        <article class="source">
+          <b><a href="https://pydantic.dev/docs/ai/overview/">Pydantic AI</a> / <a href="https://mastra.ai/docs/agents/overview">Mastra Agents</a></b>
+          <p>了解类型安全、结构化输出、memory、workflow、observability、evals、durable agents 等应用框架能力。</p>
+        </article>
+        <article class="source">
+          <b><a href="https://vercel.com/blog/introducing-eve">Vercel eve</a> / <a href="https://developers.cloudflare.com/agents/">Cloudflare Agents</a></b>
+          <p>了解 agent-as-directory、durable execution、sandbox、人类审批、subagents、channels、durable identity、recoverable execution 等 runtime 能力。</p>
+        </article>
+        <article class="source">
+          <b><a href="https://modelcontextprotocol.io/docs/getting-started/intro">MCP Intro</a> / <a href="https://www.anthropic.com/engineering/building-effective-agents">Anthropic: Building Effective Agents</a></b>
+          <p>了解协议化工具接口，以及“先简单、再复杂；框架不要遮蔽底层 prompt 和响应”的工程警示。</p>
+        </article>
+      </div>
+    </section>
+
+    <p class="footer">本页是面向普通技术读者的 Agent 框架演进资料整理，基于 2026-07-04 可查阅的官方公开资料。</p>
+  </div>
+</body>
+</html>
