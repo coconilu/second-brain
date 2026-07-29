@@ -19,6 +19,7 @@ const EXTERNAL_DOCS = [
   {
     title: '模型的一生｜训练与推理交互实验室',
     url: 'https://coconilu.github.io/model-lifecycle-lab/',
+    tag: '可交互网站',
     addedAt: '2026-07-29T00:00:00+08:00',
   },
 ];
@@ -163,7 +164,7 @@ function generateTimeline(entries, docsDir) {
   const timelinePath = path.join(docsDir, 'timeline.md');
 
   // Group by YYYY-MM
-  /** @type {Map<string, Array<{ title: string; path?: string; url?: string; date: Date }>>} */
+  /** @type {Map<string, Array<{ title: string; path?: string; url?: string; tag?: string; date: Date }>>} */
   const groups = new Map();
 
   for (const entry of entries) {
@@ -202,7 +203,7 @@ function generateTimeline(entries, docsDir) {
         isHtml = path.extname(entry.path).toLowerCase() === '.html';
       }
 
-      const formatTag = isExternal ? ' `外链`' : isHtml ? ' `HTML`' : '';
+      const formatTag = isExternal ? ` \`${entry.tag || '外链'}\`` : isHtml ? ' `HTML`' : '';
       const targetAttr = isHtml ? '{target="_self"}' : '';
       lines.push(`- [${entry.title}](${relPath})${formatTag}${targetAttr}`);
     }
@@ -324,7 +325,7 @@ function main() {
 
   console.log(`   Found ${allFiles.length} files (.md + .html)`);
 
-  /** @type {Array<{ title: string; path?: string; url?: string; date: Date }>} */
+  /** @type {Array<{ title: string; path?: string; url?: string; tag?: string; date: Date }>} */
   const entries = [];
 
   for (const filePath of allFiles) {
@@ -350,6 +351,7 @@ function main() {
     entries.push({
       title: externalDoc.title,
       url: externalDoc.url,
+      tag: externalDoc.tag,
       date,
     });
   }
