@@ -1,9 +1,10 @@
 # 文档时间线
 
-> 按 Git 首次加入时间排序，最近创建的文档在前。
+> 本地文档按 Git 首次加入时间、外链按登记时间排序，最近收录的内容在前。
 
 ## 2026-07
 
+- [模型的一生｜训练与推理交互实验室](https://coconilu.github.io/model-lifecycle-lab/) `外链`
 - [AI Agent 框架如何演进：从工具调用到应用运行时](agent-framework-evolution-blog/) `HTML`{target="_self"}
 - [Page Agent 技术解读：把浏览器自动化放进页面内部](page-agent-technical-blog/) `HTML`{target="_self"}
 - [Claude Code Agent Loops 与 SKILL.md 自检工程指南](claude-code-agent-loops-skill-doc/) `HTML`{target="_self"}

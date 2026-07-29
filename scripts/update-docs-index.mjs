@@ -15,6 +15,13 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 const DOCS_DIR = path.join(ROOT, 'docs');
+const EXTERNAL_DOCS = [
+  {
+    title: '模型的一生｜训练与推理交互实验室',
+    url: 'https://coconilu.github.io/model-lifecycle-lab/',
+    addedAt: '2026-07-29T00:00:00+08:00',
+  },
+];
 
 // ---------------------------------------------------------------------------
 // 1. Walk the docs directory
@@ -156,7 +163,7 @@ function generateTimeline(entries, docsDir) {
   const timelinePath = path.join(docsDir, 'timeline.md');
 
   // Group by YYYY-MM
-  /** @type {Map<string, Array<{ title: string; path: string; date: Date }>>} */
+  /** @type {Map<string, Array<{ title: string; path?: string; url?: string; date: Date }>>} */
   const groups = new Map();
 
   for (const entry of entries) {
@@ -178,17 +185,24 @@ function generateTimeline(entries, docsDir) {
   const lines = [];
 
   lines.push('# 文档时间线\n');
-  lines.push('> 按 Git 首次加入时间排序，最近创建的文档在前。\n');
+  lines.push('> 本地文档按 Git 首次加入时间、外链按登记时间排序，最近收录的内容在前。\n');
 
   for (const groupKey of sortedGroupKeys) {
     lines.push(`## ${groupKey}\n`);
     for (const entry of groups.get(groupKey)) {
-      let relPath = path.relative(timelineDir, entry.path).split(path.sep).join('/');
-      if (relPath.endsWith('/index.html')) {
-        relPath = relPath.slice(0, -'index.html'.length);
+      const isExternal = Boolean(entry.url);
+      let relPath = entry.url;
+      let isHtml = false;
+
+      if (!isExternal) {
+        relPath = path.relative(timelineDir, entry.path).split(path.sep).join('/');
+        if (relPath.endsWith('/index.html')) {
+          relPath = relPath.slice(0, -'index.html'.length);
+        }
+        isHtml = path.extname(entry.path).toLowerCase() === '.html';
       }
-      const isHtml = path.extname(entry.path).toLowerCase() === '.html';
-      const formatTag = isHtml ? ' `HTML`' : '';
+
+      const formatTag = isExternal ? ' `外链`' : isHtml ? ' `HTML`' : '';
       const targetAttr = isHtml ? '{target="_self"}' : '';
       lines.push(`- [${entry.title}](${relPath})${formatTag}${targetAttr}`);
     }
@@ -272,6 +286,7 @@ function generateAutoHtmlSection(content, entries, docsDir) {
 
   // Filter to only standalone HTML files (files that are index.html in subdirs)
   const htmlPages = entries.filter((e) => {
+    if (!e.path) return false;
     const ext = path.extname(e.path).toLowerCase();
     if (ext !== '.html') return false;
     // Only count index.html in subdirectories (standalone HTML pages)
@@ -309,7 +324,7 @@ function main() {
 
   console.log(`   Found ${allFiles.length} files (.md + .html)`);
 
-  /** @type {Array<{ title: string; path: string; date: Date }>} */
+  /** @type {Array<{ title: string; path?: string; url?: string; date: Date }>} */
   const entries = [];
 
   for (const filePath of allFiles) {
@@ -324,6 +339,19 @@ function main() {
 
     const dateLabel = date.toISOString().slice(0, 10);
     console.log(`   ${dateLabel}  ${title}`);
+  }
+
+  for (const externalDoc of EXTERNAL_DOCS) {
+    const date = new Date(externalDoc.addedAt);
+    if (Number.isNaN(date.getTime())) {
+      throw new Error(`Invalid addedAt for external doc: ${externalDoc.title}`);
+    }
+
+    entries.push({
+      title: externalDoc.title,
+      url: externalDoc.url,
+      date,
+    });
   }
 
   // Generate timeline.md
