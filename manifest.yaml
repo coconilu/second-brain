@@ -15,24 +15,14 @@
 #   commands:
 #     - name: review-gen
 #       platforms: [opencode, claudecode]
+#
+# 当前没有任何注册项：原有的 skills/ 与 sub-agent/ 已清理，
+# 跨平台（Kimi Code / Codex）共用的 skill 直接放在 .agents/skills/ 下，
+# 不经过本清单打包。
 # =============================================================================
 
-skills:
-  - name: scan-reviewer
-    platforms: [opencode, claudecode]
-  - name: tech-tutorial-writer
-    platforms: [opencode, claudecode]
-  - name: oss-rebuild-coach
-    platforms: [opencode, claudecode]
+skills: []
 
-sub_agents:
-  - name: component-scanner
-    platforms: [opencode, claudecode]
-  - name: post-generate-reviewer
-    platforms: [opencode, claudecode]
+sub_agents: []
 
-commands:
-  - name: scan-index
-    platforms: [opencode, claudecode]
-  - name: review-gen
-    platforms: [opencode, claudecode]
+commands: []

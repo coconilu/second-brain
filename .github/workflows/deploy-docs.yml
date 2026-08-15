@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -33,6 +33,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # update-docs-index.mjs needs full git history for first-added dates
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
@@ -45,6 +47,23 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Refresh docs index and timeline
+        run: pnpm docs:update-index
+
+      - name: Commit index refresh
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- docs/index.md docs/timeline.md; then
+            echo "Index already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/index.md docs/timeline.md
+          git commit -m "docs: refresh index and timeline [skip ci]"
+          git push origin "HEAD:${{ github.ref_name }}"
 
       - name: Pull Vercel project settings
         run: pnpm vercel pull --yes --environment=production --token="$VERCEL_TOKEN"

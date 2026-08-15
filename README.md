@@ -7,11 +7,11 @@
 ## 目录结构
 
 - `docs/` — 知识库，Markdown 文档和 standalone HTML 教学页
-- `skills/` — 通用 Skill 定义源文件（Markdown + YAML Frontmatter）
-- `sub-agent/` — Sub-agent 配置定义（纯 Markdown）
+- `.agents/skills/` — 跨平台 Skill（Kimi Code 和 Codex 都会扫描此目录，无需打包）
+- `commands/` — 打包流水线的 command 源文件（当前为空）
 - `templates/` — 文档和 Skill 模板
 - `scripts/` — 工具脚本
-- `.github/workflows/deploy-docs.yml` — GitHub Actions：`main` 分支上 docs 相关变更自动发布到 Vercel
+- `.github/workflows/deploy-docs.yml` — GitHub Actions：`main` 分支上 docs 相关变更自动刷新索引并发布到 Vercel
 - `docs/.vitepress/` — VitePress 配置、主题和本地构建输出
 - `.opencode/skills/` — 本仓库本地 OpenCode 辅助技能（不通过 manifest 打包）
 - `package.json` — plugins/docs 网站脚本和 docs 网站依赖
