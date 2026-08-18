@@ -4,8 +4,8 @@
 
 ## 2026-08
 
-- [当 Agent 开始生产网站：从分类法到设计决策链（交互版）](agent-web-design-chain-demo/) `HTML`{target="_self"}
 - [当 Agent 开始生产网站：从分类法到设计决策链](agent-web-design-chain/index.md)
+- [当 Agent 开始生产网站：从分类法到设计决策链（交互版）](agent-web-design-chain-demo/) `HTML`{target="_self"}
 
 ## 2026-07
 
