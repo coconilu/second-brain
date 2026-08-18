@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>当 Agent 开始生产网站：从分类法到设计决策链（交互版）</title>
+<style>
+  :root {
+    --bg: #0b0e14;
+    --bg-soft: #12161f;
+    --card: #161b26;
+    --line: #262d3d;
+    --text: #e6e9f0;
+    --text-dim: #9aa3b5;
+    --accent: #7c8cff;
+    --accent-2: #5eead4;
+    --radius: 14px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    line-height: 1.85;
+    font-size: 16px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- hero ---------- */
+  header.hero {
+    padding: 96px 0 64px;
+    background:
+      radial-gradient(600px 300px at 20% 0%, rgba(124,140,255,.18), transparent 60%),
+      radial-gradient(500px 260px at 85% 10%, rgba(94,234,212,.12), transparent 60%);
+    border-bottom: 1px solid var(--line);
+  }
+  .kicker {
+    display: inline-block; font-size: 13px; letter-spacing: .15em;
+    color: var(--accent-2); border: 1px solid rgba(94,234,212,.35);
+    border-radius: 999px; padding: 4px 14px; margin-bottom: 22px;
+  }
+  h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.3; font-weight: 800; }
+  h1 .hl { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lede { margin-top: 24px; color: var(--text-dim); font-size: 17px; max-width: 720px; }
+  .meta { margin-top: 28px; font-size: 13px; color: var(--text-dim); display: flex; gap: 16px; flex-wrap: wrap; }
+  .meta a { color: var(--accent); text-decoration: none; }
+  .meta a:hover { text-decoration: underline; }
+
+  /* ---------- article ---------- */
+  article { padding: 24px 0 80px; }
+  h2 {
+    font-size: 26px; margin: 72px 0 20px; font-weight: 750; line-height: 1.4;
+    padding-top: 24px; border-top: 1px solid var(--line);
+  }
+  h2 .no { color: var(--accent); margin-right: 10px; font-variant-numeric: tabular-nums; }
+  h3 { font-size: 19px; margin: 40px 0 14px; font-weight: 700; }
+  p { margin: 14px 0; color: #cdd3e0; }
+  strong { color: var(--text); }
+  ul, ol { margin: 14px 0 14px 24px; color: #cdd3e0; }
+  li { margin: 8px 0; }
+  blockquote {
+    border-left: 3px solid var(--accent);
+    background: var(--bg-soft);
+    padding: 12px 18px; margin: 18px 0; border-radius: 0 10px 10px 0;
+    color: var(--text-dim);
+  }
+  code.inline, li code, p code {
+    background: #1c2230; border: 1px solid var(--line);
+    border-radius: 6px; padding: 1px 7px; font-size: .88em;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  }
+  pre.flow {
+    background: #0d1117; border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px; overflow-x: auto; margin: 18px 0;
+    font-family: "SFMono-Regular", Consolas, monospace; font-size: 13.5px; line-height: 1.7;
+    color: #a5d6ff;
+  }
+  hr.sep { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+  .foot { color: var(--text-dim); font-size: 14px; }
+
+  /* ---------- demo shell ---------- */
+  .demo {
+    margin: 32px 0; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--bg-soft); overflow: hidden;
+  }
+  .demo-head {
+    padding: 14px 20px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .demo-title { font-size: 14px; font-weight: 700; color: var(--accent-2); letter-spacing: .05em; }
+  .demo-hint { font-size: 13px; color: var(--text-dim); }
+  .demo-body { padding: 24px 20px; }
+
+  /* ---------- Demo 1: skin switcher ---------- */
+  .skin-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+  .skin-btns button {
+    font: inherit; font-size: 14px; cursor: pointer;
+    background: var(--card); color: var(--text-dim);
+    border: 1px solid var(--line); border-radius: 999px; padding: 7px 18px;
+    transition: all .18s ease;
+  }
+  .skin-btns button:hover { color: var(--text); border-color: var(--accent); }
+  .skin-btns button.on {
+    background: var(--accent); border-color: var(--accent); color: #0b0e14; font-weight: 700;
+  }
+  .stage {
+    border-radius: 12px; overflow: hidden; border: 1px solid var(--line);
+    transition: background .3s ease;
+  }
+
+  /* mock page skeleton — skinned by .s-* classes on .stage */
+  .mp { font-size: 14px; line-height: 1.6; transition: all .3s ease; }
+  .mp-nav { display: flex; align-items: center; gap: 18px; padding: 14px 22px; }
+  .mp-logo { width: 20px; height: 20px; border-radius: 6px; flex: none; }
+  .mp-links { display: flex; gap: 16px; font-size: 13px; opacity: .8; flex: 1; }
+  .mp-links span { white-space: nowrap; }
+  .mp-cta { font-size: 13px; padding: 6px 16px; border-radius: 8px; font-weight: 600; white-space: nowrap; }
+  .mp-hero { padding: 40px 22px 32px; max-width: 560px; }
+  .mp-hero h4 { font-size: 24px; line-height: 1.35; font-weight: 800; margin-bottom: 10px; }
+  .mp-hero p { font-size: 13.5px; opacity: .75; margin-bottom: 18px; }
+  .mp-hero .btns { display: flex; gap: 10px; }
+  .mp-btn { font-size: 13px; padding: 8px 18px; border-radius: 8px; font-weight: 600; }
+  .mp-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding: 0 22px 26px; }
+  .mp-card { padding: 16px; border-radius: 10px; }
+  .mp-card .ic { width: 26px; height: 26px; border-radius: 7px; margin-bottom: 10px; }
+  .mp-card b { font-size: 13.5px; display: block; margin-bottom: 4px; }
+  .mp-card span { font-size: 12px; opacity: .7; line-height: 1.5; display: block; }
+  @media (max-width: 560px) {
+    .mp-cards { grid-template-columns: 1fr; }
+    .mp-links { display: none; }
+  }
+
+  /* skin: flat */
+  .s-flat { background: #f6f7f9; color: #171a21; }
+  .s-flat .mp-nav { border-bottom: 1px solid #e3e6eb; }
+  .s-flat .mp-logo { background: #2563eb; }
+  .s-flat .mp-cta { background: #2563eb; color: #fff; }
+  .s-flat .mp-btn.primary { background: #171a21; color: #fff; }
+  .s-flat .mp-btn.ghost { border: 1px solid #c9cfd9; color: #171a21; }
+  .s-flat .mp-card { background: #fff; border: 1px solid #e3e6eb; }
+  .s-flat .mp-card .ic { background: #dbe7ff; }
+
+  /* skin: glass */
+  .s-glass {
+    background:
+      radial-gradient(400px 200px at 15% 10%, rgba(124,58,237,.55), transparent 65%),
+      radial-gradient(380px 220px at 85% 25%, rgba(14,165,233,.5), transparent 65%),
+      radial-gradient(420px 260px at 50% 100%, rgba(20,184,166,.4), transparent 65%),
+      #0f1220;
+    color: #eef1ff;
+  }
+  .s-glass .mp-nav { border-bottom: 1px solid rgba(255,255,255,.14); }
+  .s-glass .mp-logo { background: linear-gradient(135deg, #818cf8, #22d3ee); }
+  .s-glass .mp-cta { background: rgba(255,255,255,.92); color: #0f1220; }
+  .s-glass .mp-btn.primary { background: #fff; color: #0f1220; }
+  .s-glass .mp-btn.ghost { border: 1px solid rgba(255,255,255,.35); color: #eef1ff; }
+  .s-glass .mp-card {
+    background: rgba(255,255,255,.1);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,.22);
+    box-shadow: 0 8px 28px rgba(0,0,0,.25);
+  }
+  .s-glass .mp-card .ic { background: rgba(255,255,255,.22); }
+
+  /* skin: neumorphism */
+  .s-neu { background: #e4e9f2; color: #4a5468; }
+  .s-neu .mp-logo { background: #e4e9f2; box-shadow: inset 3px 3px 6px #c3cadb, inset -3px -3px 6px #ffffff; }
+  .s-neu .mp-cta { background: #e4e9f2; color: #5b7cfa; box-shadow: 4px 4px 9px #c3cadb, -4px -4px 9px #ffffff; }
+  .s-neu .mp-btn.primary { background: #e4e9f2; color: #5b7cfa; box-shadow: 4px 4px 9px #c3cadb, -4px -4px 9px #ffffff; }
+  .s-neu .mp-btn.ghost { background: #e4e9f2; color: #4a5468; box-shadow: inset 3px 3px 6px #c3cadb, inset -3px -3px 6px #ffffff; }
+  .s-neu .mp-card { background: #e4e9f2; box-shadow: 7px 7px 14px #c3cadb, -7px -7px 14px #ffffff; border-radius: 14px; }
+  .s-neu .mp-card .ic { background: #e4e9f2; box-shadow: inset 2px 2px 5px #c3cadb, inset -2px -2px 5px #ffffff; }
+
+  /* skin: neo-brutalism */
+  .s-brutal { background: #ffd23f; color: #111; }
+  .s-brutal .mp-nav { border-bottom: 3px solid #111; }
+  .s-brutal .mp-logo { background: #ff5d8f; border: 3px solid #111; border-radius: 0; }
+  .s-brutal .mp-cta { background: #7c5cff; color: #fff; border: 3px solid #111; border-radius: 0; box-shadow: 4px 4px 0 #111; font-family: ui-monospace, monospace; }
+  .s-brutal .mp-hero h4 { font-family: ui-monospace, monospace; letter-spacing: -.02em; text-transform: uppercase; }
+  .s-brutal .mp-btn { border: 3px solid #111; border-radius: 0; box-shadow: 4px 4px 0 #111; font-family: ui-monospace, monospace; }
+  .s-brutal .mp-btn.primary { background: #111; color: #ffd23f; }
+  .s-brutal .mp-btn.ghost { background: #fff; color: #111; }
+  .s-brutal .mp-card { background: #fff; border: 3px solid #111; border-radius: 0; box-shadow: 6px 6px 0 #111; }
+  .s-brutal .mp-card .ic { background: #5eead4; border: 3px solid #111; border-radius: 0; }
+  .s-brutal .mp-card b, .s-brutal .mp-card span { font-family: ui-monospace, monospace; }
+
+  /* token readout */
+  .tokens { margin-top: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .token {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 14px; font-size: 12.5px;
+  }
+  .token b { display: block; color: var(--text-dim); font-weight: 500; margin-bottom: 2px; }
+  .token span { color: var(--accent-2); font-family: ui-monospace, monospace; }
+
+  /* ---------- Demo 2: style timeline ---------- */
+  .tl { display: flex; gap: 0; overflow-x: auto; padding: 10px 4px 20px; }
+  .tl-item { flex: 1; min-width: 120px; cursor: pointer; position: relative; padding-top: 26px; text-align: center; }
+  .tl-item::before {
+    content: ""; position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--card); border: 2px solid var(--text-dim); transition: all .18s ease;
+  }
+  .tl-item::after {
+    content: ""; position: absolute; top: 15px; left: calc(-50% + 7px); right: calc(50% + 7px);
+    height: 2px; background: var(--line);
+  }
+  .tl-item:first-child::after { display: none; }
+  .tl-item:hover::before, .tl-item.on::before { border-color: var(--accent-2); background: var(--accent-2); }
+  .tl-item .yr { font-size: 12px; color: var(--accent-2); font-family: ui-monospace, monospace; }
+  .tl-item .nm { font-size: 14px; font-weight: 700; margin-top: 2px; }
+  .tl-item.on .nm { color: var(--accent-2); }
+  .tl-detail {
+    margin-top: 8px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 18px 20px; font-size: 14.5px; color: #cdd3e0;
+  }
+  .tl-detail b { color: var(--accent-2); }
+  .tl-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; }
+
+  /* ---------- Demo 3: decision chain ---------- */
+  .chain { display: grid; gap: 12px; }
+  .step {
+    border: 1px solid var(--line); border-radius: 12px; background: var(--card);
+    cursor: pointer; overflow: hidden; transition: border-color .18s ease;
+  }
+  .step:hover { border-color: var(--accent); }
+  .step.open { border-color: var(--accent-2); }
+  .step-head { display: flex; align-items: center; gap: 14px; padding: 14px 18px; }
+  .step-no {
+    flex: none; width: 30px; height: 30px; border-radius: 8px;
+    display: grid; place-items: center; font-weight: 800; font-size: 14px;
+    background: rgba(124,140,255,.15); color: var(--accent);
+  }
+  .step.open .step-no { background: rgba(94,234,212,.15); color: var(--accent-2); }
+  .step-name { font-weight: 700; font-size: 15px; flex: 1; }
+  .step-tag { font-size: 12px; color: var(--text-dim); }
+  .step-body { display: none; padding: 0 18px 16px 62px; font-size: 14px; color: #b8c0d2; }
+  .step.open .step-body { display: block; }
+  .chain-arrow { text-align: center; color: var(--text-dim); font-size: 18px; line-height: 1; }
+
+  /* simulator */
+  .sim { margin-top: 26px; border-top: 1px dashed var(--line); padding-top: 22px; }
+  .sim h5 { font-size: 15px; margin-bottom: 12px; color: var(--text); }
+  .sim-presets { display: grid; gap: 10px; margin-bottom: 16px; }
+  .sim-presets button {
+    font: inherit; text-align: left; cursor: pointer; font-size: 14px;
+    background: var(--card); color: #cdd3e0;
+    border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px;
+    transition: all .18s ease;
+  }
+  .sim-presets button:hover { border-color: var(--accent); }
+  .sim-presets button.on { border-color: var(--accent-2); background: rgba(94,234,212,.07); }
+  .sim-presets button .p-label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 3px; }
+  .sim-out {
+    background: #0d1117; border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px; font-size: 14px; min-height: 120px;
+  }
+  .sim-out .row { margin: 7px 0; display: flex; gap: 10px; flex-wrap: wrap; }
+  .sim-out .k { color: var(--text-dim); flex: none; min-width: 88px; }
+  .chip {
+    display: inline-block; background: rgba(124,140,255,.14); color: var(--accent);
+    border-radius: 6px; padding: 1px 9px; font-size: 12.5px; margin: 0 4px 4px 0;
+    font-family: ui-monospace, monospace;
+  }
+  .chip.skin { background: rgba(94,234,212,.14); color: var(--accent-2); }
+  .sim-out .verdict { margin-top: 10px; color: #cdd3e0; }
+
+  footer.site {
+    border-top: 1px solid var(--line); padding: 36px 0 60px;
+    color: var(--text-dim); font-size: 13.5px; text-align: center;
+  }
+  footer.site a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="kicker">交互版 · INTERACTIVE</span>
+    <h1>当 Agent 开始生产网站：<br>从分类法到<span class="hl">设计决策链</span></h1>
+    <p class="lede">过去，"网站怎么分类"是一个图书情报学问题；今天，它正在变成 AI 的工程问题。当网站的生产者从人变成 Agent，分类法就不再是写给读者看的知识，而是 Agent 选择模板、组装页面的决策依据。这篇文章想聊聊：一个 Agent 在生成网站的那几秒钟里，到底"知道"些什么，又是怎么做出决定的。</p>
+    <div class="meta">
+      <span>约 12 分钟读完</span>
+      <span>含 3 个可交互演示</span>
+      <a href="/agent-web-design-chain/">阅读纯文本 Markdown 版 →</a>
+    </div>
+  </div>
+</header>
+
+<article class="wrap">
+
+  <!-- ========== 一 ========== -->
+  <h2><span class="no">一</span>一个正在发生的转变</h2>
+
+  <p>如果你用过 v0、Lovable 或者任何一个 AI 建站工具，你会有类似的体验：输入一句"帮我做一个 SaaS 产品的落地页，深色科技感"，十几秒后，一个结构完整、配色合理、甚至文案都像模像样的页面就出来了。</p>
+
+  <p>这个体验背后藏着一连串非常密集的决策：这是什么类型的网站？应该用什么布局？配色往哪走？组件从哪里拿？字体用什么气质？</p>
+
+  <p>人类设计师做这些决策，靠的是多年积累的经验、审美和行业惯例——这些东西大多是隐性的，说不清道不明。但 Agent 不一样：<strong>它所有的"经验"都必须以某种结构化的知识存在</strong>。而"网站的分类法"和"UI 设计的可选空间"，正是这个知识体系里最基础的两层。</p>
+
+  <p>所以，重新梳理"网站有哪些分类、UI 有哪些风格"，不是怀旧，而是在拆解 Agent 的世界观。</p>
+
+  <p>我们先花两节把这两层知识讲清楚，然后在第四部分解剖核心问题：<strong>Agent 决定"用哪套模板"的那条决策链，每一步的依据到底是什么。</strong></p>
+
+  <!-- ========== 二 ========== -->
+  <h2><span class="no">二</span>Agent 的第一层知识：网站是什么</h2>
+
+  <h3>传统的六个维度，是 Agent 的"需求解析词典"</h3>
+
+  <p>经典网站分类学给出的维度，今天依然有效——但对 Agent 来说，每个维度的价值不在于"分类"，而在于它直接决定了一类设计决策：</p>
+
+  <ul>
+    <li><strong>功能用途</strong>（门户、电商、社交、工具、企业官网、政务、教育……）→ 决定信息架构和首屏目标：门户重分发，工具重效率，官网重信任。</li>
+    <li><strong>内容主题</strong>（金融、医疗、科技、娱乐等垂直领域）→ 决定行业惯例和配色气质，详见第四部分的经验规则库。</li>
+    <li><strong>技术形态</strong>（静态页、动态站、Web 应用）→ 决定技术栈选型，以及动效和交互的预算能开多大。</li>
+    <li><strong>访问权限</strong>（公开、付费墙、内网）→ 决定首屏呈现的是内容、登录墙还是定价页。</li>
+    <li><strong>商业模式</strong>（广告、订阅、交易抽佣、Freemium）→ 决定页面的转化目标——说白了，按钮往哪指。</li>
+    <li><strong>运营主体</strong>（政府、企业、组织、个人）→ 决定信任要素：政务要权威背书，个人站要人格化表达。</li>
+  </ul>
+
+  <p>对 Agent 来说，这六个维度不是分类学知识，而是<strong>需求解析的词典</strong>。用户说"帮我做个律师事务所官网"，Agent 实际上是在这六个维度上各打了一个标签：功能=企业官网，主题=法律，模式=获客导向……标签打完，页面的骨架就已经隐约浮现了。</p>
+
+  <h3>AI 时代的四个新维度，是 Agent 理解新需求的必备</h3>
+
+  <p>但老词典不够用了。AI 不只是给网站加了个功能，而是改变了网站的生产方式、交互方式和角色定位。至少需要补进四个新维度：</p>
+
+  <p><strong>1. AI 原生程度。</strong>传统网站 → AI 增强型（在原有产品上嵌入 AI 能力，如电商的 AI 客服）→ AI 原生（从架构之初就以大模型和自然语言交互为核心构建块）。一个"AI 原生"标签，会从根本上改变信息架构——对话流可能取代导航栏成为一级入口。</p>
+
+  <p><strong>2. 交互范式。</strong>人驱动（点击、搜索、浏览）→ 人机对话驱动（自然语言为主入口）→ 智能体驱动（用户"委托"而非"搜索"，Agent 代表用户跨站完成任务）。Web 的演进大致可以划分为 PC Web、Mobile Web、Agentic Web 三个阶段，交互范式的切换是每一代的本质。</p>
+
+  <p><strong>3. 内容来源。</strong>PGC、UGC 之外，新增了 AIGC。这不只是"内容是谁写的"的问题——它影响版权提示、审核机制、乃至页面上要不要标注"AI 生成"。</p>
+
+  <p><strong>4. 服务对象。</strong>这是最容易被忽略、但可能最深远的一个维度。过去的网站只服务于人；现在的网站越来越多地需要<strong>同时服务于 AI Agent</strong>——提供结构化数据、MCP 接口、Agent 可读的协议。"网站不仅要被人访问，还要能被 AI 使用"，正在成为新的设计约束。</p>
+
+  <!-- ========== 三 ========== -->
+  <h2><span class="no">三</span>Agent 的第二层知识：UI 的可选空间</h2>
+
+  <p>确定了"这是个什么站"，接下来是"它该长什么样"。这里有一个被无数从业者混淆的概念对，必须先掰扯清楚。</p>
+
+  <h3>风格简史：一条不断轮回的演化线</h3>
+
+  <p>UI 视觉风格的演进主线大致是五个阶段，每一代都是对上一代的反叛。<strong>点击时间轴上的节点，查看每种风格的来龙去脉：</strong></p>
+
+  <!-- Demo 2: timeline -->
+  <div class="demo">
+    <div class="demo-head">
+      <span class="demo-title">演示 ① · UI 风格时间轴</span>
+      <span class="demo-hint">点击节点查看每种风格</span>
+    </div>
+    <div class="demo-body">
+      <div class="tl" id="tl"></div>
+      <div class="tl-detail" id="tlDetail"></div>
+    </div>
+  </div>
+
+  <p>主线之外还穿插着若干支线风格：<strong>新粗野主义</strong>（Neo-brutalism，粗黑描边、高饱和撞色、硬阴影，故意做得"糙"，Gumroad 和 Figma 社区把它带火）、<strong>Bento Grid</strong>（苹果发布会带火的"便当盒"网格卡片布局，已成 SaaS 落地页的事实标准之一）、以及极繁主义、复古未来主义（Y2K）、拼贴风等小众但辨识度高的风格。</p>
+
+  <p>风格的特点是：<strong>它是公共的、描述性的、随潮流起落的审美倾向</strong>。任何人都可以做玻璃拟态，不需要谁的授权，也没有官方文档。</p>
+
+  <h3>设计系统：规则手册 + 零件库</h3>
+
+  <p>设计系统是另一个层次的东西。它是<strong>成文的规范 + 可复用的实现</strong>：设计原则、设计令牌（色板、字号阶梯、间距体系）、组件库、使用指南。Material Design、Ant Design、Apple HIG、Fluent——这些是有所有权、有文档、有代码的体系。</p>
+
+  <p>用一个类比来说：</p>
+
+  <ul>
+    <li><strong>视觉风格</strong> = 穿搭风格（日系、法式、街头）——公共的，谁都能穿</li>
+    <li><strong>设计系统</strong> = 某品牌的完整服装体系：版型标准、面料清单、尺码规范——私有的，有组织在维护</li>
+  </ul>
+
+  <h3>皮与骨的分离，正是 Agent 能混搭的前提</h3>
+
+  <p>为什么要强调这个区分？因为<strong>混淆它们，就看不懂 Agent 在做什么</strong>。</p>
+
+  <p>设计系统是因，视觉风格是果——一个系统被严格执行后自然呈现某种外观。但二者是多对多关系：玻璃拟态这种风格，iOS 的 HIG 和各团队自建的规范都可以去实现它；Material Design 从 1.0 到 Material You，风格大变，却是同一个系统的版本迭代。</p>
+
+  <p>Agent 建站时，这个区分是操作性的：</p>
+
+  <ul>
+    <li>用户说"要玻璃拟态" → 指定的是<strong>皮</strong>（风格层）</li>
+    <li>Agent 选择用 shadcn/ui 还是 Ant Design → 选的是<strong>骨</strong>（系统层）</li>
+    <li>实际执行 = <strong>在选定系统的骨架上，套用风格的皮肤</strong>：用 shadcn 的组件，把 token 改成半透明、模糊、细边框——你就得到了"shadcn 实现的玻璃拟态"</li>
+  </ul>
+
+  <p>下面这个演示里是一个<strong>完全相同的页面骨架</strong>（同样的结构、同样的组件、同样的文案）。点击按钮，只改设计令牌——换的就只是"皮"。这正是 Agent 在做的事：</p>
+
+  <!-- Demo 1: skin switcher -->
+  <div class="demo">
+    <div class="demo-head">
+      <span class="demo-title">演示 ② · 同一骨架，四种皮肤</span>
+      <span class="demo-hint">结构不变，只有 token 在变</span>
+    </div>
+    <div class="demo-body">
+      <div class="skin-btns" id="skinBtns">
+        <button data-skin="s-flat" class="on">扁平化</button>
+        <button data-skin="s-glass">玻璃拟态</button>
+        <button data-skin="s-neu">新拟态</button>
+        <button data-skin="s-brutal">新粗野主义</button>
+      </div>
+
+      <div class="stage s-flat" id="stage">
+        <div class="mp">
+          <div class="mp-nav">
+            <div class="mp-logo"></div>
+            <div class="mp-links"><span>产品</span><span>定价</span><span>文档</span><span>关于</span></div>
+            <div class="mp-cta">免费试用</div>
+          </div>
+          <div class="mp-hero">
+            <h4>让团队的工作流<br>快上十倍</h4>
+            <p>一站式协作平台，把任务、文档和自动化装进同一个工作区。五分钟上手，按用量付费。</p>
+            <div class="btns">
+              <div class="mp-btn primary">立即开始</div>
+              <div class="mp-btn ghost">查看演示</div>
+            </div>
+          </div>
+          <div class="mp-cards">
+            <div class="mp-card"><div class="ic"></div><b>自动化</b><span>重复工作交给规则引擎，省下的时间做正事。</span></div>
+            <div class="mp-card"><div class="ic"></div><b>实时协作</b><span>多人同时编辑，评论和任务天然连在一起。</span></div>
+            <div class="mp-card"><div class="ic"></div><b>数据看板</b><span>关键指标自动汇总，决策不再靠拍脑袋。</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tokens" id="tokens"></div>
+    </div>
+  </div>
+
+  <p>成熟设计系统的默认外观辨识度太高（一说 Ant Design 你脑子里就有画面），才让人误以为"系统 = 风格"。但严格说，那只是系统的出厂皮肤。</p>
+
+  <!-- ========== 四 ========== -->
+  <h2><span class="no">四</span>Agent 的决策链解剖</h2>
+
+  <p>铺垫完了，来看核心问题：Agent 决定"用哪套模板"时，依据到底是什么？完整的决策链分四步，权重从上到下。<strong>点击每一步展开细节：</strong></p>
+
+  <!-- Demo 3: decision chain -->
+  <div class="demo">
+    <div class="demo-head">
+      <span class="demo-title">演示 ③ · 决策链拆解 &amp; 提示词模拟器</span>
+      <span class="demo-hint">点步骤展开；选一句提示词，看 Agent 的推断过程</span>
+    </div>
+    <div class="demo-body">
+      <div class="chain" id="chain"></div>
+
+      <div class="sim">
+        <h5>试一试：同一类需求，不同的提示词</h5>
+        <div class="sim-presets" id="simPresets"></div>
+        <div class="sim-out" id="simOut"></div>
+      </div>
+    </div>
+  </div>
+
+  <p>用流程图表示整个链路：</p>
+
+  <pre class="flow">用户需求解析
+   ├─ 显性风格要求？── 有 → 直接采用
+   └─ 没有 → 隐性推断：
+        ① 站点类型（落地页 / 电商 / SaaS / 作品集…）
+        ② 行业与受众（B 端稳重 / C 端活泼）
+        ③ 内容密度（内容多 → 克制装饰）
+        ④ 品牌资产（Logo、品牌色 → 围绕它展开）
+   ↓
+匹配设计系统（骨架）+ 风格模板（皮肤）
+   ↓
+套用布局模式 + 配色 token + 字体
+   ↓
+原则校验（对比度 / 无障碍 / 响应式）</pre>
+
+  <h3>一个案例：同一个需求，两种产出</h3>
+
+  <p>同样是"律师事务所官网"：</p>
+
+  <ul>
+    <li><strong>输入一</strong>："帮我做一个律师事务所官网。" → Agent 走默认推断：企业官网 × 法律行业 × B 端受众 → 保守稳重的中性配色、清晰的业务介绍结构、克制的装饰——安全但平庸。</li>
+    <li><strong>输入二</strong>："帮我做一个专做科技初创公司业务的精品律所官网，参考 XX 的风格，深色，要有现代感。" → 受众从"传统客户"变成"科技公司创始人"，风格空间瞬间打开：深色底 + 玻璃拟态卡片 + 精致排版都变成了合理选项。</li>
+  </ul>
+
+  <p>结论很直白：<strong>你给 Agent 的风格线索越具体，它的"模板选择"就越准</strong>。提示词里的受众描述、参考网站、品牌资产，本质上都是在帮 Agent 压缩决策空间。</p>
+
+  <!-- ========== 五 ========== -->
+  <h2><span class="no">五</span>两个开放的问题</h2>
+
+  <p>文章最后，留两个我自己也还没有答案的问题，权当钩子。</p>
+
+  <p><strong>第一，当网站的服务对象包括 Agent 本身，UI 还重要吗？</strong></p>
+
+  <p>如果一个网站的相当比例"访客"是替人类办事的智能体——它不欣赏你的渐变和毛玻璃，只想要干净的结构化数据和可调用的接口——那么"给人看的界面"和"给 Agent 的接口"会不会分化成两个工种？前者越来越像品牌设计，后者越来越像 API 设计。llms.txt、MCP 这类面向 Agent 的协议正在冒头，也许分化已经开始。</p>
+
+  <p><strong>第二，当生成成本趋近于零，"风格"会贬值还是升值？</strong></p>
+
+  <p>一种可能是贬值：玻璃拟态谁都能一键生成之后，风格本身不再是壁垒。另一种可能是升值：正因为生成太容易，"知道什么场合该用什么风格、并敢于不用默认皮肤"的品味反而成了稀缺品。我倾向于后者——决策链里的第①②步（理解意图、匹配惯例）越自动化，第④步之上的审美判断就越值钱。</p>
+
+  <p>分类法从来不是终点。它只是 Agent——以及和 Agent 协作的我们——理解这个世界的一张地图。地图画得越好，路才走得越准。</p>
+
+  <hr class="sep">
+  <p class="foot">参考方向：Agentic Web 相关研究（PC Web → Mobile Web → Agentic Web 的三阶段划分）、AI 原生架构的行业讨论、苹果 Liquid Glass 设计语言（WWDC 2025）、Neo-brutalism 与 Glassmorphism 的风格实践、v0 / Lovable 等 AI 建站工具的产品形态。</p>
+
+</article>
+
+<footer class="site">
+  <div class="wrap">
+    《当 Agent 开始生产网站》交互版 · <a href="/agent-web-design-chain/">Markdown 版</a> · 由 Second Brain 知识库托管
+  </div>
+</footer>
+
+<script>
+/* ================= Demo 2: timeline ================= */
+const TL_DATA = [
+  { yr: "2007–2013", nm: "拟物化", en: "Skeuomorphism", sw: "linear-gradient(135deg,#8b5a2b,#d4a96a)",
+    txt: "<b>拟物化 Skeuomorphism</b>：早期 iOS 时代的风格，界面模仿真实材质——皮革缝线、木质书架、玻璃高光。它的使命是教育市场：让第一代触屏用户通过现实经验理解屏幕上的元素。" },
+  { yr: "2013–", nm: "扁平化", en: "Flat Design", sw: "#2563eb",
+    txt: "<b>扁平化 Flat Design</b>：iOS 7 和微软 Metro 推动的大转向。用户已经懂屏幕了，材质隐喻成了累赘，于是去掉阴影和渐变，留下纯色块、细线条、大留白，信息优先。" },
+  { yr: "2019–2020", nm: "新拟态", en: "Neumorphism", sw: "#e4e9f2",
+    txt: "<b>新拟态 Neumorphism</b>：Dribbble 上走红的“软阴影”风格——用同色系的高光和暗影，让元素像从背景里挤出来或凹进去。观感柔和精致，但对比度先天不足，基本停留在概念稿，极少真正上线。" },
+  { yr: "2020–", nm: "玻璃拟态", en: "Glassmorphism", sw: "linear-gradient(135deg,rgba(129,140,248,.8),rgba(34,211,238,.6))",
+    txt: "<b>玻璃拟态 Glassmorphism</b>：macOS Big Sur 和 Windows Fluent 带动——半透明面板 + 背景模糊 + 一圈细描边，元素像一块毛玻璃浮在内容之上。至今仍是“科技感”的默认选项之一。" },
+  { yr: "2025–", nm: "液态玻璃", en: "Liquid Glass", sw: "linear-gradient(135deg,#a5b4fc,#67e8f9,#f0abfc)",
+    txt: "<b>液态玻璃 Liquid Glass</b>：苹果在 WWDC 2025 发布的新设计语言，玻璃拟态的进阶——材质会折射光线、随底层内容流动变形，从“一块静态的毛玻璃”变成“活的玻璃”。" },
+];
+const tl = document.getElementById("tl");
+const tlDetail = document.getElementById("tlDetail");
+TL_DATA.forEach((d, i) => {
+  const el = document.createElement("div");
+  el.className = "tl-item" + (i === 0 ? " on" : "");
+  el.innerHTML = `<div class="yr">${d.yr}</div><div class="nm">${d.nm}</div>`;
+  el.onclick = () => {
+    tl.querySelectorAll(".tl-item").forEach(x => x.classList.remove("on"));
+    el.classList.add("on");
+    tlDetail.innerHTML = `<span class="tl-swatch" style="background:${d.sw}"></span>` + d.txt;
+  };
+  tl.appendChild(el);
+});
+tlDetail.innerHTML = `<span class="tl-swatch" style="background:${TL_DATA[0].sw}"></span>` + TL_DATA[0].txt;
+
+/* ================= Demo 1: skin switcher ================= */
+const TOKEN_DATA = {
+  "s-flat": [
+    ["背景", "#f6f7f9 纯色"], ["卡片", "白底 + 1px 灰边"],
+    ["阴影", "无"], ["圆角", "8–10px"], ["气质", "干净、信息优先"]
+  ],
+  "s-glass": [
+    ["背景", "多层彩色渐变光斑"], ["卡片", "rgba(255,255,255,.1)"],
+    ["阴影", "backdrop-filter: blur(14px)"], ["描边", "1px 半透明白"], ["气质", "悬浮、科技感"]
+  ],
+  "s-neu": [
+    ["背景", "#e4e9f2 同色系"], ["卡片", "与背景同色"],
+    ["阴影", "双侧软阴影（亮/暗）"], ["对比度", "⚠ 先天不足"], ["气质", "柔和、概念感"]
+  ],
+  "s-brutal": [
+    ["背景", "#ffd23f 高饱和"], ["卡片", "白底 + 3px 黑边"],
+    ["阴影", "6px 硬投影，无模糊"], ["字体", "等宽 + 大写"], ["气质", "反精致、态度感"]
+  ],
+};
+const stage = document.getElementById("stage");
+const tokensBox = document.getElementById("tokens");
+function renderTokens(skin) {
+  tokensBox.innerHTML = TOKEN_DATA[skin]
+    .map(([k, v]) => `<div class="token"><b>${k}</b><span>${v}</span></div>`).join("");
+}
+document.getElementById("skinBtns").addEventListener("click", e => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  document.querySelectorAll("#skinBtns button").forEach(b => b.classList.remove("on"));
+  btn.classList.add("on");
+  stage.className = "stage " + btn.dataset.skin;
+  renderTokens(btn.dataset.skin);
+});
+renderTokens("s-flat");
+
+/* ================= Demo 3: decision chain ================= */
+const CHAIN = [
+  { no: "①", name: "用户输入", tag: "权重最高",
+    body: "显性指令直接锁定风格——“参考 Apple 官网”、“深色科技感”都是强约束。没有显性指令时，Agent 做隐性推断：从需求描述里解析行业和受众。" },
+  { no: "②", name: "行业惯例与受众预期", tag: "经验规则库",
+    body: "Agent 内置的映射大致是：金融/法律/政务 → 保守、高对比、信息清晰；AI/SaaS/科技 → 渐变、玻璃拟态、深色模式；时尚/艺术/作品集 → 可以激进；电商/内容站 → 转化率和可读性优先，装饰让位。" },
+  { no: "③", name: "技术栈与组件库", tag: "能力边界约束",
+    body: "经常被忽略的一层：Agent 往往不是从零设计，而是在既定设计系统里组装。v0 默认生成 React + Tailwind + shadcn/ui，风格天然偏现代极简；国内一些工具则提供 Ant Design、Arco Design 可选。所以“模板选择”很大程度上 = “选哪套设计系统 + 在其上做多大程度的定制”。" },
+  { no: "④", name: "通用设计原则", tag: "兜底校验",
+    body: "无论选什么风格都要过的底线：文字对比度符合 WCAG、操作元素可识别、信息层级清晰、响应式。新拟态和玻璃拟态最大的坑正是对比度不足——风格可以激进，底线不能破。" },
+];
+const chain = document.getElementById("chain");
+CHAIN.forEach((s, i) => {
+  const el = document.createElement("div");
+  el.className = "step" + (i === 0 ? " open" : "");
+  el.innerHTML = `
+    <div class="step-head">
+      <div class="step-no">${s.no}</div>
+      <div class="step-name">${s.name}</div>
+      <div class="step-tag">${s.tag}</div>
+    </div>
+    <div class="step-body">${s.body}</div>`;
+  el.querySelector(".step-head").onclick = () => el.classList.toggle("open");
+  chain.appendChild(el);
+  if (i < CHAIN.length - 1) {
+    const ar = document.createElement("div");
+    ar.className = "chain-arrow";
+    ar.textContent = "↓";
+    chain.appendChild(ar);
+  }
+});
+
+/* simulator */
+const SIMS = [
+  { label: "提示词 A", prompt: "帮我做一个律师事务所官网。",
+    tags: ["功能=企业官网", "主题=法律", "受众=B端客户", "模式=获客导向", "显性风格=无"],
+    bone: "Ant Design / 企业级组件库", skin: "扁平化 · 保守中性色",
+    verdict: "走默认推断：法律行业命中“稳重”规则 → 深蓝/灰色系、清晰的业务介绍结构、克制的装饰。结果：安全但平庸。" },
+  { label: "提示词 B", prompt: "专做科技初创公司业务的精品律所官网，参考某设计工作室，深色，要有现代感。",
+    tags: ["功能=企业官网", "主题=法律×科技", "受众=科技公司创始人", "模式=获客导向", "显性风格=深色/现代感"],
+    bone: "shadcn/ui + Tailwind", skin: "玻璃拟态 · 深色底",
+    verdict: "显性指令（深色、现代感）直接锁定风格层；受众改写行业默认值——“法律=稳重”的规则被“科技创始人”覆盖。深色底 + 玻璃拟态卡片 + 精致排版都成为合理选项。" },
+  { label: "提示词 C", prompt: "帮我做一个独立插画师的作品集，希望好玩、有个性。",
+    tags: ["功能=作品集", "主题=插画/艺术", "受众=C端访客", "模式=展示导向", "显性风格=好玩/个性"],
+    bone: "轻量静态站，定制组件", skin: "新粗野主义 / 拼贴风",
+    verdict: "作品集行业命中“可以激进”规则，“好玩、个性”进一步把选择推向高辨识度支线风格——撞色、硬阴影、非常规布局都是加分项而非风险。" },
+];
+const presets = document.getElementById("simPresets");
+const simOut = document.getElementById("simOut");
+function renderSim(i) {
+  const s = SIMS[i];
+  simOut.innerHTML = `
+    <div class="row"><span class="k">① 打标签</span><span>${s.tags.map(t => `<span class="chip">${t}</span>`).join("")}</span></div>
+    <div class="row"><span class="k">②③ 匹配</span><span>骨：<span class="chip">${s.bone}</span> 皮：<span class="chip skin">${s.skin}</span></span></div>
+    <div class="row"><span class="k">④ 校验</span><span style="color:#5eead4">对比度 / 无障碍 / 响应式 → 通过</span></div>
+    <div class="verdict">→ ${s.verdict}</div>`;
+}
+SIMS.forEach((s, i) => {
+  const b = document.createElement("button");
+  b.className = i === 0 ? "on" : "";
+  b.innerHTML = `<span class="p-label">${s.label}</span>"${s.prompt}"`;
+  b.onclick = () => {
+    presets.querySelectorAll("button").forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
+    renderSim(i);
+  };
+  presets.appendChild(b);
+});
+renderSim(0);
+</script>
+</body>
+</html>

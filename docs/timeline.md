@@ -2,6 +2,11 @@
 
 > 本地文档按 Git 首次加入时间、外链按登记时间排序，最近收录的内容在前。
 
+## 2026-08
+
+- [当 Agent 开始生产网站：从分类法到设计决策链（交互版）](agent-web-design-chain-demo/) `HTML`{target="_self"}
+- [当 Agent 开始生产网站：从分类法到设计决策链](agent-web-design-chain/index.md)
+
 ## 2026-07
 
 - [模型的一生｜训练与推理交互实验室](https://coconilu.github.io/model-lifecycle-lab/) `可交互网站`

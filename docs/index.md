@@ -81,6 +81,8 @@
 
 ## 思考与趋势
 
+- [当 Agent 开始生产网站：从分类法到设计决策链](agent-web-design-chain/index.md) — 从网站分类法和 UI 风格/设计系统之分，拆解 Agent 建站的四步决策链。
+- [当 Agent 开始生产网站：从分类法到设计决策链（交互版）](agent-web-design-chain-demo/) `HTML`{target="_self"} — 上文的可交互版本，含同骨架换肤演示、风格时间轴和决策链模拟器。
 - [SIA：当 Agent 开始改写自己 —— 一篇关于自改进循环的实践笔记](self-improving-ai/) `HTML`{target="_self"} — 讨论自改进 AI 的闭环、实践路径和工程含义。
 - [用 Issue 驱动开发：当瓶颈从 Agent 转向人](issue-driven-development/index.md) — 从 Symphony 看 issue tracker 如何成为 agent 协作的控制平面。
 - [AI 工程师的核心竞争力：从抽卡到可验证交付](ai-engineer-methodology/) `HTML`{target="_self"} — 讨论 AI 工程师如何把不确定生成收敛成可运行、可评估、可维护的交付。
@@ -106,6 +108,7 @@
 > 以下列表由 `scripts/update-docs-index.mjs` 自动维护，按创建时间排序。
 
 <!-- BEGIN_AUTO_HTML -->
+- [当 Agent 开始生产网站：从分类法到设计决策链（交互版）](agent-web-design-chain-demo/) `HTML`{target="_self"}
 - [AI Agent 框架如何演进：从工具调用到应用运行时](agent-framework-evolution-blog/) `HTML`{target="_self"}
 - [Page Agent 技术解读：把浏览器自动化放进页面内部](page-agent-technical-blog/) `HTML`{target="_self"}
 - [Claude Code Agent Loops 与 SKILL.md 自检工程指南](claude-code-agent-loops-skill-doc/) `HTML`{target="_self"}
