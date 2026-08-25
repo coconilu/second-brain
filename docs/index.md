@@ -51,6 +51,7 @@
 
 ## AI 工具生态
 
+- [理解深度学习 · 交互版](https://coconilu.github.io/understand-dl/) `可交互网站` — 用可交互图解讲解从感知机到 Transformer 的深度学习核心概念。
 - [模型的一生｜训练与推理交互实验室](https://coconilu.github.io/model-lifecycle-lab/) `可交互网站` — 通过交互实验串联数据、预训练、后训练、评估、量化、部署、Prefill、Decode 与反馈全流程。
 - [Page Agent 技术解读：把浏览器自动化放进页面内部](page-agent-technical-blog/) `HTML`{target="_self"} — 拆解 Alibaba Page Agent 的页面内 DOM Agent 架构、差异化价值和产品落地方式。
 - [Weave Router、CC Switch、LiteLLM、OpenRouter：本地 AI 编程 CLI 路由怎么选](weave-router-cli-routing-blog/) `HTML`{target="_self"} — 比较本地 AI 编程 CLI 路由、控制平面、通用网关和模型市场的定位与选型路径。
