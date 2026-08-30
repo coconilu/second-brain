@@ -28,6 +28,12 @@ const EXTERNAL_DOCS = [
     tag: '可交互网站',
     addedAt: '2026-08-25T00:00:00+08:00',
   },
+  {
+    title: 'DeepSeek Harness 交互式学习指南',
+    url: 'https://coconilu.github.io/dsh-learning-guide/',
+    tag: '可交互网站',
+    addedAt: '2026-08-30T00:00:00+08:00',
+  },
 ];
 
 // ---------------------------------------------------------------------------
