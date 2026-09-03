@@ -2,6 +2,10 @@
 
 > 本地文档按 Git 首次加入时间、外链按登记时间排序，最近收录的内容在前。
 
+## 2026-09
+
+- [视频流水线 · 交互图解](https://coconilu.github.io/video-pipeline-guide/) `可交互网站`
+
 ## 2026-08
 
 - [DeepSeek Harness 交互式学习指南](https://coconilu.github.io/dsh-learning-guide/) `可交互网站`
