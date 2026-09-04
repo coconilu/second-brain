@@ -4,6 +4,7 @@
 
 ## 2026-09
 
+- [127.0.0.1:58628 → myapp.local｜我写了个小工具，把本地服务变成“正经网站”](https://www.bilibili.com/video/BV1JAtv6KE5Y/) `视频`
 - [视频流水线 · 交互图解](https://coconilu.github.io/video-pipeline-guide/) `可交互网站`
 
 ## 2026-08
