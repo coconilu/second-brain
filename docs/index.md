@@ -4,6 +4,7 @@
 
 ## 工具操作指南
 
+- [LocalMap — 给本机端口一个像样的域名](https://coconilu.github.io/localmap/) `产品主页` — Windows 本地域名映射管理工具，支持桌面 GUI、本地 HTTPS 和开机自启。
 - [127.0.0.1:58628 → myapp.local｜我写了个小工具，把本地服务变成“正经网站”](https://www.bilibili.com/video/BV1JAtv6KE5Y/) `视频` — 演示 LocalMap 如何将本地端口映射为易记域名，并支持 WebSocket、本地 HTTPS、开机自启与自动更新。
 - [视频流水线 · 交互图解](https://coconilu.github.io/video-pipeline-guide/) `可交互网站` — 通过可操作图解拆解爆款特征、三种创作流水线、工具图谱与发布后数据复盘。
 - [Warp：当 Rust、GPU 与 AI Agent 重塑开发者终端](warp-tech-blog/) `HTML`{target="_self"} — 拆解 Warp 终端的 Rust/GPU 架构、AI Agent 能力和团队协作工作流。
