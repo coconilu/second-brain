@@ -52,6 +52,12 @@ const EXTERNAL_DOCS = [
     tag: '产品主页',
     addedAt: '2026-09-08T00:00:00+08:00',
   },
+  {
+    title: 'GitGrove — 以 worktree 为主轴的 GitHub 桌面客户端',
+    url: 'https://coconilu.github.io/gitgrove/',
+    tag: '产品主页',
+    addedAt: '2026-09-08T12:12:07+08:00',
+  },
 ];
 
 // ---------------------------------------------------------------------------
