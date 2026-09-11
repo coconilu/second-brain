@@ -31,8 +31,25 @@ export default defineConfig({
   ],
   cleanUrls: true,
   lastUpdated: true,
+  // The home page renders the timeline; the catalog (source `index.md`) moves
+  // to /catalog. VitePress rewrites page output paths, dev-server requests,
+  // local-search IDs and dead-link checks, but not hrefs already emitted into
+  // markdown — transformHtml below fixes the one such link.
+  rewrites: {
+    'timeline.md': 'index.md',
+    'index.md': 'catalog.md',
+  },
   markdown: {
     html: false,
+  },
+  transformHtml(html, id) {
+    // The catalog's inline "按时间浏览" link still points at ./timeline after
+    // the rewrites above (emitted hrefs are not rewritten); point it at the
+    // site root, which is where the timeline lives now.
+    if (id.endsWith('catalog.html')) {
+      return html.replace(/href="(\.\/|\/)timeline"/g, 'href="./"')
+    }
+    return html
   },
   // Standalone HTML pages are served by htmlStaticPagesPlugin below, not by
   // VitePress' Markdown router, so VitePress cannot statically verify them.
@@ -49,8 +66,8 @@ export default defineConfig({
   themeConfig: {
     logo: '/favicon.svg',
     nav: [
-      { text: '目录', link: '/' },
-      { text: '时间线', link: '/timeline' },
+      { text: '目录', link: '/catalog' },
+      { text: '时间线', link: '/' },
     ],
     sidebar,
     outline: {
@@ -188,7 +205,7 @@ function generateSidebarFromIndex(root: string) {
   sidebar.push({
     text: '按时间浏览',
     collapsed: false,
-    items: [{ text: '文档创建时间线', link: '/timeline' }],
+    items: [{ text: '文档创建时间线', link: '/' }],
   })
 
   return sidebar
