@@ -4,10 +4,18 @@ import { fileURLToPath } from 'node:url'
 import type { Plugin } from 'vite'
 import { defineConfig } from 'vitepress'
 
+// Deployed to a GitHub Pages sub-path. VitePress prefixes nav/sidebar links,
+// the theme logo and markdown asset URLs with `base` automatically; head tags
+// and raw URL-path matching below need the prefix applied manually.
+const basePath = '/second-brain/'
+
 const docsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const standaloneHtmlPages = findStandaloneHtmlPages(docsRoot)
 const standaloneHtmlAssets = findStandaloneHtmlAssets(docsRoot, standaloneHtmlPages)
 const standaloneHtmlRoutes = [...standaloneHtmlPages].map((page) => `/${page.replace(/index\.html$/, '')}`)
+// The theme's standalone-page link handler matches these against
+// window.location.pathname, which includes the base prefix in the browser.
+const standaloneHtmlBrowserRoutes = standaloneHtmlRoutes.map((route) => `${basePath}${route.slice(1)}`)
 const previewImages = findPreviewImages(docsRoot)
 const sidebar = generateSidebarFromIndex(docsRoot)
 
@@ -15,10 +23,11 @@ export default defineConfig({
   title: 'Second Brain',
   description: 'AI Agent 工具链、写作方法、工程实践和月度追踪文档',
   lang: 'zh-CN',
+  base: basePath,
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
-    ['link', { rel: 'alternate icon', type: 'image/png', href: '/favicon.png' }],
-    ['link', { rel: 'apple-touch-icon', href: '/favicon.png' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: `${basePath}favicon.svg` }],
+    ['link', { rel: 'alternate icon', type: 'image/png', href: `${basePath}favicon.png` }],
+    ['link', { rel: 'apple-touch-icon', href: `${basePath}favicon.png` }],
   ],
   cleanUrls: true,
   lastUpdated: true,
@@ -61,10 +70,10 @@ export default defineConfig({
   },
   vite: {
     define: {
-      __STANDALONE_HTML_ROUTES__: JSON.stringify(standaloneHtmlRoutes),
+      __STANDALONE_HTML_ROUTES__: JSON.stringify(standaloneHtmlBrowserRoutes),
     },
     plugins: [
-      htmlStaticPagesPlugin(docsRoot, standaloneHtmlPages),
+      htmlStaticPagesPlugin(docsRoot, standaloneHtmlPages, basePath),
       htmlStaticAssetsPlugin(docsRoot, standaloneHtmlAssets),
       previewImagesPlugin(docsRoot, previewImages),
     ],
@@ -101,15 +110,18 @@ function previewImagesPlugin(root: string, images: Set<string>): Plugin {
   }
 }
 
-function htmlStaticPagesPlugin(root: string, pages: Set<string>): Plugin {
+function htmlStaticPagesPlugin(root: string, pages: Set<string>, basePath: string): Plugin {
   return {
     name: 'second-brain-html-static-pages',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         if (!req.url) return next()
 
+        // Runs before Vite's base middleware, which would otherwise strip the
+        // base prefix, so dev-server URLs still carry it at this point.
         const pathname = decodeURIComponent(req.url.split('?')[0])
-        const normalized = pathname.endsWith('/') ? `${pathname}index.html` : pathname
+        const sitePath = pathname.startsWith(basePath) ? pathname.slice(basePath.length - 1) : pathname
+        const normalized = sitePath.endsWith('/') ? `${sitePath}index.html` : sitePath
         const relativePath = normalized.replace(/^\//, '')
 
         if (!pages.has(relativePath)) return next()
