@@ -1,4 +1,4 @@
-name: Deploy docs to Vercel
+name: Deploy docs to GitHub Pages
 
 on:
   push:
@@ -8,27 +8,26 @@ on:
       - "docs/**"
       - "package.json"
       - "pnpm-lock.yaml"
-      - "vercel.json"
       - ".github/workflows/deploy-docs.yml"
+      - "docs/.vitepress/config.ts"
   workflow_dispatch:
 
 concurrency:
-  group: docs-vercel-production
+  group: docs-pages-production
   cancel-in-progress: true
 
 permissions:
   contents: write
-
-env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-  VERCEL_ALIAS_DOMAIN: bayes-second-brain.vercel.app
+  pages: write
+  id-token: write
 
 jobs:
   deploy:
     name: Build and deploy docs
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Check out repository
@@ -65,27 +64,17 @@ jobs:
           git commit -m "docs: refresh index and timeline [skip ci]"
           git push origin "HEAD:${{ github.ref_name }}"
 
-      - name: Pull Vercel project settings
-        run: pnpm vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - name: Build VitePress site
+        run: pnpm docs:build
 
-      - name: Build with Vercel
-        run: pnpm vercel build --prod --token="$VERCEL_TOKEN"
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
 
-      - name: Deploy prebuilt output
-        id: deploy
-        shell: bash
-        run: |
-          set -euo pipefail
-          deploy_output="$(pnpm vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")"
-          echo "$deploy_output"
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/.vitepress/dist
 
-          deployment_url="$(echo "$deploy_output" | grep -oE 'https://[^[:space:]]+\.vercel\.app' | tail -1)"
-          if [ -z "$deployment_url" ]; then
-            echo "Could not find deployment URL in Vercel output." >&2
-            exit 1
-          fi
-
-          echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
-
-      - name: Update production alias
-        run: pnpm vercel alias set "${{ steps.deploy.outputs.deployment_url }}" "$VERCEL_ALIAS_DOMAIN" --token="$VERCEL_TOKEN"
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
