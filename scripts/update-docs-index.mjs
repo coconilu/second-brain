@@ -300,6 +300,9 @@ function updateIndex(docsDir, entries) {
     );
 
   // d) Add timeline link — append to the intro sentence (exact match)
+  // NOTE: docs/.vitepress/config.ts rewrites timeline.md → / and index.md → /catalog,
+  // and its transformHtml hook rewrites this emitted ./timeline href to ./ on the catalog
+  // page. If this link text/target changes, update that hook too or the catalog link 404s.
   const introEnd = '再按需查阅完整参考和对比分析。';
   if (content.includes(introEnd)) {
     content = content.replace(
