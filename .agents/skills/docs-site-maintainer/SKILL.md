@@ -51,7 +51,7 @@ whenToUse: 当用户在 docs/ 下添加、重命名、移动、删除文章或 H
 
 ## 自动化边界
 
-- 推送到 `main` 且 `docs/**` 有变更时，GitHub Actions（`.github/workflows/deploy-docs.yml`）会自动运行 `pnpm docs:update-index` 并把机械刷新部分（时间线、HTML 列表）提交回仓库，然后构建部署。
+- 推送到 `main` 且 `docs/**` 有变更时，GitHub Actions（`.github/workflows/deploy-docs.yml`）会自动运行 `pnpm docs:update-index` 并把机械刷新部分（时间线、HTML 列表）提交回仓库，然后构建并通过 `actions/deploy-pages` 发布到 GitHub Pages，站点地址 https://coconilu.github.io/second-brain/。无需配置额外 GitHub secrets；没有单独的部署命令，手动部署即推送 `main` 分支触发该 workflow。
 - CI 只能做机械刷新；`docs/index.md` 的 `##` 栏目归类是语义工作，必须在提交推送之前由你（或本 skill）完成，CI 不会代劳。
 
 ## 常用命令
@@ -61,5 +61,5 @@ pnpm docs:dev          # 本地预览文档站
 pnpm docs:build        # 构建文档站
 pnpm docs:preview      # 预览构建产物
 pnpm docs:update-index # 刷新 docs/index.md 与 docs/timeline.md
-pnpm deploy:prod       # 构建并部署到 Vercel 生产环境
+git push origin main   # 手动部署：推送 main 触发 deploy-docs.yml 自动发布到 GitHub Pages
 ```
