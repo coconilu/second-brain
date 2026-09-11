@@ -1,6 +1,6 @@
 # Second Brain — Agent Guide
 
-This is a **content repository** centered on a VitePress docs site (`docs/`) for browsing the knowledge base locally or on Vercel. Cross-platform agent skills (Kimi Code, Codex) live directly in `.agents/skills/` — both tools scan that directory, so no packaging step is needed for them. The legacy OpenCode/Claude Code packaging pipeline (`manifest.yaml` + `scripts/sync-plugins.sh`) is retained but currently has no registered entries. There is no application runtime or test suite; the only CI/CD is the docs deployment workflow at `.github/workflows/deploy-docs.yml`, which also auto-refreshes the docs index. Markdown docs can be checked with Vale using the local config under `docs/`; standalone HTML teaching pages may also live under `docs/`.
+This is a **content repository** centered on a VitePress docs site (`docs/`) for browsing the knowledge base locally or on GitHub Pages at https://coconilu.github.io/second-brain/. Cross-platform agent skills (Kimi Code, Codex) live directly in `.agents/skills/` — both tools scan that directory, so no packaging step is needed for them. The legacy OpenCode/Claude Code packaging pipeline (`manifest.yaml` + `scripts/sync-plugins.sh`) is retained but currently has no registered entries. There is no application runtime or test suite; the only CI/CD is the docs deployment workflow at `.github/workflows/deploy-docs.yml`, which also auto-refreshes the docs index. Markdown docs can be checked with Vale using the local config under `docs/`; standalone HTML teaching pages may also live under `docs/`.
 
 ## Directory layout
 
@@ -14,10 +14,9 @@ dist/                    — generated output (git-ignored: .gitignore)
 manifest.yaml            — packaging registry (currently no entries)
 docs/                    — general knowledge docs (Markdown and standalone HTML)
 docs/.vitepress/         — VitePress config/theme and generated site output
-.github/workflows/deploy-docs.yml — refresh docs index, then deploy docs to Vercel on relevant `main` branch pushes
+.github/workflows/deploy-docs.yml — refresh docs index, then deploy docs to GitHub Pages on relevant `main` branch pushes
 .opencode/skills/        — local OpenCode helper skills for this repo; not packaged via manifest.yaml
 package.json             — plugin/docs-site scripts and docs-site dependencies
-vercel.json              — Vercel deployment config for the docs site
 ```
 
 ## Key commands
@@ -39,9 +38,6 @@ pnpm docs:dev                                          # run the local VitePress
 pnpm docs:build                                        # build the VitePress docs site
 pnpm docs:preview                                      # preview the built VitePress docs site
 pnpm docs:update-index                                 # refresh docs/index.md and docs/timeline.md
-pnpm deploy                                            # deploy the docs site with Vercel
-pnpm deploy:preview                                    # build docs site, then deploy with Vercel
-pnpm deploy:prod                                       # build docs site, then deploy to Vercel production
 vale --config="docs/.vale.ini" --output=JSON "docs/**/*.md" # lint docs Markdown
 ```
 
@@ -59,7 +55,7 @@ Without a platform argument, install/uninstall/update defaults to both platforms
 1. Add or edit Markdown/HTML content under `docs/`. The VitePress sidebar is auto-generated from `docs/index.md` `##` sections — add a link for the new page under the relevant heading; no need to manually edit `config.ts`. External links are not files: register them in the `EXTERNAL_DOCS` array in `scripts/update-docs-index.mjs`.
 2. Run `pnpm docs:update-index` to refresh `docs/timeline.md` and the auto-generated standalone HTML pages section in `docs/index.md`. The `##` category sections in `docs/index.md` are hand-maintained — the script never adds entries there; curate them manually before committing.
 3. Run `pnpm docs:dev` for local preview, or `pnpm docs:build` to validate the VitePress build.
-4. Pushes to `main` that touch `docs/**`, Vercel config, or docs dependencies deploy production through `.github/workflows/deploy-docs.yml`. The workflow runs `pnpm docs:update-index` first and commits any mechanical refresh (timeline, HTML list) back to the branch before deploying. It requires `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` GitHub Secrets. For manual deployment, run `pnpm deploy:preview`, `pnpm deploy`, or `pnpm deploy:prod`.
+4. Pushes to `main` that touch `docs/**` or docs dependencies deploy production through `.github/workflows/deploy-docs.yml`. The workflow runs `pnpm docs:update-index` first and commits any mechanical refresh (timeline, HTML list) back to the branch, then builds the VitePress site and publishes it to GitHub Pages via `actions/deploy-pages`. The site is served at https://coconilu.github.io/second-brain/; no extra GitHub Secrets are required. There is no separate manual deploy command — pushing `main` is what triggers the workflow.
 5. Do not commit generated `docs/.vitepress/dist/` or cache output.
 
 ## Skill file format
@@ -94,4 +90,4 @@ After every conversation where files have been generated or modified, invoke the
 
 ## Repository context
 
-This directory lives inside a larger local git monorepo at `/Users/chenmeili/Documents/GitHub/`. The git root is **not** `second-brain/` — it is the parent directory. Sibling projects (e.g., `scan-reviewer/`, `hermes-agent/`, `cua/`) are independent projects under the same repo. Do not assume `second-brain/` is a standalone git repository.
+This is a standalone git repository — the git root is `second-brain/` itself, with remote `github.com/coconilu/second-brain`. Do not assume a parent monorepo or sibling projects.

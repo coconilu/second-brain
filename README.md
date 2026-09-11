@@ -2,7 +2,7 @@
 
 知识沉底 markdown 化，功能技术 skill 化。
 
-将个人知识和常用技术技巧提炼为可复用的 skill，方便在不同 AI Agent 平台间迁移使用；同时提供可本地浏览或部署到 Vercel 的 VitePress docs 网站用于浏览知识库。
+将个人知识和常用技术技巧提炼为可复用的 skill，方便在不同 AI Agent 平台间迁移使用；同时提供可本地浏览的 VitePress docs 网站用于浏览知识库，线上部署在 GitHub Pages：https://coconilu.github.io/second-brain/。
 
 ## 目录结构
 
@@ -11,11 +11,10 @@
 - `commands/` — 打包流水线的 command 源文件（当前为空）
 - `templates/` — 文档和 Skill 模板
 - `scripts/` — 工具脚本
-- `.github/workflows/deploy-docs.yml` — GitHub Actions：`main` 分支上 docs 相关变更自动刷新索引并发布到 Vercel
+- `.github/workflows/deploy-docs.yml` — GitHub Actions：`main` 分支上 docs 相关变更自动刷新索引并发布到 GitHub Pages
 - `docs/.vitepress/` — VitePress 配置、主题和本地构建输出
 - `.opencode/skills/` — 本仓库本地 OpenCode 辅助技能（不通过 manifest 打包）
 - `package.json` — plugins/docs 网站脚本和 docs 网站依赖
-- `vercel.json` — docs 网站的 Vercel 部署配置
 - `dist/` — 构建产物（由 sync-plugins.sh 生成，不提交 Git）
 
 ## 快速开始
@@ -37,12 +36,9 @@ pnpm docs:dev                                          # 启动本地 VitePress 
 pnpm docs:build                                        # 构建 docs 网站
 pnpm docs:preview                                      # 预览构建后的 docs 网站
 pnpm docs:update-index                                 # 刷新 docs/index.md 和 docs/timeline.md
-pnpm deploy                                            # 通过 Vercel 部署 docs 网站预览环境
-pnpm deploy:preview                                    # 先构建 docs 网站，再通过 Vercel 部署预览环境
-pnpm deploy:prod                                       # 先构建 docs 网站，再通过 Vercel 部署生产环境
 vale --config="docs/.vale.ini" --output=JSON "docs/**/*.md" # 校验 docs Markdown
 ```
 
 不指定平台时，install/uninstall/update 默认操作两个平台。
 
-GitHub Actions 会在 `main` 分支推送且 `docs/**`、Vercel 配置或 docs 依赖发生变化时自动发布生产环境。仓库需要配置 `VERCEL_TOKEN`、`VERCEL_ORG_ID`、`VERCEL_PROJECT_ID` 三个 GitHub Secrets。
+GitHub Actions 会在 `main` 分支推送且 docs 相关内容发生变化时自动构建并发布到 GitHub Pages，站点地址为 https://coconilu.github.io/second-brain/，无需配置额外 GitHub Secrets。手动部署即推送 `main` 分支触发 workflow。
