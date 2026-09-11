@@ -1,12 +1,22 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vitepress'
+import { useData, useRoute, withBase } from 'vitepress'
 
 const route = useRoute()
+const { site } = useData()
 const visible = ref(true)
 
 const previewSrc = computed(() => {
-  const cleanPath = route.path.split('#')[0].split('?')[0]
+  // route.path carries the deployed base prefix (e.g. /second-brain/ on
+  // GitHub Pages), which would make top-level pages look like sub-directory
+  // pages. Strip it before matching, then re-apply it via withBase — raw
+  // img src values skip VitePress' automatic base prefixing.
+  const base = site.value.base
+  let cleanPath = route.path.split('#')[0].split('?')[0]
+  if (base !== '/' && cleanPath.startsWith(base)) {
+    cleanPath = cleanPath.slice(base.length)
+  }
+  if (!cleanPath.startsWith('/')) cleanPath = `/${cleanPath}`
   if (cleanPath === '/' || cleanPath === '/index') return ''
 
   const basePath = cleanPath.endsWith('/')
@@ -15,7 +25,7 @@ const previewSrc = computed(() => {
 
   if (basePath === '/') return ''
 
-  return `${basePath}preview.png`
+  return withBase(`${basePath}preview.png`)
 })
 
 watch(
