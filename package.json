@@ -14,13 +14,9 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "docs:update-index": "node scripts/update-docs-index.mjs",
-    "docs:commit": "bash scripts/docs-commit.sh",
-    "deploy": "vercel",
-    "deploy:preview": "pnpm docs:build && vercel",
-    "deploy:prod": "bash scripts/deploy-prod.sh"
+    "docs:commit": "bash scripts/docs-commit.sh"
   },
   "devDependencies": {
-    "vercel": "^54.4.1",
     "vitepress": "^1.6.4"
   }
 }
