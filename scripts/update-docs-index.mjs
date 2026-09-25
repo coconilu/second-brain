@@ -64,6 +64,36 @@ const EXTERNAL_DOCS = [
     tag: '视频',
     addedAt: '2026-09-08T20:14:17+08:00',
   },
+  {
+    title: '从权重到同事 · 第 1 篇：AI 如何从背书机器变成会想的助手',
+    url: 'https://mp.weixin.qq.com/s/Xic8yAmg26zKxv4ZKzZ-oQ',
+    tag: '【公众号】',
+    addedAt: '2026-09-25T00:00:00+08:00',
+  },
+  {
+    title: '从权重到同事 · 第 2 篇：长出手脚——工具调用与 Harness 的诞生',
+    url: 'https://mp.weixin.qq.com/s/Bo4vWd574h3Wfe8aXAGBHA',
+    tag: '【公众号】',
+    addedAt: '2026-09-25T00:00:00+08:00',
+  },
+  {
+    title: '从权重到同事 · 第 3 篇：解剖你电脑里的 Agent——你装的是马具，不是马',
+    url: 'https://mp.weixin.qq.com/s/4aFexur5oCCoOFfwaVJi7w',
+    tag: '【公众号】',
+    addedAt: '2026-09-25T00:00:00+08:00',
+  },
+  {
+    title: '从权重到同事 · 第 4 篇：耐力——长任务为什么这么难，以及怎么解',
+    url: 'https://mp.weixin.qq.com/s/Pwzls7Dcdh0R6md3exQi4A',
+    tag: '【公众号】',
+    addedAt: '2026-09-25T00:00:00+08:00',
+  },
+  {
+    title: '从权重到同事 · 第 5 篇：成为同事——2026 的 AI Agent 正在发生什么',
+    url: 'https://mp.weixin.qq.com/s/Zuemlsh9-HTSVgOl0Ksw0A',
+    tag: '【公众号】',
+    addedAt: '2026-09-25T00:00:00+08:00',
+  },
 ];
 
 // ---------------------------------------------------------------------------

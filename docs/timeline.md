@@ -4,6 +4,11 @@
 
 ## 2026-09
 
+- [从权重到同事 · 第 1 篇：AI 如何从背书机器变成会想的助手](https://mp.weixin.qq.com/s/Xic8yAmg26zKxv4ZKzZ-oQ) `【公众号】`
+- [从权重到同事 · 第 2 篇：长出手脚——工具调用与 Harness 的诞生](https://mp.weixin.qq.com/s/Bo4vWd574h3Wfe8aXAGBHA) `【公众号】`
+- [从权重到同事 · 第 3 篇：解剖你电脑里的 Agent——你装的是马具，不是马](https://mp.weixin.qq.com/s/4aFexur5oCCoOFfwaVJi7w) `【公众号】`
+- [从权重到同事 · 第 4 篇：耐力——长任务为什么这么难，以及怎么解](https://mp.weixin.qq.com/s/Pwzls7Dcdh0R6md3exQi4A) `【公众号】`
+- [从权重到同事 · 第 5 篇：成为同事——2026 的 AI Agent 正在发生什么](https://mp.weixin.qq.com/s/Zuemlsh9-HTSVgOl0Ksw0A) `【公众号】`
 - [还在网页和终端之间来回切？GitGrove 把 GitHub 整条开发链路装进一个桌面应用](https://www.bilibili.com/video/BV1XsbV6eE8B/) `视频`
 - [GitGrove — 以 worktree 为主轴的 GitHub 桌面客户端](https://coconilu.github.io/gitgrove/) `产品主页`
 - [LocalMap — 给本机端口一个像样的域名](https://coconilu.github.io/localmap/) `产品主页`
