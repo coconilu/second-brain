@@ -32,6 +32,7 @@
 - [从权重到同事 · 第 3 篇：解剖你电脑里的 Agent——你装的是马具，不是马](https://mp.weixin.qq.com/s/4aFexur5oCCoOFfwaVJi7w) `【公众号】` — 拆解 agent 主循环时序与五款 CLI harness 的工艺对比。
 - [从权重到同事 · 第 4 篇：耐力——长任务为什么这么难，以及怎么解](https://mp.weixin.qq.com/s/Pwzls7Dcdh0R6md3exQi4A) `【公众号】` — 误差乘法与三堵墙：上下文压缩、断点恢复、沙箱与 worktree 隔离。
 - [从权重到同事 · 第 5 篇：成为同事——2026 的 AI Agent 正在发生什么](https://mp.weixin.qq.com/s/Zuemlsh9-HTSVgOl0Ksw0A) `【公众号】` — METR 时长指数曲线与 AI 写 AI、多智能体团队、常驻 Agent、治理收紧四个锚点。
+- [从权重到同事：AI 怎么一步步进化成 Agent？本能→模仿→听话→思考→手脚→耐力](https://www.bilibili.com/video/BV1fAh96ZELc/) `【视频】` — 智能体演进录系列 18 分钟视频版，串讲大脑、手脚、循环、耐力到 2026 Agent 元年的完整进化线。
 
 - [AI Agent 框架如何演进：从工具调用到应用运行时](agent-framework-evolution-blog/) `HTML`{target="_self"} — 面向普通技术读者梳理 Agent 框架从工具调用、RAG、多智能体到持久运行时和协议化的演进主线。
 - [OpenHands 深度解析：开源 AI 软件工程师的崛起](openhands-tech-blog/) `HTML`{target="_self"} — 从架构、工具生态和工作流角度解析 OpenHands 这类开源 AI 软件工程师。

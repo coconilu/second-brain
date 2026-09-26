@@ -4,6 +4,7 @@
 
 ## 2026-09
 
+- [从权重到同事：AI 怎么一步步进化成 Agent？本能→模仿→听话→思考→手脚→耐力](https://www.bilibili.com/video/BV1fAh96ZELc/) `【视频】`
 - [从权重到同事 · 第 1 篇：AI 如何从背书机器变成会想的助手](https://mp.weixin.qq.com/s/Xic8yAmg26zKxv4ZKzZ-oQ) `【公众号】`
 - [从权重到同事 · 第 2 篇：长出手脚——工具调用与 Harness 的诞生](https://mp.weixin.qq.com/s/Bo4vWd574h3Wfe8aXAGBHA) `【公众号】`
 - [从权重到同事 · 第 3 篇：解剖你电脑里的 Agent——你装的是马具，不是马](https://mp.weixin.qq.com/s/4aFexur5oCCoOFfwaVJi7w) `【公众号】`
